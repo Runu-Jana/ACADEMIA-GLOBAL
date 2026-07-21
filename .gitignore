@@ -1,0 +1,22 @@
+node_modules/
+.next/
+out/
+build/
+.DS_Store
+*.pem
+
+# env
+.env
+.env*.local
+
+# prisma
+prisma/*.db
+prisma/*.db-journal
+
+# uploaded course material — served only via /api/materials/[id]/download,
+# never statically from public/
+storage/
+
+# ts
+*.tsbuildinfo
+next-env.d.ts

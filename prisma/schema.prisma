@@ -1,0 +1,702 @@
+// Academia Global — Virtual Learning Platform
+// Data model for the student-facing site/PWA and the admin panel.
+//
+// Enum-like columns are plain Strings (SQLite has no native enums) and the
+// allowed values live in src/lib/constants.ts so both layers stay in sync.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------- accounts
+
+model User {
+  id           String  @id @default(cuid())
+  email        String  @unique
+  passwordHash String
+  name         String
+  phone        String?
+  dob          String?
+  gender       String?
+  avatarUrl    String?
+  role         String  @default("STUDENT") // STUDENT | ADMIN
+  city         String?
+  state        String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  enrollments      Enrollment[]
+  applications     Application[]
+  certificates     Certificate[]
+  testAttempts     TestAttempt[]
+  lessonProgress   LessonProgress[]
+  reviews          Review[]
+  uploadedMaterial Material[]       @relation("UploadedBy")
+  counsellorChats  ChatMessage[]
+
+  @@index([role])
+}
+
+// ------------------------------------------------------------ institutions
+
+model University {
+  id        String  @id @default(cuid())
+  slug      String  @unique
+  name      String
+  shortName String
+  logoUrl   String?
+  coverUrl  String?
+  about     String
+  estYear   Int
+  naacGrade String?
+  approvals Json // ["UGC", "NAAC A+", "AICTE"]
+  rating    Float   @default(4.5)
+  reviews   Int     @default(0)
+  students  Int     @default(0)
+  programs  Int     @default(0)
+  city      String
+  state     String
+  website   String?
+  featured  Boolean @default(false)
+
+  // ---- partnership (the revenue relationship) ----
+  /// PROSPECT -> IN_TALKS -> ACTIVE. Only ACTIVE partners' courses go live.
+  partnerStatus String @default("PROSPECT")
+  /// What this university pays us per paid enrolment, as a percentage of fee.
+  /// Negotiated per partner, so it lives here rather than in config.
+  commissionPct Float  @default(0)
+  /// Days after enrolment before commission is claimable (refund window).
+  cooloffDays   Int    @default(15)
+  agreementUrl  String?
+  contactName   String?
+  contactEmail  String?
+  contactPhone  String?
+
+  createdAt DateTime @default(now())
+
+  courses     Course[]
+  commissions Commission[]
+  payouts     Payout[]
+
+  @@index([featured])
+  @@index([partnerStatus])
+}
+
+// ---------------------------------------------------------------- catalogue
+
+model Course {
+  id       String @id @default(cuid())
+  slug     String @unique
+  title    String
+  subtitle String
+
+  level     String // UG | PG | DIPLOMA | CERTIFICATE | INTEGRATED
+  mode      String // ONLINE | DISTANCE | HYBRID | REGULAR | PART_TIME
+  stream    String // MANAGEMENT | ENGINEERING | MEDICAL | LAW | ARTS | SCIENCE | COMMERCE | IT
+
+  durationYears Float
+  feePerYear    Int
+  originalFee   Int?
+  discountPct   Int    @default(0)
+
+  about       String
+  eligibility String
+  examMode    String @default("Online Proctored")
+
+  highlights Json // string[]
+  skills     Json // string[]
+  recruiters Json // string[]
+
+  thumbnailUrl  String?
+  isUgcEntitled Boolean @default(true)
+  hasPlacement  Boolean @default(true)
+  hasLiveClass  Boolean @default(true)
+  featured      Boolean @default(false)
+
+  /// UNIVERSITY = a partner's programme; we earn commission on enrolment.
+  /// PLATFORM   = our own training programme (PGDCA, AI, etc.); we keep 100%.
+  /// A student can hold both at once — the two revenue paths are independent.
+  source String @default("UNIVERSITY")
+
+  rating  Float @default(4.4)
+  reviews Int   @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  universityId String
+  university   University @relation(fields: [universityId], references: [id], onDelete: Cascade)
+
+  modules      Module[]
+  enrollments  Enrollment[]
+  materials    Material[]
+  applications Application[]
+  certificates Certificate[]
+  courseReview Review[]
+  chunks       ContentChunk[]
+
+  // ---- PMS: academic structure behind the listing ----
+  terms       Term[]
+  subjects    Subject[]
+  batches     Batch[]
+  liveClasses LiveClass[]
+
+  gradingSchemeId String?
+  gradingScheme   GradingScheme? @relation(fields: [gradingSchemeId], references: [id], onDelete: SetNull)
+
+  @@index([level])
+  @@index([source])
+  @@index([mode])
+  @@index([stream])
+  @@index([universityId])
+  @@index([featured])
+}
+
+/// A chapter / semester unit inside a course.
+model Module {
+  id          String  @id @default(cuid())
+  title       String
+  description String?
+  order       Int     @default(0)
+
+  courseId String
+  course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  /// Optional for now: existing modules hang off the course directly, and get
+  /// attached to a subject as PMS structure is filled in.
+  subjectId String?
+  subject   Subject? @relation(fields: [subjectId], references: [id], onDelete: SetNull)
+
+  lessons   Lesson[]
+  materials Material[]
+  tests     Test[]
+
+  @@index([courseId, order])
+  @@index([subjectId])
+}
+
+model Lesson {
+  id          String  @id @default(cuid())
+  title       String
+  description String?
+  order       Int     @default(0)
+  type        String  @default("VIDEO") // VIDEO | READING | LIVE
+  durationMin Int     @default(15)
+  contentUrl  String?
+  body        String? // inline reading content
+
+  moduleId String
+  module   Module @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+
+  progress LessonProgress[]
+
+  @@index([moduleId, order])
+}
+
+/// Anything the admin uploads for students: notes, PDFs, question papers,
+/// recorded lectures, syllabus documents.
+model Material {
+  id       String  @id @default(cuid())
+  title    String
+  type     String // PDF | NOTES | TEST_PAPER | SYLLABUS | ASSIGNMENT | RECORDING
+  fileUrl  String
+  fileName String
+  fileSize Int     @default(0)
+  mimeType String  @default("application/pdf")
+  note     String?
+
+  createdAt DateTime @default(now())
+
+  courseId String
+  course   Course  @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  moduleId String?
+  module   Module? @relation(fields: [moduleId], references: [id], onDelete: SetNull)
+
+  uploadedById String?
+  uploadedBy   User?   @relation("UploadedBy", fields: [uploadedById], references: [id], onDelete: SetNull)
+
+  @@index([courseId])
+  @@index([moduleId])
+  @@index([type])
+}
+
+// ----------------------------------------------------------- assessments
+
+model Test {
+  id          String @id @default(cuid())
+  title       String
+  type        String @default("QUIZ") // QUIZ | MID_TERM | FINAL
+  totalMarks  Int    @default(20)
+  passMarks   Int    @default(8)
+  durationMin Int    @default(20)
+
+  moduleId String
+  module   Module @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+
+  questions Question[]
+  attempts  TestAttempt[]
+
+  @@index([moduleId])
+}
+
+model Question {
+  id           String @id @default(cuid())
+  text         String
+  options      Json // string[]
+  correctIndex Int
+  marks        Int    @default(1)
+  order        Int    @default(0)
+
+  testId String
+  test   Test   @relation(fields: [testId], references: [id], onDelete: Cascade)
+
+  @@index([testId, order])
+}
+
+model TestAttempt {
+  id          String   @id @default(cuid())
+  score       Int      @default(0)
+  totalMarks  Int      @default(0)
+  passed      Boolean  @default(false)
+  answers     Json // Record<questionId, selectedIndex>
+  submittedAt DateTime @default(now())
+
+  testId String
+  test   Test   @relation(fields: [testId], references: [id], onDelete: Cascade)
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([testId])
+}
+
+// ------------------------------------------------------------- enrolment
+
+model Enrollment {
+  id          String    @id @default(cuid())
+  status      String    @default("ACTIVE") // ACTIVE | COMPLETED | PAUSED
+  progressPct Int       @default(0)
+  enrolledAt  DateTime  @default(now())
+  completedAt DateTime?
+
+  userId   String
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseId String
+  course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  /// Which intake the student was admitted into — drives their calendar.
+  batchId String?
+  batch   Batch?  @relation(fields: [batchId], references: [id], onDelete: SetNull)
+
+  certificate Certificate?
+
+  @@unique([userId, courseId])
+  @@index([userId])
+  @@index([courseId])
+}
+
+model LessonProgress {
+  id          String   @id @default(cuid())
+  completedAt DateTime @default(now())
+
+  userId   String
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lessonId String
+  lesson   Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, lessonId])
+  @@index([userId])
+}
+
+/// Multi-step admission application (the 4-step wizard).
+model Application {
+  id        String @id @default(cuid())
+  step      Int    @default(1)
+  status    String @default("DRAFT") // DRAFT | SUBMITTED | UNDER_REVIEW | APPROVED | REJECTED
+  personal  Json?
+  education Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId   String
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseId String
+  course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, courseId])
+  @@index([status])
+}
+
+model Certificate {
+  id       String   @id @default(cuid())
+  serial   String   @unique
+  grade    String   @default("A")
+  issuedAt DateTime @default(now())
+
+  userId       String
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseId     String
+  course       Course     @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  enrollmentId String     @unique
+  enrollment   Enrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  rating    Int
+  body      String
+  createdAt DateTime @default(now())
+
+  userId   String
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseId String
+  course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, courseId])
+  @@index([courseId])
+}
+
+/// Persisted AI counsellor conversation so the thread survives a reload.
+model ChatMessage {
+  id        String   @id @default(cuid())
+  role      String // user | assistant
+  content   String
+  createdAt DateTime @default(now())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+}
+
+// ===========================================================================
+// Marketplace revenue
+//
+// Students pay us; we owe the university their share of a PLATFORM course, or
+// they owe us commission on a UNIVERSITY course. Both directions are recorded
+// per enrolment so settlement is reconcilable rather than a spreadsheet.
+// ===========================================================================
+
+/// A student's payment. One order can only cover one course — partial and
+/// instalment payments attach to the same order.
+model Order {
+  id       String @id @default(cuid())
+  amount   Int // paise
+  currency String @default("INR")
+  status   String @default("PENDING") // PENDING | PAID | FAILED | REFUNDED
+
+  gatewayOrderId   String? @unique
+  gatewayPaymentId String?
+  method           String?
+
+  createdAt DateTime  @default(now())
+  paidAt    DateTime?
+  refundedAt DateTime?
+
+  userId   String
+  courseId String
+
+  commission Commission?
+
+  @@index([userId])
+  @@index([status])
+}
+
+/// What a partner university owes us for one enrolment.
+/// Snapshotted at creation: the rate can be renegotiated later, but a
+/// historical commission must never silently change.
+model Commission {
+  id            String @id @default(cuid())
+  courseFee     Int
+  commissionPct Float
+  amount        Int
+
+  /// PENDING -> CLAIMABLE (cool-off passed) -> INVOICED -> PAID
+  /// VOID when the student refunds inside the cool-off window.
+  status String @default("PENDING")
+
+  claimableAt DateTime
+  createdAt   DateTime @default(now())
+
+  universityId String
+  university   University @relation(fields: [universityId], references: [id], onDelete: Cascade)
+  orderId      String     @unique
+  order        Order      @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  payoutId     String?
+  payout       Payout?    @relation(fields: [payoutId], references: [id], onDelete: SetNull)
+
+  @@index([universityId, status])
+  @@index([status, claimableAt])
+}
+
+/// A batched invoice to one university covering many commissions.
+model Payout {
+  id          String   @id @default(cuid())
+  periodStart DateTime
+  periodEnd   DateTime
+  totalAmount Int
+  status      String   @default("DRAFT") // DRAFT | INVOICED | PAID | DISPUTED
+  invoiceNo   String?  @unique
+  notes       String?
+
+  createdAt DateTime  @default(now())
+  paidAt    DateTime?
+
+  universityId String
+  university   University   @relation(fields: [universityId], references: [id], onDelete: Cascade)
+  commissions  Commission[]
+
+  @@index([universityId, status])
+}
+
+// ===========================================================================
+// AI
+// ===========================================================================
+
+/// Retrieval index for the course-aware tutor.
+///
+/// Every lesson, material and module is chunked and embedded here. When a
+/// student asks a question we retrieve only from courses they're ENROLLED in,
+/// which is what lets the tutor tell "my assignment is late" in one programme
+/// apart from the same words in another — and stops it inventing answers about
+/// content it has never seen.
+///
+/// `embedding` is a JSON float array because SQLite has no vector type. On
+/// Postgres this becomes a pgvector column with an ivfflat index; the
+/// retrieval interface is written so only the similarity query changes.
+model ContentChunk {
+  id        String @id @default(cuid())
+  text      String
+  embedding String
+  tokens    Int    @default(0)
+
+  /// Where this text came from, for citation in the answer.
+  sourceType  String // LESSON | MATERIAL | MODULE | COURSE
+  sourceId    String
+  sourceLabel String
+
+  createdAt DateTime @default(now())
+
+  courseId String
+  course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@index([courseId])
+  @@index([sourceType, sourceId])
+}
+
+/// Per-call AI metering. Written on every model call so spend is attributable
+/// per feature and per student, and can be capped before it surprises anyone.
+model AiUsageLog {
+  id      String @id @default(cuid())
+  feature String // tutor | chatbot | resume | sop | career | interview | notes | roadmap
+  model   String
+  provider String @default("anthropic")
+
+  inputTokens      Int @default(0)
+  outputTokens     Int @default(0)
+  cacheReadTokens  Int @default(0)
+  cacheWriteTokens Int @default(0)
+  costPaise        Int @default(0)
+
+  latencyMs Int?
+  createdAt DateTime @default(now())
+
+  userId   String?
+  courseId String?
+
+  @@index([createdAt])
+  @@index([feature])
+  @@index([userId])
+}
+
+// ===========================================================================
+// PMS — Programme Management
+//
+// The academic definition of a programme, as the institution registers it:
+// semesters, subjects, credits, grading, intakes.
+//
+// Deliberately additive. `Course` remains the marketplace listing students
+// browse and buy; these models describe the academic structure behind it.
+// Existing Modules keep hanging off Course, and can additionally be attached
+// to a Subject as structure is filled in — so the LMS never breaks mid-migration.
+// ===========================================================================
+
+/// A semester / year within a programme.
+model Term {
+  id     String @id @default(cuid())
+  number Int // 1..n, ordered
+  title  String // "Semester 1"
+  creditsRequired Int @default(0)
+
+  courseId String
+  course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  subjects Subject[]
+
+  @@unique([courseId, number])
+  @@index([courseId])
+}
+
+/// A paper/subject carrying credits and a marks split.
+/// This is the unit a university actually examines and grades.
+model Subject {
+  id      String @id @default(cuid())
+  code    String // "BBA-DM-201"
+  title   String
+  credits Int    @default(4)
+
+  kind String @default("CORE") // CORE | ELECTIVE | LAB | PROJECT | AUDIT
+
+  /// Indian universities near-universally split assessment this way, so it's
+  /// modelled explicitly rather than buried in a total.
+  internalMarks Int @default(30)
+  externalMarks Int @default(70)
+
+  syllabusOutline String?
+
+  courseId String
+  course   Course  @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  termId   String?
+  term     Term?   @relation(fields: [termId], references: [id], onDelete: SetNull)
+
+  modules     Module[]
+  liveClasses LiveClass[]
+
+  @@unique([courseId, code])
+  @@index([courseId])
+  @@index([termId])
+}
+
+/// An intake cohort — "BBA DM, Aug 2026 intake".
+/// Students are admitted into a batch, which is what drives the calendar.
+model Batch {
+  id          String   @id @default(cuid())
+  name        String // "2026-29"
+  intakeMonth String // "AUGUST"
+  startDate   DateTime
+  endDate     DateTime?
+  seats       Int      @default(0)
+  status      String   @default("OPEN") // OPEN | CLOSED | RUNNING | COMPLETED
+
+  courseId String
+  course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  enrollments Enrollment[]
+  events      AcademicEvent[]
+
+  @@index([courseId, status])
+}
+
+/// Term starts, exam windows, result dates — per batch.
+model AcademicEvent {
+  id      String   @id @default(cuid())
+  type    String // TERM_START | TERM_END | EXAM | RESULT | HOLIDAY | FEE_DUE
+  title   String
+  startsAt DateTime
+  endsAt   DateTime?
+  notes   String?
+
+  batchId String
+  batch   Batch  @relation(fields: [batchId], references: [id], onDelete: Cascade)
+
+  @@index([batchId, startsAt])
+}
+
+/// Marks -> grade -> grade points. Varies by university, so it's data.
+model GradingScheme {
+  id   String @id @default(cuid())
+  name String
+  /// [{ "min": 90, "grade": "A+", "points": 10 }, ...] evaluated high to low.
+  bands Json
+  maxPoints Float @default(10)
+
+  courses Course[]
+}
+
+/// A student's result for one subject. Feeds SGPA/CGPA.
+model SubjectResult {
+  id            String @id @default(cuid())
+  internalScore Int    @default(0)
+  externalScore Int    @default(0)
+  totalScore    Int    @default(0)
+  grade         String?
+  gradePoints   Float?
+  status        String @default("PENDING") // PENDING | PASS | FAIL | WITHHELD
+
+  publishedAt DateTime?
+  createdAt   DateTime  @default(now())
+
+  userId    String
+  subjectId String
+
+  @@unique([userId, subjectId])
+  @@index([userId])
+  @@index([subjectId])
+}
+
+// ===========================================================================
+// Live classes
+// ===========================================================================
+
+/// A scheduled online class.
+///
+/// `roomName` carries a random suffix and is NEVER sent to the browser
+/// directly — a guessable room is an open door into a paying student's class.
+/// The join URL is minted by /api/live/[id]/join after an enrolment check.
+model LiveClass {
+  id          String  @id @default(cuid())
+  title       String
+  description String?
+
+  provider String @default("JITSI") // JITSI | ZOOM | MEET
+  roomName String @unique
+  /// Only set for externally-hosted classes (a tutor's own Zoom link).
+  externalUrl String?
+
+  startsAt    DateTime
+  durationMin Int      @default(60)
+  status      String   @default("SCHEDULED") // SCHEDULED | LIVE | ENDED | CANCELLED
+
+  /// Published after the class; gated by the same enrolment check.
+  recordingUrl String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  courseId  String
+  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  subjectId String?
+  subject   Subject? @relation(fields: [subjectId], references: [id], onDelete: SetNull)
+  hostId    String?
+
+  attendance LiveAttendance[]
+
+  @@index([courseId, startsAt])
+  @@index([status, startsAt])
+}
+
+/// One row per student per class — the attendance register.
+model LiveAttendance {
+  id          String    @id @default(cuid())
+  joinedAt    DateTime  @default(now())
+  lastSeenAt  DateTime  @default(now())
+  /// Minutes present, updated by heartbeats. Drives the attendance percentage
+  /// universities actually care about — "clicked join" is not attendance.
+  minutes     Int       @default(0)
+
+  userId      String
+  liveClassId String
+  liveClass   LiveClass @relation(fields: [liveClassId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, liveClassId])
+  @@index([liveClassId])
+}

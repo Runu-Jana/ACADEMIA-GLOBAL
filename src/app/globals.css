@@ -1,0 +1,318 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Animatable angle for the conic holographic rings. */
+@property --holo-angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@layer base {
+  :root {
+    --background: 216 60% 99%;
+    --foreground: 222 47% 11%;
+    --surface: 0 0% 100%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+    --primary: 224 76% 48%;
+    --primary-foreground: 0 0% 100%;
+    --muted: 216 40% 96%;
+    --muted-foreground: 215 18% 47%;
+    --border: 216 32% 91%;
+    --input: 216 32% 91%;
+    --ring: 224 76% 48%;
+    --radius: 0.9rem;
+  }
+
+  .dark {
+    --background: 224 45% 7%;
+    --foreground: 213 31% 95%;
+    --surface: 223 40% 11%;
+    --card: 223 40% 11%;
+    --card-foreground: 213 31% 95%;
+    --primary: 217 91% 60%;
+    --primary-foreground: 224 45% 7%;
+    --muted: 223 33% 17%;
+    --muted-foreground: 215 20% 68%;
+    --border: 223 30% 20%;
+    --input: 223 30% 20%;
+    --ring: 217 91% 60%;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+    overflow-x: hidden;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply font-display tracking-tight;
+  }
+
+  ::selection {
+    background: rgba(59, 118, 246, 0.22);
+  }
+
+  /* Slim, on-brand scrollbars. */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply rounded-full bg-border;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-muted-foreground/40;
+  }
+}
+
+@layer components {
+  /* ------------------------------------------------------------- glass */
+  .glass {
+    @apply border border-white/40 bg-white/70 backdrop-blur-xl;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.7),
+      0 8px 32px -12px rgba(16, 28, 68, 0.18);
+  }
+  .dark .glass {
+    @apply border-white/10 bg-white/[.06];
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.09),
+      0 8px 32px -12px rgba(0, 0, 0, 0.6);
+  }
+
+  .glass-strong {
+    @apply border border-white/60 bg-white/85 backdrop-blur-2xl;
+  }
+  .dark .glass-strong {
+    @apply border-white/10 bg-slate-900/80;
+  }
+
+  /* --------------------------------------------- holographic conic ring */
+  .holo-ring {
+    position: relative;
+    isolation: isolate;
+  }
+  /* Static gradient hairline. Reads as a premium edge, not a light show. */
+  .holo-ring::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(135deg, #3b76f6, #6366f1 55%, #818cf8);
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    mask-composite: exclude;
+    opacity: 0.5;
+    pointer-events: none;
+    z-index: -1;
+  }
+  /* Ring only materialises on hover — keeps dense grids calm. */
+  .holo-ring-hover::before {
+    opacity: 0;
+    transition: opacity 0.4s ease;
+  }
+  .holo-ring-hover:hover::before,
+  .holo-ring-hover:focus-within::before {
+    opacity: 0.85;
+  }
+
+  /* ------------------------------------------------- iridescent surface */
+  .holo-surface {
+    position: relative;
+    overflow: hidden;
+  }
+  .holo-surface::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(120% 90% at 10% 0%, rgba(34, 211, 238, 0.16), transparent 55%),
+      radial-gradient(110% 80% at 90% 10%, rgba(232, 121, 249, 0.14), transparent 55%),
+      radial-gradient(120% 120% at 50% 110%, rgba(129, 140, 248, 0.18), transparent 60%);
+    pointer-events: none;
+    mix-blend-mode: plus-lighter;
+    opacity: 0.75;
+  }
+
+  /* ------------------------------------------------------ specular sweep */
+  .holo-sheen {
+    position: relative;
+    overflow: hidden;
+  }
+  .holo-sheen::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 45%;
+    height: 100%;
+    background: linear-gradient(
+      100deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.55) 50%,
+      transparent 100%
+    );
+    transform: translateX(-140%) skewX(-18deg);
+    transition: transform 0.85s cubic-bezier(0.22, 1, 0.36, 1);
+    pointer-events: none;
+  }
+  .holo-sheen:hover::before {
+    transform: translateX(260%) skewX(-18deg);
+  }
+
+  /* --------------------------------------------------- gradient wordmark */
+  /* Static gradient wordmark — the colour does the work, not the motion. */
+  .holo-text {
+    @apply bg-holo-sweep bg-clip-text text-transparent;
+  }
+  .dark .holo-text {
+    background-image: linear-gradient(120deg, #60a5fa 0%, #818cf8 50%, #a5b4fc 100%);
+  }
+
+  /* -------------------------------------------------------- 3D tilt card */
+  .tilt-scene {
+    perspective: 1100px;
+  }
+  .tilt-card {
+    transform-style: preserve-3d;
+    transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: transform;
+  }
+  .tilt-layer {
+    transform: translateZ(38px);
+  }
+
+  /* Specular highlight that tracks the pointer. White reads as a grey smudge
+     on dark surfaces, so the dark theme uses a soft indigo instead. */
+  .tilt-glare {
+    background: radial-gradient(
+      280px circle at var(--mx, 50%) var(--my, 50%),
+      rgba(255, 255, 255, 0.16),
+      transparent 62%
+    );
+  }
+  .dark .tilt-glare {
+    background: radial-gradient(
+      280px circle at var(--mx, 50%) var(--my, 50%),
+      rgba(129, 140, 248, 0.15),
+      transparent 60%
+    );
+  }
+  .tilt-layer-sm {
+    transform: translateZ(18px);
+  }
+
+  /* ------------------------------------------------------ aurora backdrop */
+  .aurora {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 0;
+  }
+  /* Static colour wash. Blurred fields read as depth; drifting ones read as noise.
+     Light and dark need very different amounts — this is not symmetric.
+     Over a near-white page a wide, soft blob has nowhere to go but up, so it
+     lifts contrast across the whole hero and reads as light leakage. Keep it
+     tight and faint here. */
+  .aurora span {
+    position: absolute;
+    border-radius: 9999px;
+    filter: blur(52px);
+    opacity: 0.13;
+  }
+  /* Dark has headroom above the background, so the same colour adds depth
+     instead of washing out — it can carry roughly twice as much. */
+  .dark .aurora span {
+    filter: blur(64px);
+    opacity: 0.26;
+  }
+
+  /* ------------------------------------------------------------- surfaces */
+  .card-base {
+    @apply rounded-2xl border border-border bg-card shadow-soft transition-all duration-300 ease-spring;
+  }
+  .card-hover {
+    @apply hover:-translate-y-1 hover:border-primary-200 hover:shadow-lift;
+  }
+  .dark .card-hover {
+    @apply hover:border-primary-500/40;
+  }
+
+  .chip {
+    @apply inline-flex items-center gap-1.5 rounded-full border border-border bg-muted px-2.5 py-1 text-[11px] font-medium text-muted-foreground;
+  }
+
+  /* Fine noise overlay keeps large gradients from banding. */
+  .grain::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.035;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  .text-pretty {
+    text-wrap: pretty;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  /* Fades the edges of horizontally scrolling rails. */
+  .mask-fade-x {
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent);
+    mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent);
+  }
+  .safe-bottom {
+    padding-bottom: max(env(safe-area-inset-bottom), 0px);
+  }
+}
+
+/* Respect the OS motion preference — kill decorative motion, keep opacity. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .tilt-card {
+    transform: none !important;
+  }
+}
