@@ -82,10 +82,24 @@ export function UniversityGrid({ universities }: { universities: UniversityCardD
         </div>
       ) : (
         <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-          {results.map((u, i) => (
+          {results.map((u, i) => {
+            // Per-university hue — same derivation as UniversityMark, so the
+            // card tint always matches that institution's logo colour.
+            const hue = [...u.name].reduce((a, c) => a + c.charCodeAt(0), 0) % 360
+            return (
             <Reveal key={u.id} delay={Math.min(i, 8) * 55}>
               <TiltCard className="group h-full" intensity={6} scale={1.012}>
-                <article className="card-base holo-ring holo-ring-hover flex h-full flex-col p-5 hover:shadow-lift">
+                <article className="card-base holo-ring holo-ring-hover relative flex h-full flex-col overflow-hidden p-5 hover:shadow-lift">
+                  {/* Soft brand-tinted header wash in the university's own hue.
+                      Low alpha so it reads on both light and dark themes. */}
+                  <span
+                    aria-hidden
+                    className="pointer-events-none absolute inset-x-0 top-0 h-28 transition-opacity duration-300 group-hover:opacity-80"
+                    style={{
+                      background: `linear-gradient(180deg, hsl(${hue} 84% 58% / 0.16), transparent)`,
+                    }}
+                  />
+                  <div className="relative flex flex-1 flex-col">
                   <div className="flex items-start gap-3.5">
                     <UniversityMark name={u.name} size={52} className="shadow-soft" />
                     <div className="min-w-0 flex-1">
@@ -157,10 +171,12 @@ export function UniversityGrid({ universities }: { universities: UniversityCardD
                     View Profile
                     <ArrowRight aria-hidden className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
                   </Link>
+                  </div>
                 </article>
               </TiltCard>
             </Reveal>
-          ))}
+            )
+          })}
         </div>
       )}
     </div>
