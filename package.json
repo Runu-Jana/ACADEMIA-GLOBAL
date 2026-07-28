@@ -12,7 +12,8 @@
     "db:studio": "prisma studio",
     "db:reset": "prisma db push --force-reset && npm run db:seed",
     "setup": "prisma generate && prisma db push && npm run db:seed",
-    "test:commission": "tsx scripts/test-commission.ts"
+    "test:commission": "tsx scripts/test-commission.ts",
+    "ai:index": "tsx scripts/index-content.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

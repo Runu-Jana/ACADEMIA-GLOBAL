@@ -20,9 +20,11 @@ export default async function CounsellorPage() {
   const user = await getCurrentUser()
 
   // Signed-in visitors get their thread back; anonymous ones start fresh.
+  // courseId:null selects the recommender thread — the per-course tutor's
+  // messages live in the same table under a courseId and stay out of here.
   const saved = user
     ? await prisma.chatMessage.findMany({
-        where: { userId: user.id },
+        where: { userId: user.id, courseId: null },
         orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
         take: 60,
         select: { id: true, role: true, content: true },

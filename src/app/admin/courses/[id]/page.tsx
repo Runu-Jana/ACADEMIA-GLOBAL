@@ -7,6 +7,7 @@ import { requireAdmin } from '@/lib/auth'
 import { PageHeader } from '@/components/admin/admin-ui'
 import { CourseForm, type CourseFormValues } from '@/components/admin/course-form'
 import { ModuleEditor } from '@/components/admin/module-editor'
+import { ReindexButton } from '@/components/admin/reindex-button'
 import { Badge } from '@/components/ui/badge'
 import { asList } from '@/lib/utils'
 
@@ -44,7 +45,7 @@ export default async function EditCoursePage({ params }: { params: Promise<{ id:
         hasLiveClass: true,
         featured: true,
         university: { select: { name: true } },
-        _count: { select: { enrollments: true, materials: true } },
+        _count: { select: { enrollments: true, materials: true, chunks: true } },
         modules: {
           orderBy: [{ order: 'asc' }, { title: 'asc' }],
           select: {
@@ -123,6 +124,8 @@ export default async function EditCoursePage({ params }: { params: Promise<{ id:
       />
 
       <div className="space-y-4">
+        <ReindexButton courseId={course.id} initialChunks={course._count.chunks} />
+
         <ModuleEditor
           courseId={course.id}
           modules={course.modules.map((m) => ({

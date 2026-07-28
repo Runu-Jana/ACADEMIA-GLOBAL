@@ -18,11 +18,28 @@ const PROVIDERS: Record<string, AiProvider> = {
   openai: openaiProvider,
 }
 
+function providerNameFor(model: string): 'openai' | 'anthropic' {
+  return model.startsWith('gpt-') || model.startsWith('o') ? 'openai' : 'anthropic'
+}
+
 function providerFor(model: string): AiProvider {
-  const name = model.startsWith('gpt-') || model.startsWith('o') ? 'openai' : 'anthropic'
-  const provider = PROVIDERS[name]
+  const provider = PROVIDERS[providerNameFor(model)]
   if (!provider) throw new Error(`No provider registered for model "${model}"`)
   return provider
+}
+
+/**
+ * Whether the provider a feature routes to actually has a key.
+ *
+ * Lets a route return a clean "AI isn't configured" before it commits to a
+ * streaming response — the provider adapters only throw lazily, on first call,
+ * which is too late once the response headers are already on the wire.
+ */
+export function isFeatureConfigured(feature: AiFeature): boolean {
+  const name = providerNameFor(routeFor(feature).model)
+  return name === 'openai'
+    ? Boolean(process.env.OPENAI_API_KEY)
+    : Boolean(process.env.ANTHROPIC_API_KEY)
 }
 
 export interface AiContext {

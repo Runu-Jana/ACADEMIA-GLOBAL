@@ -102,6 +102,8 @@ export async function POST(req: Request) {
     const now = Date.now()
     await prisma.$transaction([
       prisma.chatMessage.create({
+        // courseId omitted → null: this is the recommender thread, kept
+        // distinct from the per-course AI tutor's messages.
         data: { userId: user.id, role: 'user', content: message, createdAt: new Date(now) },
       }),
       prisma.chatMessage.create({
@@ -119,6 +121,9 @@ export async function DELETE() {
   const user = await getCurrentUser()
   if (!user) return NextResponse.json({ ok: true, cleared: 0 })
 
-  const { count } = await prisma.chatMessage.deleteMany({ where: { userId: user.id } })
+  // Only the recommender thread (courseId:null) — never the tutor threads.
+  const { count } = await prisma.chatMessage.deleteMany({
+    where: { userId: user.id, courseId: null },
+  })
   return NextResponse.json({ ok: true, cleared: count })
 }

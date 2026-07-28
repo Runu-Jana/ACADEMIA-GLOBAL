@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { MaterialIcon, LessonTypeIcon, lessonTypeLabel } from './primitives'
+import { TutorPanel } from './tutor-panel'
 import { MATERIAL_TYPES } from '@/lib/constants'
 import { cn, formatBytes, formatDate } from '@/lib/utils'
 
@@ -75,6 +76,7 @@ export function CoursePlayer({
   courseTitle,
   courseSlug,
   universityName,
+  userName,
   modules,
   materials,
   tests,
@@ -87,6 +89,7 @@ export function CoursePlayer({
   courseTitle: string
   courseSlug: string
   universityName: string
+  userName: string
   modules: PlayerModule[]
   materials: PlayerMaterial[]
   tests: PlayerTest[]
@@ -207,6 +210,14 @@ export function CoursePlayer({
                   Certificate issued
                 </Badge>
               )}
+              <div className="ml-auto">
+                <TutorPanel
+                  courseId={courseId}
+                  courseTitle={courseTitle}
+                  userName={userName}
+                  lessonHint={active?.lesson.title ?? null}
+                />
+              </div>
             </div>
 
             <h2 className="mt-1.5 text-balance font-display text-xl font-extrabold tracking-tight sm:text-2xl">

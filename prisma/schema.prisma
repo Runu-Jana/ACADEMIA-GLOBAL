@@ -365,17 +365,24 @@ model Review {
   @@index([courseId])
 }
 
-/// Persisted AI counsellor conversation so the thread survives a reload.
+/// Persisted AI conversation so a thread survives a reload.
+///
+/// One table, two threads, told apart by `courseId`:
+///   null  -> the site-wide course recommender (counsellor)
+///   set   -> the per-course AI tutor for an enrolled programme
+/// Scoping the tutor by course is what keeps a student's questions in one
+/// programme out of another's thread — and out of the recommender's.
 model ChatMessage {
   id        String   @id @default(cuid())
   role      String // user | assistant
   content   String
   createdAt DateTime @default(now())
 
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId   String
+  user     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseId String?
 
-  @@index([userId, createdAt])
+  @@index([userId, courseId, createdAt])
 }
 
 // ===========================================================================

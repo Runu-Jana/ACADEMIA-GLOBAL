@@ -80,6 +80,9 @@ export const PRICING: Record<string, { input: number; output: number }> = {
   'gpt-5.6-terra': { input: 2.5, output: 15.0 },
   'gpt-5.6-luna': { input: 1.0, output: 6.0 },
   'gpt-5.4-nano': { input: 0.2, output: 1.25 },
+  // Embeddings — input-only; output stays 0 so costPaise bills tokens once.
+  'text-embedding-3-small': { input: 0.02, output: 0 },
+  'text-embedding-3-large': { input: 0.13, output: 0 },
 }
 
 const CACHE_READ_MULTIPLIER = 0.1

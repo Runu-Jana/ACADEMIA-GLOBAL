@@ -148,6 +148,7 @@ export default async function LearnCoursePage({ params, searchParams }: PageProp
       courseTitle={course.title}
       courseSlug={course.slug}
       universityName={course.university.name}
+      userName={user.name}
       modules={course.modules.map((m) => ({
         id: m.id,
         title: m.title,
