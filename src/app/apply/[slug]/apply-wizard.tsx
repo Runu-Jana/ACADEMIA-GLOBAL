@@ -13,6 +13,7 @@ import { Field, Input, Select, Checkbox } from '@/components/ui/field'
 import { CourseThumb, UniversityMark } from '@/components/course/course-thumb'
 import { COURSE_LEVELS, COURSE_MODES } from '@/lib/constants'
 import { cn, formatINR } from '@/lib/utils'
+import { openRazorpayCheckout, CHECKOUT_CANCELLED } from '@/lib/payments/checkout'
 
 export type WizardCourse = {
   id: string
@@ -82,6 +83,7 @@ export function ApplyWizard({
   initialProgram,
   alreadyEnrolled,
   alreadySubmitted,
+  paymentsLive,
 }: {
   course: WizardCourse
   initialStep: number
@@ -90,6 +92,8 @@ export function ApplyWizard({
   initialProgram: Partial<Program>
   alreadyEnrolled: boolean
   alreadySubmitted: boolean
+  /** Whether a real payment gateway is configured; drives copy and CTA. */
+  paymentsLive: boolean
 }) {
   const router = useRouter()
 
@@ -130,6 +134,8 @@ export function ApplyWizard({
   const originalTotal = Math.round((course.originalFee ?? course.feePerYear) * course.durationYears)
   const savings = Math.max(0, originalTotal - totalFee)
   const emiMonthly = Math.round(course.feePerYear / 12)
+  // A real payment is collected only when the gateway is live and there's a fee.
+  const paidCheckout = paymentsLive && course.feePerYear > 0
 
   const levelLabel = COURSE_LEVELS.find((l) => l.value === course.level)?.label ?? course.level
   const modeLabel = COURSE_MODES.find((m) => m.value === course.mode)?.label ?? course.mode
@@ -222,13 +228,38 @@ export function ApplyWizard({
       const appData = await appRes.json()
       if (!appRes.ok) throw new Error(appData.error ?? 'Could not submit your application')
 
-      const enrolRes = await fetch('/api/enroll', {
+      const payRes = await fetch('/api/payments/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ courseId: course.id }),
       })
-      const enrolData = await enrolRes.json()
-      if (!enrolRes.ok) throw new Error(enrolData.error ?? 'Could not create your enrolment')
+      const payData = await payRes.json()
+      if (!payRes.ok) throw new Error(payData.error ?? 'Could not start your enrolment')
+
+      // Paid course with a live gateway: collect payment, then confirm it
+      // server-side before we treat the student as enrolled.
+      if (payData.requiresPayment) {
+        try {
+          const result = await openRazorpayCheckout(payData.razorpay)
+          const verifyRes = await fetch('/api/payments/verify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              razorpayOrderId: result.razorpay_order_id,
+              razorpayPaymentId: result.razorpay_payment_id,
+              signature: result.razorpay_signature,
+            }),
+          })
+          const verifyData = await verifyRes.json()
+          if (!verifyRes.ok) throw new Error(verifyData.error ?? 'We could not confirm your payment')
+        } catch (payErr) {
+          if (payErr instanceof Error && payErr.message === CHECKOUT_CANCELLED) {
+            setError('Payment was cancelled. Your application is saved — you can pay to enrol any time.')
+            return
+          }
+          throw payErr
+        }
+      }
 
       setDone(true)
       router.refresh()
@@ -585,23 +616,40 @@ export function ApplyWizard({
                 </div>
               </div>
 
-              {/* ---------------------------------------- demo notice */}
-              <div className="rounded-2xl border border-amber-300 bg-amber-50 p-4 dark:border-amber-500/40 dark:bg-amber-500/10">
-                <div className="flex items-start gap-2.5">
-                  <Info className="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
-                  <div className="min-w-0">
-                    <p className="text-[13px] font-bold text-amber-900 dark:text-amber-200">
-                      Demonstration checkout — no payment is taken
-                    </p>
-                    <p className="mt-1 text-[12.5px] leading-relaxed text-amber-800 dark:text-amber-200/90">
-                      This step does not collect card, UPI or bank details and no money changes hands.
-                      Confirming below simply records your application and opens your classroom so you can
-                      explore the programme. Real fee payment happens with the university after your
-                      documents are verified.
-                    </p>
+              {/* ------------------------------------ checkout notice */}
+              {paidCheckout ? (
+                <div className="rounded-2xl border border-emerald-300 bg-emerald-50 p-4 dark:border-emerald-500/40 dark:bg-emerald-500/10">
+                  <div className="flex items-start gap-2.5">
+                    <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                    <div className="min-w-0">
+                      <p className="text-[13px] font-bold text-emerald-900 dark:text-emerald-200">
+                        Secure payment · powered by Razorpay
+                      </p>
+                      <p className="mt-1 text-[12.5px] leading-relaxed text-emerald-800 dark:text-emerald-200/90">
+                        Confirming opens a secure Razorpay window to pay the Year 1 fee by card, UPI,
+                        net-banking or EMI. Your classroom unlocks the moment payment is confirmed. You
+                        won&rsquo;t be charged until you complete the payment.
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </div>
+              ) : (
+                <div className="rounded-2xl border border-amber-300 bg-amber-50 p-4 dark:border-amber-500/40 dark:bg-amber-500/10">
+                  <div className="flex items-start gap-2.5">
+                    <Info className="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
+                    <div className="min-w-0">
+                      <p className="text-[13px] font-bold text-amber-900 dark:text-amber-200">
+                        Demonstration checkout — no payment is taken
+                      </p>
+                      <p className="mt-1 text-[12.5px] leading-relaxed text-amber-800 dark:text-amber-200/90">
+                        No card, UPI or bank details are collected and no money changes hands.
+                        Confirming records your application and opens your classroom so you can explore
+                        the programme.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-border p-4 transition-colors hover:bg-muted/40">
                 <Checkbox
@@ -654,8 +702,12 @@ export function ApplyWizard({
               loading={loading}
               className="w-full sm:w-auto"
             >
-              <Sparkles className="h-4 w-4" />
-              Confirm Enrolment (demo)
+              {paidCheckout ? <Wallet className="h-4 w-4" /> : <Sparkles className="h-4 w-4" />}
+              {paidCheckout
+                ? `Pay ${formatINR(course.feePerYear)} & Enrol`
+                : course.feePerYear > 0
+                  ? 'Confirm Enrolment (demo)'
+                  : 'Confirm Enrolment'}
             </Button>
           )}
         </div>

@@ -3,6 +3,7 @@ import type { Metadata } from 'next'
 import { prisma } from '@/lib/prisma'
 import { requireUser } from '@/lib/auth'
 import { isCourseLive } from '@/lib/visibility'
+import { paymentsConfigured } from '@/lib/payments/razorpay'
 import { ApplyWizard, type WizardCourse } from './apply-wizard'
 import { asList } from '@/lib/utils'
 
@@ -111,6 +112,7 @@ export default async function ApplyPage({ params }: PageProps) {
       initialStep={application?.step ?? 1}
       alreadyEnrolled={!!enrollment}
       alreadySubmitted={(application?.status ?? 'DRAFT') !== 'DRAFT'}
+      paymentsLive={paymentsConfigured()}
       initialPersonal={{
         // Step 1 is prefilled from the account, then overridden by any draft.
         fullName: preferSaved(savedPersonal.fullName, user.name),
