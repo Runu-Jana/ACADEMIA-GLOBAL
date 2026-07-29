@@ -176,12 +176,18 @@
       rgba(255, 255, 255, 0.55) 50%,
       transparent 100%
     );
-    transform: translateX(-140%) skewX(-18deg);
-    transition: transform 0.85s cubic-bezier(0.22, 1, 0.36, 1);
+    /* Parked fully off the left edge AND held at opacity 0 so no bright sliver
+       peeks at rest — the sheen only exists during the hover sweep. */
+    transform: translateX(-160%) skewX(-18deg);
+    opacity: 0;
+    transition:
+      transform 0.85s cubic-bezier(0.22, 1, 0.36, 1),
+      opacity 0.25s ease;
     pointer-events: none;
   }
   .holo-sheen:hover::before {
     transform: translateX(260%) skewX(-18deg);
+    opacity: 1;
   }
 
   /* --------------------------------------------------- gradient wordmark */
