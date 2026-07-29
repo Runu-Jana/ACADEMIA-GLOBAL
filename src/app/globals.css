@@ -233,6 +233,12 @@
     overflow: hidden;
     pointer-events: none;
     z-index: 0;
+    /* Fade the colour field before it reaches the edges. Without this, a blob
+       seeded off-screen (e.g. left:-8%) gets hard-clipped at x=0 and its blurred
+       edge shows as a bright vertical seam — the "light leakage" at the hero's
+       left edge. Masking the container removes the clip edge entirely. */
+    -webkit-mask-image: radial-gradient(115% 115% at 50% 40%, #000 45%, transparent 88%);
+    mask-image: radial-gradient(115% 115% at 50% 40%, #000 45%, transparent 88%);
   }
   /* Static colour wash. Blurred fields read as depth; drifting ones read as noise.
      Light and dark need very different amounts — this is not symmetric.

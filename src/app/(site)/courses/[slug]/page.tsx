@@ -123,8 +123,11 @@ function Fact({
   value: string
 }) {
   return (
-    <div className="glass rounded-xl px-3 py-2.5">
-      <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-white/70">
+    // These tiles always sit on the dark hero, so they use a fixed dark-glass
+    // rather than `.glass` (which turns near-white in light mode and left the
+    // white text unreadable). Theme-independent by design.
+    <div className="rounded-xl border border-white/15 bg-white/10 px-3 py-2.5 backdrop-blur-md">
+      <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-white/75">
         <Icon aria-hidden className="h-3 w-3" />
         {label}
       </span>
@@ -833,20 +836,25 @@ export default async function CourseDetailPage({
                   <ArrowRight className="h-4 w-4" />
                 </Link>
 
-                {syllabus ? (
+                <a
+                  href={`/brochure/${course.slug}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={buttonVariants({ variant: 'outline', className: 'w-full' })}
+                >
+                  <Download className="h-4 w-4" />
+                  Download Brochure
+                </a>
+
+                {syllabus && (
                   <a
                     href={`/api/materials/${syllabus.id}/download`}
                     download={syllabus.fileName}
-                    className={buttonVariants({ variant: 'outline', className: 'w-full' })}
+                    className="flex items-center justify-center gap-1.5 pt-0.5 text-[12px] font-semibold text-muted-foreground transition-colors hover:text-primary-600"
                   >
-                    <Download className="h-4 w-4" />
-                    Download Brochure
+                    <FileText className="h-3.5 w-3.5" />
+                    Full syllabus (PDF)
                   </a>
-                ) : (
-                  <Button type="button" variant="outline" className="w-full" disabled>
-                    <Download className="h-4 w-4" />
-                    Brochure Coming Soon
-                  </Button>
                 )}
 
                 <CompareButton courseId={course.id} />
