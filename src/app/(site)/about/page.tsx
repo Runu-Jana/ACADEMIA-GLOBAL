@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Building2, Users, BookOpen, ShieldCheck, Target, Heart, ArrowRight } from 'lucide-react'
 import { prisma } from '@/lib/prisma'
+import { liveCourseWhere, liveUniversityWhere } from '@/lib/visibility'
 import { SectionTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { buttonVariants } from '@/components/ui/button'
@@ -32,8 +33,8 @@ const faqs = [
 
 export default async function AboutPage() {
   const [universities, courses, students] = await Promise.all([
-    prisma.university.count(),
-    prisma.course.count(),
+    prisma.university.count({ where: liveUniversityWhere }),
+    prisma.course.count({ where: liveCourseWhere }),
     prisma.user.count({ where: { role: 'STUDENT' } }),
   ])
 

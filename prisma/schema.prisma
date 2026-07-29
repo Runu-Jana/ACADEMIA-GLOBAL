@@ -24,9 +24,15 @@ model User {
   dob          String?
   gender       String?
   avatarUrl    String?
-  role         String  @default("STUDENT") // STUDENT | ADMIN
+  role         String  @default("STUDENT") // STUDENT | ADMIN | PARTNER
   city         String?
   state        String?
+
+  /// Set only for PARTNER users — the institution whose catalogue they manage.
+  /// A PARTNER whose universityId is null is a pending sign-up: they can log in
+  /// but can't publish anything until an operator approves the partnership.
+  universityId String?
+  university   University? @relation("PartnerStaff", fields: [universityId], references: [id], onDelete: SetNull)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -41,6 +47,7 @@ model User {
   counsellorChats  ChatMessage[]
 
   @@index([role])
+  @@index([universityId])
 }
 
 // ------------------------------------------------------------ institutions
@@ -83,9 +90,42 @@ model University {
   courses     Course[]
   commissions Commission[]
   payouts     Payout[]
+  staff       User[]       @relation("PartnerStaff")
 
   @@index([featured])
   @@index([partnerStatus])
+}
+
+/// A public "Partner with us" enquiry.
+///
+/// Kept separate from University on purpose: the public directory and the
+/// course tables must never fill with unvetted, self-declared institutions.
+/// A sign-up creates a lead (and a dormant PARTNER login), and only an
+/// operator's approval turns it into a real University the login is attached to.
+model PartnerApplication {
+  id             String  @id @default(cuid())
+  universityName String
+  contactName    String
+  contactEmail   String
+  contactPhone   String?
+  website        String?
+  city           String?
+  state          String?
+  message        String?
+
+  /// PENDING -> APPROVED (University created, login linked) | REJECTED.
+  status     String  @default("PENDING")
+  reviewNote String?
+
+  /// Soft references (like Order) — the dormant login raised at sign-up, and
+  /// the University minted on approval. No FK so approval order is unconstrained.
+  userId       String?
+  universityId String?
+
+  createdAt  DateTime  @default(now())
+  reviewedAt DateTime?
+
+  @@index([status, createdAt])
 }
 
 // ---------------------------------------------------------------- catalogue
@@ -124,6 +164,17 @@ model Course {
   /// A student can hold both at once — the two revenue paths are independent.
   source String @default("UNIVERSITY")
 
+  /// Publishing gate for partner-submitted programmes:
+  /// DRAFT -> PENDING (submitted) -> PUBLISHED (operator-approved) | REJECTED.
+  /// Defaults to PUBLISHED so operator-created and seeded courses are live at
+  /// once; only partner submissions travel the review path. A course reaches
+  /// students only when PUBLISHED *and* its university is an ACTIVE partner
+  /// (or it is a PLATFORM course). See src/lib/visibility.ts.
+  reviewStatus  String    @default("PUBLISHED")
+  reviewNote    String?   // operator feedback shown to the partner on rejection
+  submittedAt   DateTime?
+  submittedById String?   // soft ref to the partner user who submitted it
+
   rating  Float @default(4.4)
   reviews Int   @default(0)
 
@@ -156,6 +207,7 @@ model Course {
   @@index([stream])
   @@index([universityId])
   @@index([featured])
+  @@index([reviewStatus])
 }
 
 /// A chapter / semester unit inside a course.

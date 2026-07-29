@@ -57,6 +57,9 @@ export async function getCurrentUser() {
       dob: true,
       gender: true,
       createdAt: true,
+      // Set only for PARTNER users; null means a partner sign-up still awaiting
+      // approval. Student/admin accounts always carry null here.
+      universityId: true,
     },
   })
 }
@@ -71,5 +74,27 @@ export async function requireAdmin() {
   const user = await getCurrentUser()
   if (!user) redirect('/login?next=/admin')
   if (user.role !== 'ADMIN') redirect('/dashboard')
+  return user
+}
+
+/** Home a signed-in user according to their role. Used after login and to bounce
+ *  users out of areas that aren't theirs. */
+export function homeForRole(role: string): string {
+  if (role === 'ADMIN') return '/admin'
+  if (role === 'PARTNER') return '/partner'
+  return '/dashboard'
+}
+
+/**
+ * Gate for the partner portal.
+ *
+ * A PARTNER whose universityId is still null is a pending sign-up — allowed in,
+ * but the portal shows them an "under review" state rather than the editor.
+ * Non-partners are sent to their own home.
+ */
+export async function requirePartner(returnTo = '/partner') {
+  const user = await getCurrentUser()
+  if (!user) redirect(`/login?next=${encodeURIComponent(returnTo)}`)
+  if (user.role !== 'PARTNER') redirect(homeForRole(user.role))
   return user
 }

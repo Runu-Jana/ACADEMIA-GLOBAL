@@ -174,6 +174,9 @@ const APPLICATION_TONE: Record<string, Tone> = {
   UNDER_REVIEW: 'warning',
   APPROVED: 'success',
   REJECTED: 'danger',
+  // Also cover the course review + partner request lifecycles.
+  PENDING: 'warning',
+  PUBLISHED: 'success',
 }
 
 export function StatusBadge({ status }: { status: string }) {

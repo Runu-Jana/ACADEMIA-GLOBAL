@@ -6,6 +6,7 @@ import {
   MessageSquare, ArrowRight, GraduationCap, Headset, Building2,
 } from 'lucide-react'
 import { prisma } from '@/lib/prisma'
+import { liveCourseWhere } from '@/lib/visibility'
 import { CourseCard } from '@/components/course/course-card'
 import { UniversityMark } from '@/components/course/course-thumb'
 import { Badge } from '@/components/ui/badge'
@@ -108,11 +109,17 @@ export default async function UniversityProfilePage({
   const university = await prisma.university.findUnique({
     where: { slug },
     include: {
-      courses: { select: courseSelect, orderBy: [{ featured: 'desc' }, { rating: 'desc' }] },
+      courses: {
+        where: liveCourseWhere,
+        select: courseSelect,
+        orderBy: [{ featured: 'desc' }, { rating: 'desc' }],
+      },
     },
   })
 
-  if (!university) notFound()
+  // Only active partners have a public profile; prospects and unvetted sign-ups
+  // 404 until an operator activates them.
+  if (!university || university.partnerStatus !== 'ACTIVE') notFound()
 
   const reviews = await prisma.review.findMany({
     where: { course: { universityId: university.id } },

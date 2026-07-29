@@ -3,6 +3,7 @@ import { Prisma } from '@prisma/client'
 import { z } from 'zod'
 import { prisma } from '@/lib/prisma'
 import { getSession } from '@/lib/auth'
+import { isCourseLive } from '@/lib/visibility'
 
 /* -------------------------------------------------------------------------- */
 /* Drafts are saved after every step, so each field is optional while the       */
@@ -98,9 +99,17 @@ export async function POST(req: Request) {
 
   const course = await prisma.course.findUnique({
     where: { id: courseId },
-    select: { id: true, slug: true },
+    select: {
+      id: true,
+      slug: true,
+      reviewStatus: true,
+      source: true,
+      university: { select: { partnerStatus: true } },
+    },
   })
-  if (!course) {
+  // A course that isn't live can't be applied to — treated as not found so an
+  // unpublished or non-partner programme never accepts an application.
+  if (!course || !isCourseLive(course)) {
     return NextResponse.json({ error: 'Course not found' }, { status: 404 })
   }
 

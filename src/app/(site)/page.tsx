@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
 import { prisma } from '@/lib/prisma'
+import { liveCourses, liveUniversities } from '@/lib/visibility'
 import { SectionTitle } from '@/components/ui/card'
 import { buttonVariants } from '@/components/ui/button'
 import { Reveal } from '@/components/fx/reveal'
@@ -25,13 +26,13 @@ const courseSelect = {
 export default async function HomePage() {
   const [featured, universities, reviews] = await Promise.all([
     prisma.course.findMany({
-      where: { featured: true },
+      where: liveCourses({ featured: true }),
       select: courseSelect,
       orderBy: { rating: 'desc' },
       take: 8,
     }),
     prisma.university.findMany({
-      where: { featured: true },
+      where: liveUniversities({ featured: true }),
       select: { id: true, slug: true, name: true, shortName: true, rating: true, approvals: true },
       orderBy: { rating: 'desc' },
     }),

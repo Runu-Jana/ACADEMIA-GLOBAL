@@ -12,6 +12,8 @@ import {
   ClipboardCheck,
   FileCheck2,
   Building2,
+  BadgeCheck,
+  Inbox,
   Menu,
   X,
   ExternalLink,
@@ -41,6 +43,8 @@ const NAV: {
   { href: '/admin/students', label: 'Students', icon: Users },
   { href: '/admin/enrolments', label: 'Enrolments', icon: ClipboardCheck },
   { href: '/admin/applications', label: 'Applications', icon: FileCheck2 },
+  { href: '/admin/reviews', label: 'Programme Reviews', icon: BadgeCheck },
+  { href: '/admin/partners', label: 'Partner Requests', icon: Inbox },
   { href: '/admin/universities', label: 'Universities', icon: Building2 },
 ]
 

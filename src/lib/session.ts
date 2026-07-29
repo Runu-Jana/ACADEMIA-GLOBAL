@@ -7,7 +7,7 @@ import { SESSION_MAX_AGE } from './constants'
  * edge bundle.
  */
 
-export type Role = 'STUDENT' | 'ADMIN'
+export type Role = 'STUDENT' | 'ADMIN' | 'PARTNER'
 
 export interface SessionPayload {
   userId: string

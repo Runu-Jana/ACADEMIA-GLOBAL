@@ -3,6 +3,7 @@ import { z } from 'zod'
 import type { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUser } from '@/lib/auth'
+import { liveCourses } from '@/lib/visibility'
 import { readJson } from '@/app/api/admin/_lib/guard'
 import {
   parseIntent,
@@ -67,7 +68,7 @@ export async function POST(req: Request) {
   const limit = budgetLed ? 4 : 3
 
   const findCourses = (where: Prisma.CourseWhereInput) =>
-    prisma.course.findMany({ where, orderBy, take: limit, select: courseSelect })
+    prisma.course.findMany({ where: liveCourses(where), orderBy, take: limit, select: courseSelect })
 
   let courses: Awaited<ReturnType<typeof findCourses>> = []
   let dropped: string[] = []

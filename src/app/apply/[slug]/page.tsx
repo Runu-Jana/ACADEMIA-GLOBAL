@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import { prisma } from '@/lib/prisma'
 import { requireUser } from '@/lib/auth'
+import { isCourseLive } from '@/lib/visibility'
 import { ApplyWizard, type WizardCourse } from './apply-wizard'
 import { asList } from '@/lib/utils'
 
@@ -64,10 +65,13 @@ export default async function ApplyPage({ params }: PageProps) {
       examMode: true,
       eligibility: true,
       skills: true,
-      university: { select: { name: true } },
+      reviewStatus: true,
+      source: true,
+      university: { select: { name: true, partnerStatus: true } },
     },
   })
-  if (!course) notFound()
+  // Can't apply to a course students can't see (unpublished / non-active partner).
+  if (!course || !isCourseLive(course)) notFound()
 
   const [application, enrollment] = await Promise.all([
     prisma.application.findUnique({

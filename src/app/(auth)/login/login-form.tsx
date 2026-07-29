@@ -10,6 +10,7 @@ import { Field, Input } from '@/components/ui/field'
 const demoAccounts = [
   { label: 'Student', email: 'rahul@student.in', password: 'Student@123' },
   { label: 'Admin', email: 'admin@academiaglobal.in', password: 'Admin@123' },
+  { label: 'Partner', email: 'partner@amity.edu', password: 'Partner@123' },
 ]
 
 export function LoginForm() {
@@ -40,9 +41,10 @@ export function LoginForm() {
         return
       }
 
-      // Admins land in the admin panel unless they were sent somewhere specific.
-      const target = next || (data.user?.role === 'ADMIN' ? '/admin' : '/dashboard')
-      router.push(target)
+      // Each role lands in its own console unless sent somewhere specific.
+      const role = data.user?.role
+      const home = role === 'ADMIN' ? '/admin' : role === 'PARTNER' ? '/partner' : '/dashboard'
+      router.push(next || home)
       router.refresh()
     } catch {
       setError('Network error — please check your connection and try again.')

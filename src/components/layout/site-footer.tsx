@@ -30,9 +30,9 @@ const columns = [
   {
     title: 'For Universities',
     links: [
-      { label: 'Partner With Us', href: '/contact' },
-      { label: 'University Login', href: '/login' },
-      { label: 'Lead Generation', href: '/contact' },
+      { label: 'Partner With Us', href: '/for-universities' },
+      { label: 'List Your Programmes', href: '/for-universities' },
+      { label: 'Partner Login', href: '/login' },
       { label: 'Marketing Solutions', href: '/contact' },
       { label: 'Resources', href: '/blog' },
     ],

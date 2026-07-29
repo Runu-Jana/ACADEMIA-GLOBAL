@@ -7,6 +7,8 @@ import {
   BadgeCheck, Wallet, MessageSquare, ArrowRight, BookOpen,
 } from 'lucide-react'
 import { prisma } from '@/lib/prisma'
+import { getCurrentUser } from '@/lib/auth'
+import { isCourseLive, liveCourses } from '@/lib/visibility'
 import { CourseCard } from '@/components/course/course-card'
 import { UniversityMark } from '@/components/course/course-thumb'
 import { Badge } from '@/components/ui/badge'
@@ -164,8 +166,19 @@ export default async function CourseDetailPage({
   const course = await getCourse(slug)
   if (!course) notFound()
 
+  // Students only see live courses. Operators and the owning partner may preview
+  // one that isn't live yet, so a reviewer sees exactly what will publish.
+  const preview = !isCourseLive(course)
+  if (preview) {
+    const viewer = await getCurrentUser()
+    const canPreview =
+      viewer?.role === 'ADMIN' ||
+      (viewer?.role === 'PARTNER' && viewer.universityId === course.universityId)
+    if (!canPreview) notFound()
+  }
+
   const related = await prisma.course.findMany({
-    where: { stream: course.stream, id: { not: course.id } },
+    where: liveCourses({ stream: course.stream, id: { not: course.id } }),
     select: courseSelect,
     orderBy: [{ featured: 'desc' }, { rating: 'desc' }],
     take: 4,
@@ -691,6 +704,12 @@ export default async function CourseDetailPage({
 
   return (
     <>
+      {preview && (
+        <div className="border-b border-amber-300 bg-amber-100 px-4 py-2.5 text-center text-[12.5px] font-semibold text-amber-900 dark:border-amber-500/40 dark:bg-amber-500/15 dark:text-amber-200">
+          Preview — this programme is <span className="uppercase">{course.reviewStatus.toLowerCase()}</span> and not visible to students yet.
+        </div>
+      )}
+
       {/* ------------------------------------------------------------- hero */}
       <section className="relative overflow-hidden border-b border-border bg-gradient-to-br from-primary-950 via-primary-800 to-primary-600 text-white">
         <Aurora palette="holo" density={3} />

@@ -747,6 +747,7 @@ function questionsFor(moduleTitle: string) {
 async function main() {
   console.log('Resetting data...')
   // Order matters: children before parents.
+  await prisma.partnerApplication.deleteMany()
   await prisma.chatMessage.deleteMany()
   await prisma.review.deleteMany()
   await prisma.certificate.deleteMany()
@@ -815,10 +816,39 @@ async function main() {
   const uniByslug: Record<string, string> = {}
   for (const u of universities) {
     const created = await prisma.university.create({
-      data: { ...u, approvals: u.approvals },
+      // Seeded institutions are live, onboarded partners, so their courses are
+      // visible under the review gate. Public sign-ups start as PROSPECT and go
+      // live only once an operator activates them.
+      data: { ...u, approvals: u.approvals, partnerStatus: 'ACTIVE', commissionPct: 12 },
     })
     uniByslug[u.slug] = created.id
   }
+
+  // A demo partner login and a pending public application, so the partner portal
+  // and the operator's review queues have something to show out of the box.
+  await prisma.user.create({
+    data: {
+      email: 'partner@amity.edu',
+      passwordHash: await bcrypt.hash('Partner@123', 10),
+      name: 'Priya Sharma',
+      role: 'PARTNER',
+      phone: '+91 98111 22334',
+      universityId: uniByslug['amity-university-online'],
+    },
+  })
+  await prisma.partnerApplication.create({
+    data: {
+      universityName: 'Sunrise Institute of Technology',
+      contactName: 'Rakesh Menon',
+      contactEmail: 'rakesh@sunrise.edu.in',
+      contactPhone: '+91 98200 11223',
+      website: 'https://sunrise.edu.in',
+      city: 'Pune',
+      state: 'Maharashtra',
+      message:
+        'We run online BBA, BCA and MBA programmes and would like to list them on Academia Global.',
+    },
+  })
 
   // ---------------------------------------------------------------- courses
   console.log('Creating courses, modules, lessons, tests and material...')

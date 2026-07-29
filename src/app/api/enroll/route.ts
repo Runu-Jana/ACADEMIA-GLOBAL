@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { prisma } from '@/lib/prisma'
 import { getSession } from '@/lib/auth'
 import { openOrder, markOrderPaid } from '@/lib/commission'
+import { isCourseLive } from '@/lib/visibility'
 
 const schema = z.object({
   courseId: z.string().trim().min(1, 'Course is required'),
@@ -45,9 +46,19 @@ export async function POST(req: Request) {
 
   const course = await prisma.course.findUnique({
     where: { id: courseId },
-    select: { id: true, title: true, feePerYear: true, source: true },
+    select: {
+      id: true,
+      title: true,
+      feePerYear: true,
+      source: true,
+      reviewStatus: true,
+      university: { select: { partnerStatus: true } },
+    },
   })
-  if (!course) {
+  // Can't enrol into something students aren't allowed to see. Existing
+  // enrolments keep working — the learn page gates on enrolment, not publish
+  // status — so unpublishing a course never locks out a paid-up student.
+  if (!course || !isCourseLive(course)) {
     return NextResponse.json({ error: 'Course not found' }, { status: 404 })
   }
 

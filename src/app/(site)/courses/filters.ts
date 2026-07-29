@@ -16,6 +16,7 @@ import {
   DURATION_BUCKETS,
   FEE_BUCKETS,
 } from '@/lib/constants'
+import { liveCourseWhere } from '@/lib/visibility'
 
 export const PAGE_SIZE = 12
 
@@ -192,7 +193,9 @@ export function buildCourseWhere(
   s: CourseFilterState,
   omit?: FacetKey,
 ): Prisma.CourseWhereInput {
-  const and: Prisma.CourseWhereInput[] = []
+  // Seeded with the visibility gate so the catalogue, its counts and its facets
+  // only ever reflect live courses. Everything else is ANDed on top.
+  const and: Prisma.CourseWhereInput[] = [liveCourseWhere]
 
   if (s.q) {
     // SQLite has no `mode: 'insensitive'`, but its LIKE is already
