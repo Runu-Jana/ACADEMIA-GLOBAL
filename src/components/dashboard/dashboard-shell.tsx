@@ -6,7 +6,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import {
   Video,
   LayoutDashboard, BookOpen, GraduationCap, FolderOpen, PenSquare, ClipboardList,
-  Award, User as UserIcon, LifeBuoy, Menu, X, Search, Bell, ChevronDown, LogOut,
+  Award, FileText, User as UserIcon, LifeBuoy, Menu, X, Search, Bell, ChevronDown, LogOut,
   PanelLeftClose, PanelLeft, Home, Compass,
 } from 'lucide-react'
 import { Logo } from '@/components/layout/logo'
@@ -47,6 +47,7 @@ const NAV: NavItem[] = [
   { label: 'Assignments', href: '/dashboard/assignments', icon: PenSquare },
   { label: 'Tests & Exams', href: '/dashboard/tests', icon: ClipboardList },
   { label: 'Certificates', href: '/dashboard/certificates', icon: Award },
+  { label: 'AI Resume', href: '/dashboard/resume', icon: FileText },
   { label: 'Profile', href: '/dashboard/profile', icon: UserIcon },
   { label: 'Support', href: '/dashboard/support', icon: LifeBuoy },
 ]
@@ -61,6 +62,7 @@ const TITLES: { prefix: string; title: string; exact?: boolean }[] = [
   { prefix: '/dashboard/assignments', title: 'Assignments' },
   { prefix: '/dashboard/tests', title: 'Tests & Exams' },
   { prefix: '/dashboard/certificates', title: 'Certificates' },
+  { prefix: '/dashboard/resume', title: 'AI Resume' },
   { prefix: '/dashboard/profile', title: 'Profile' },
   { prefix: '/dashboard/support', title: 'Support' },
 ]
