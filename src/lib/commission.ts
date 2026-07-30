@@ -216,3 +216,111 @@ export async function commissionSummary() {
       (paid._sum.amount ?? 0),
   }
 }
+
+// --------------------------------------------------------------- settlements
+
+export interface PartnerLedger {
+  universityId: string
+  name: string
+  shortName: string
+  commissionPct: number
+  pending: number
+  claimable: number
+  invoiced: number
+  paid: number
+  void: number
+}
+
+/**
+ * Per-partner receivables: how much each university's commissions add up to in
+ * each state. Drives the settlement table — pending is accruing, claimable is
+ * ready to invoice, invoiced is out the door, paid is collected.
+ */
+export async function partnerLedgers(): Promise<PartnerLedger[]> {
+  const grouped = await prisma.commission.groupBy({
+    by: ['universityId', 'status'],
+    _sum: { amount: true },
+  })
+  if (!grouped.length) return []
+
+  const ids = [...new Set(grouped.map((g) => g.universityId))]
+  const unis = await prisma.university.findMany({
+    where: { id: { in: ids } },
+    select: { id: true, name: true, shortName: true, commissionPct: true },
+  })
+  const byId = new Map(unis.map((u) => [u.id, u]))
+
+  const ledgers = new Map<string, PartnerLedger>()
+  for (const g of grouped) {
+    const uni = byId.get(g.universityId)
+    if (!uni) continue
+    const led =
+      ledgers.get(g.universityId) ??
+      ({
+        universityId: uni.id,
+        name: uni.name,
+        shortName: uni.shortName,
+        commissionPct: uni.commissionPct,
+        pending: 0,
+        claimable: 0,
+        invoiced: 0,
+        paid: 0,
+        void: 0,
+      } satisfies PartnerLedger)
+
+    const amount = g._sum.amount ?? 0
+    if (g.status === 'PENDING') led.pending += amount
+    else if (g.status === 'CLAIMABLE') led.claimable += amount
+    else if (g.status === 'INVOICED') led.invoiced += amount
+    else if (g.status === 'PAID') led.paid += amount
+    else if (g.status === 'VOID') led.void += amount
+
+    ledgers.set(g.universityId, led)
+  }
+
+  // Biggest outstanding balance first — that's where attention should go.
+  return [...ledgers.values()].sort(
+    (a, b) => b.claimable + b.invoiced - (a.claimable + a.invoiced),
+  )
+}
+
+/** How many PENDING commissions have cleared their cool-off and could promote. */
+export async function claimableReadyCount(now = new Date()): Promise<number> {
+  return prisma.commission.count({
+    where: { status: 'PENDING', claimableAt: { lte: now } },
+  })
+}
+
+/** Marks a payout invoiced. Its commissions are already INVOICED from drafting. */
+export async function markPayoutInvoiced(payoutId: string, invoiceNo?: string) {
+  return prisma.payout.update({
+    where: { id: payoutId },
+    data: { status: 'INVOICED', invoiceNo: invoiceNo?.trim() || null },
+  })
+}
+
+/**
+ * Marks a payout collected. Settles its commissions in the same transaction —
+ * a paid invoice whose commissions still read INVOICED is a reconciliation bug.
+ */
+export async function markPayoutPaid(payoutId: string) {
+  const payout = await prisma.payout.findUnique({
+    where: { id: payoutId },
+    select: { id: true, status: true },
+  })
+  if (!payout) throw new Error('Payout not found')
+
+  const [updated] = await prisma.$transaction([
+    prisma.payout.update({
+      where: { id: payoutId },
+      data: { status: 'PAID', paidAt: new Date() },
+    }),
+    prisma.commission.updateMany({ where: { payoutId }, data: { status: 'PAID' } }),
+  ])
+  return updated
+}
+
+/** Flags a payout disputed for manual follow-up; leaves its commissions as-is. */
+export async function disputePayout(payoutId: string) {
+  return prisma.payout.update({ where: { id: payoutId }, data: { status: 'DISPUTED' } })
+}

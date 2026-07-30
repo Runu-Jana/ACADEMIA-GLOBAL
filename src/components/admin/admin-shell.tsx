@@ -14,6 +14,7 @@ import {
   Building2,
   BadgeCheck,
   Inbox,
+  Wallet,
   Menu,
   X,
   ExternalLink,
@@ -46,6 +47,7 @@ const NAV: {
   { href: '/admin/reviews', label: 'Programme Reviews', icon: BadgeCheck },
   { href: '/admin/partners', label: 'Partner Requests', icon: Inbox },
   { href: '/admin/universities', label: 'Universities', icon: Building2 },
+  { href: '/admin/finance', label: 'Finance', icon: Wallet },
 ]
 
 function isActive(pathname: string, href: string, exact?: boolean) {
