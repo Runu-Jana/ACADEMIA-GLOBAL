@@ -29,6 +29,12 @@ export function CourseTabs({ tabs }: { tabs: TabItem[] }) {
   const listRef = React.useRef<HTMLDivElement>(null)
   const ids = tabs.map((t) => t.id).join(',')
 
+  // Fade a tab-strip edge only when tabs are actually scrolled off in that
+  // direction. On desktop the whole strip fits, so neither edge fades and the
+  // active first/last tab keeps its solid pill — the old static mask showed the
+  // page background through the leftmost tab (white in light, black in dark).
+  const [fade, setFade] = React.useState({ left: false, right: false })
+
   // `#syllabus` style deep links, kept in sync with Back/Forward.
   React.useEffect(() => {
     const sync = () => {
@@ -38,6 +44,26 @@ export function CourseTabs({ tabs }: { tabs: TabItem[] }) {
     sync()
     window.addEventListener('hashchange', sync)
     return () => window.removeEventListener('hashchange', sync)
+  }, [ids])
+
+  // Recompute which edges have off-screen tabs on scroll and resize.
+  React.useEffect(() => {
+    const el = listRef.current
+    if (!el) return
+    const update = () => {
+      const overflowing = el.scrollWidth > el.clientWidth + 1
+      setFade({
+        left: overflowing && el.scrollLeft > 1,
+        right: overflowing && el.scrollLeft + el.clientWidth < el.scrollWidth - 1,
+      })
+    }
+    update()
+    el.addEventListener('scroll', update, { passive: true })
+    window.addEventListener('resize', update)
+    return () => {
+      el.removeEventListener('scroll', update)
+      window.removeEventListener('resize', update)
+    }
   }, [ids])
 
   const select = React.useCallback((id: string) => {
@@ -62,6 +88,15 @@ export function CourseTabs({ tabs }: { tabs: TabItem[] }) {
     listRef.current?.querySelector<HTMLButtonElement>(`[data-tab-id="${id}"]`)?.focus()
   }
 
+  // Only fade the edges that actually have hidden tabs; no fade ⇒ no mask, so
+  // the active pill is never shown-through.
+  const maskImage =
+    fade.left || fade.right
+      ? `linear-gradient(90deg, ${fade.left ? 'transparent, #000 28px' : '#000 0'}, ${
+          fade.right ? '#000 calc(100% - 28px), transparent' : '#000 100%'
+        })`
+      : undefined
+
   return (
     <div>
       <div className="sticky top-16 z-20 -mx-4 mb-5 bg-background/85 px-4 backdrop-blur-md lg:top-[68px]">
@@ -70,7 +105,8 @@ export function CourseTabs({ tabs }: { tabs: TabItem[] }) {
           role="tablist"
           aria-label="Course details"
           onKeyDown={onKeyDown}
-          className="no-scrollbar mask-fade-x flex gap-1 overflow-x-auto border-b border-border py-2"
+          className="no-scrollbar flex gap-1 overflow-x-auto border-b border-border py-2"
+          style={maskImage ? { WebkitMaskImage: maskImage, maskImage } : undefined}
         >
           {tabs.map((tab) => {
             const Icon = ICONS[tab.id] ?? BookOpen

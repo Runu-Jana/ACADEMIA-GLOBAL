@@ -83,6 +83,22 @@
   }
 }
 
+@layer base {
+  /* A blinking text caret only belongs where you actually type. The active tab
+     is a focusable <button>, and focusable-but-not-editable elements were
+     flashing a caret (white inside the dark pill, dark on light). Hide the caret
+     everywhere and restore it only on real text inputs — mouse cursors are left
+     untouched. */
+  * {
+    caret-color: transparent;
+  }
+  input,
+  textarea,
+  [contenteditable]:not([contenteditable='false']) {
+    caret-color: auto;
+  }
+}
+
 @layer components {
   /* ------------------------------------------------------------- glass */
   .glass {
