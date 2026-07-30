@@ -1,3 +1,5 @@
+import { headers } from 'next/headers'
+import QRCode from 'qrcode'
 import { Award } from 'lucide-react'
 import { prisma } from '@/lib/prisma'
 import { requireUser } from '@/lib/auth'
@@ -38,18 +40,38 @@ export default async function CertificatesPage() {
     },
   })
 
-  const items: CertificateItem[] = certificates.map((c) => ({
-    id: c.id,
-    serial: c.serial,
-    grade: c.grade,
-    issuedAt: c.issuedAt.toISOString(),
-    studentName: c.user.name,
-    courseTitle: c.course.title,
-    courseLevel: c.course.level,
-    universityName: c.course.university.name,
-    universityShortName: c.course.university.shortName,
-    completedAt: c.enrollment.completedAt?.toISOString() ?? null,
-  }))
+  // Absolute base URL so a QR scanned from a printed certificate resolves.
+  // NEXT_PUBLIC_SITE_URL wins in production; otherwise derive from the request.
+  const h = await headers()
+  const host = h.get('x-forwarded-host') ?? h.get('host') ?? 'localhost:3000'
+  const proto = h.get('x-forwarded-proto') ?? (host.includes('localhost') ? 'http' : 'https')
+  const base = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/+$/, '') ?? `${proto}://${host}`
+
+  const items: CertificateItem[] = await Promise.all(
+    certificates.map(async (c) => {
+      const verifyUrl = `${base}/verify?serial=${encodeURIComponent(c.serial)}`
+      const qrSvg = await QRCode.toString(verifyUrl, {
+        type: 'svg',
+        margin: 0,
+        errorCorrectionLevel: 'M',
+        color: { dark: '#0f1729', light: '#ffffff' },
+      })
+      return {
+        id: c.id,
+        serial: c.serial,
+        grade: c.grade,
+        issuedAt: c.issuedAt.toISOString(),
+        studentName: c.user.name,
+        courseTitle: c.course.title,
+        courseLevel: c.course.level,
+        universityName: c.course.university.name,
+        universityShortName: c.course.university.shortName,
+        completedAt: c.enrollment.completedAt?.toISOString() ?? null,
+        verifyUrl,
+        qrSvg,
+      }
+    }),
+  )
 
   if (!items.length) {
     return (
@@ -57,7 +79,7 @@ export default async function CertificatesPage() {
         <EmptyState
           icon={Award}
           title="No certificates yet"
-          body="Finish every lesson in a course and your certificate is issued automatically — complete with a verifiable serial number you can share with employers."
+          body="Finish every lesson and pass the course assessments — your certificate is then issued automatically, with a verifiable serial number and QR code you can share with employers."
           actionHref="/dashboard/learn"
           actionLabel="Continue Learning"
         />

@@ -58,8 +58,8 @@ export default async function VerifyPage({ searchParams }: { searchParams: Searc
               },
               {
                 icon: BadgeCheck,
-                title: 'Issued on completion',
-                body: 'Certificates are generated only when a student completes their programme.',
+                title: 'Earned, not just attended',
+                body: 'A certificate is issued only after the student finishes every lesson and passes the course assessments.',
               },
             ].map(({ icon: Icon, title, body }) => (
               <li key={title} className="card-base flex gap-3 p-4">

@@ -18,6 +18,9 @@ export type CertificateItem = {
   universityName: string
   universityShortName: string
   completedAt: string | null
+  /** Absolute /verify?serial=… link, and a pre-rendered QR SVG that encodes it. */
+  verifyUrl: string
+  qrSvg: string
 }
 
 export function CertificateList({ certificates }: { certificates: CertificateItem[] }) {
@@ -128,10 +131,29 @@ function CertificateCard({
             />
           </dl>
 
-          <p className="mt-5 text-center text-[10.5px] leading-relaxed text-muted-foreground">
-            This certificate is issued electronically and does not require a physical signature.
-            Verify its authenticity at academiaglobal.in/verify using the serial number above.
-          </p>
+          {/* ------------------------------------------- scan-to-verify */}
+          <div className="mt-6 flex items-center gap-3 border-t border-border pt-5">
+            <div
+              aria-hidden
+              className="h-[70px] w-[70px] shrink-0 rounded-lg border border-border bg-white p-1 [&>svg]:h-full [&>svg]:w-full"
+              dangerouslySetInnerHTML={{ __html: c.qrSvg }}
+            />
+            <div className="min-w-0 text-left">
+              <p className="flex items-center gap-1.5 text-[11.5px] font-bold">
+                <ShieldCheck className="h-3.5 w-3.5 text-emerald-500" />
+                Scan to verify authenticity
+              </p>
+              <p className="mt-1 text-[10.5px] leading-relaxed text-muted-foreground">
+                Or visit{' '}
+                <span className="font-semibold text-foreground">
+                  {c.verifyUrl.replace(/^https?:\/\//, '').replace(/\?.*$/, '')}
+                </span>{' '}
+                and enter serial{' '}
+                <span className="font-mono font-semibold text-foreground">{c.serial}</span> with the
+                holder&rsquo;s date of birth. Issued electronically — no physical signature required.
+              </p>
+            </div>
+          </div>
         </div>
       </article>
 

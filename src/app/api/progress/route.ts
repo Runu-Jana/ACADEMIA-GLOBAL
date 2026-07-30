@@ -57,9 +57,32 @@ async function gradeFor(userId: string, courseId: string) {
 }
 
 /**
+ * True when every test in the course has a passing attempt (or the course has
+ * no tests). This is the gate a certificate adds on top of lesson completion:
+ * a "Certificate of Completion" anyone can earn by clicking through videos
+ * without passing a single assessment isn't worth showing an employer.
+ */
+async function assessmentsCleared(userId: string, courseId: string): Promise<boolean> {
+  const tests = await prisma.test.findMany({
+    where: { module: { courseId } },
+    select: { id: true },
+  })
+  if (!tests.length) return true
+
+  const passed = await prisma.testAttempt.findMany({
+    where: { userId, passed: true, test: { module: { courseId } } },
+    select: { testId: true },
+    distinct: ['testId'],
+  })
+  const passedIds = new Set(passed.map((a) => a.testId))
+  return tests.every((t) => passedIds.has(t.id))
+}
+
+/**
  * Marks a lesson complete (or clears it), recalculates the enrolment
- * percentage, and auto-issues a certificate the moment the course hits 100%.
- * Returns the fresh numbers so the player can update without a reload.
+ * percentage, and issues a certificate once the course is finished AND every
+ * test is passed. Returns the fresh numbers so the player can update without a
+ * reload.
  */
 export async function POST(req: Request) {
   const session = await getSession()
@@ -122,19 +145,23 @@ export async function POST(req: Request) {
   ])
 
   const progressPct = pct(completedLessons, totalLessons)
-  const isComplete = totalLessons > 0 && completedLessons >= totalLessons
+  const lessonsDone = totalLessons > 0 && completedLessons >= totalLessons
+
+  // Lessons drive the progress bar and the "completed" status as before, but a
+  // certificate additionally requires a passing attempt on every course test.
+  const assessmentsPassed = lessonsDone ? await assessmentsCleared(userId, courseId) : false
 
   await prisma.enrollment.update({
     where: { id: enrollment.id },
     data: {
       progressPct,
-      status: isComplete ? 'COMPLETED' : 'ACTIVE',
-      completedAt: isComplete ? (enrollment.completedAt ?? new Date()) : null,
+      status: lessonsDone ? 'COMPLETED' : 'ACTIVE',
+      completedAt: lessonsDone ? (enrollment.completedAt ?? new Date()) : null,
     },
   })
 
   let certificate: { serial: string; grade: string } | null = null
-  if (isComplete) {
+  if (lessonsDone && assessmentsPassed) {
     const existing = await prisma.certificate.findUnique({
       where: { enrollmentId: enrollment.id },
       select: { serial: true, grade: true },
@@ -171,7 +198,10 @@ export async function POST(req: Request) {
     progressPct,
     completedLessons,
     totalLessons,
-    status: isComplete ? 'COMPLETED' : 'ACTIVE',
+    status: lessonsDone ? 'COMPLETED' : 'ACTIVE',
     certificate,
+    // Lessons finished but a test is still unpassed — the player uses this to
+    // explain why the certificate hasn't been issued yet.
+    assessmentPending: lessonsDone && !assessmentsPassed,
   })
 }

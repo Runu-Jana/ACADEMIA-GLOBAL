@@ -142,6 +142,15 @@ export default async function LearnCoursePage({ params, searchParams }: PageProp
 
   const initialLessonId = Array.isArray(lesson) ? (lesson[0] ?? null) : (lesson ?? null)
 
+  // All lessons finished, but a course test is still unpassed and no certificate
+  // has issued → the player nudges the learner to their assessments.
+  const totalLessons = course.modules.reduce((n, m) => n + m.lessons.length, 0)
+  const initialAssessmentPending =
+    totalLessons > 0 &&
+    progressRows.length >= totalLessons &&
+    !testProps.every((t) => t.passed) &&
+    !enrollment.certificate
+
   return (
     <CoursePlayer
       courseId={course.id}
@@ -161,6 +170,7 @@ export default async function LearnCoursePage({ params, searchParams }: PageProp
       initialProgressPct={enrollment.progressPct}
       initialLessonId={initialLessonId}
       certificateSerial={enrollment.certificate?.serial ?? null}
+      initialAssessmentPending={initialAssessmentPending}
     />
   )
 }

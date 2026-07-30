@@ -84,6 +84,7 @@ export function CoursePlayer({
   initialProgressPct,
   initialLessonId,
   certificateSerial,
+  initialAssessmentPending,
 }: {
   courseId: string
   courseTitle: string
@@ -97,6 +98,8 @@ export function CoursePlayer({
   initialProgressPct: number
   initialLessonId: string | null
   certificateSerial: string | null
+  /** All lessons done but a course test still unpassed — no certificate yet. */
+  initialAssessmentPending: boolean
 }) {
   const router = useRouter()
 
@@ -111,6 +114,7 @@ export function CoursePlayer({
   const [done, setDone] = React.useState<string[]>(completedLessonIds)
   const [progressPct, setProgressPct] = React.useState(initialProgressPct)
   const [serial, setSerial] = React.useState(certificateSerial)
+  const [assessmentPending, setAssessmentPending] = React.useState(initialAssessmentPending)
   const [pending, setPending] = React.useState<string | null>(null)
   const [error, setError] = React.useState('')
   const [tab, setTab] = React.useState<TabKey>('modules')
@@ -164,6 +168,7 @@ export function CoursePlayer({
 
       setProgressPct(data.progressPct)
       if (data.certificate?.serial) setSerial(data.certificate.serial)
+      setAssessmentPending(Boolean(data.assessmentPending))
       // Refresh the server tree so the rest of the dashboard sees the new number.
       router.refresh()
     } catch (err) {
@@ -234,6 +239,19 @@ export function CoursePlayer({
               <span className="tabular-nums text-primary-700 dark:text-primary-300">{progressPct}%</span>
             </div>
             <Progress value={progressPct} holo />
+            {assessmentPending && !serial && (
+              <button
+                type="button"
+                onClick={() => setTab('tests')}
+                className="mt-2 flex w-full items-start gap-1.5 rounded-lg border border-amber-200 bg-amber-50 p-2 text-left text-[11.5px] font-medium text-amber-800 transition-colors hover:border-amber-300 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200"
+              >
+                <ClipboardList className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                <span>
+                  Lessons done — <span className="font-bold underline">pass every test</span> to unlock
+                  your certificate.
+                </span>
+              </button>
+            )}
             <div className="mt-2.5 flex flex-wrap gap-2">
               <Link
                 href={`/courses/${courseSlug}`}
