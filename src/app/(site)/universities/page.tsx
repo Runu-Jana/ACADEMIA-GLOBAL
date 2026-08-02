@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { ChevronRight } from 'lucide-react'
 import { prisma } from '@/lib/prisma'
-import { liveUniversityWhere, liveCourseWhere } from '@/lib/visibility'
+import { listedUniversityWhere, listedCourseWhere } from '@/lib/visibility'
 import { Aurora, GridPattern } from '@/components/fx/aurora'
 import { asList } from '@/lib/utils'
 import { UniversityGrid, type UniversityCardData } from './university-grid'
@@ -17,15 +17,15 @@ export const metadata: Metadata = {
 
 export default async function UniversitiesPage() {
   const rows = await prisma.university.findMany({
-    // Only active partners appear publicly; the programme count reflects only
-    // their live courses, not drafts or pending submissions.
-    where: liveUniversityWhere,
+    // Active partners AND directory listings appear publicly; the programme count
+    // reflects everything shown (published partner courses + directory listings).
+    where: listedUniversityWhere,
     orderBy: [{ featured: 'desc' }, { rating: 'desc' }],
     select: {
       id: true, slug: true, name: true, shortName: true, city: true, state: true,
       estYear: true, rating: true, reviews: true, students: true, naacGrade: true,
-      approvals: true,
-      _count: { select: { courses: { where: liveCourseWhere } } },
+      approvals: true, partnerStatus: true,
+      _count: { select: { courses: { where: listedCourseWhere } } },
     },
   })
 

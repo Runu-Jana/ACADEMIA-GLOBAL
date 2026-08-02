@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { asList } from '@/lib/utils'
-import { liveCourses } from '@/lib/visibility'
+import { listedCourses } from '@/lib/visibility'
 
 /**
  * Feeds the `/compare` page. The shortlist lives in localStorage, so the ids
@@ -52,9 +52,9 @@ export async function GET(request: NextRequest) {
   }
 
   const rows = await prisma.course.findMany({
-    // Gated: a shortlisted course that's since been unpublished or belongs to a
-    // non-active partner simply drops out of the comparison.
-    where: liveCourses({ id: { in: ids } }),
+    // Anything publicly listed can be compared — partner courses and directory
+    // listings alike. Unlisted/unpublished ones drop out.
+    where: listedCourses({ id: { in: ids } }),
     select: {
       id: true, slug: true, title: true, subtitle: true, level: true, mode: true, stream: true,
       durationYears: true, feePerYear: true, originalFee: true, discountPct: true,

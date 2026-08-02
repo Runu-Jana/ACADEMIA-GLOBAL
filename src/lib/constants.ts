@@ -49,6 +49,9 @@ export const APPLICATION_STATUS = [
   'REJECTED',
 ] as const
 
+/** Lead pipeline: a directory-listing enquiry worked toward a partner enrolment. */
+export const LEAD_STATUS = ['NEW', 'CONTACTED', 'QUALIFIED', 'CONVERTED', 'LOST'] as const
+
 export const DURATION_BUCKETS = [
   { value: '1', label: '1 Year' },
   { value: '2', label: '2 Years' },

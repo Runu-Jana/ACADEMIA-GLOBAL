@@ -4,11 +4,12 @@ import { notFound } from 'next/navigation'
 import {
   ChevronRight, ChevronDown, Clock, Monitor, ShieldCheck, Sparkles, Check, Download,
   PlayCircle, FileText, Radio, Award, Briefcase, GraduationCap, MapPin, Users, CalendarDays,
-  BadgeCheck, Wallet, MessageSquare, ArrowRight, BookOpen,
+  BadgeCheck, Wallet, MessageSquare, ArrowRight, BookOpen, Info,
 } from 'lucide-react'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUser } from '@/lib/auth'
-import { isCourseLive, liveCourses } from '@/lib/visibility'
+import { isCourseLive, isCourseListed, isDirectoryCourse, liveCourses, listedCourses } from '@/lib/visibility'
+import { LeadForm } from '@/components/lead/lead-form'
 import { CourseCard } from '@/components/course/course-card'
 import { UniversityMark } from '@/components/course/course-thumb'
 import { Badge } from '@/components/ui/badge'
@@ -136,6 +137,80 @@ function Fact({
   )
 }
 
+type SuggestionCourse = {
+  id: string
+  slug: string
+  title: string
+  feePerYear: number
+  university: { name: string }
+}
+
+/** The rail shown for a DIRECTORY (non-partner) course: a not-affiliated notice,
+ *  a lead form, and matching partner programmes to steer the student toward. */
+function DirectoryRail({
+  universityName,
+  courseId,
+  suggestions,
+  defaults,
+}: {
+  universityName: string
+  courseId: string
+  suggestions: SuggestionCourse[]
+  defaults?: { name: string; email: string; phone?: string }
+}) {
+  return (
+    <div className="space-y-4">
+      <div className="card-base holo-ring overflow-hidden">
+        <div className="border-b border-border bg-amber-50/70 p-4 dark:bg-amber-500/10">
+          <Badge tone="warning">
+            <Info className="h-3 w-3" />
+            Directory listing
+          </Badge>
+          <p className="mt-2 text-[12px] leading-relaxed text-muted-foreground">
+            Academia Global is <strong className="text-foreground">not affiliated</strong> with{' '}
+            {universityName}; this listing is compiled for information only. You can&rsquo;t enrol in it
+            through us — but our counsellors can help you get admission to a recognised{' '}
+            <strong className="text-foreground">partner university</strong>, often faster and with
+            scholarships.
+          </p>
+        </div>
+        <div className="p-4">
+          <h3 className="mb-2.5 text-[14px] font-bold">Get free admission help</h3>
+          <LeadForm
+            source="directory"
+            interestedCourseId={courseId}
+            defaults={defaults}
+            submitLabel="Get admission help"
+          />
+        </div>
+      </div>
+
+      {suggestions.length > 0 && (
+        <div className="card-base p-4">
+          <h3 className="mb-2.5 flex items-center gap-1.5 text-[13px] font-bold">
+            <Sparkles className="h-3.5 w-3.5 text-primary-500" />
+            Partner programmes you can join
+          </h3>
+          <ul className="space-y-2">
+            {suggestions.map((s) => (
+              <li key={s.id}>
+                <Link href={`/courses/${s.slug}`} className="card-base card-hover block p-3">
+                  <p className="line-clamp-2 text-[12.5px] font-bold leading-snug">{s.title}</p>
+                  <p className="mt-0.5 truncate text-[11px] text-muted-foreground">{s.university.name}</p>
+                  <p className="mt-1 text-[12.5px] font-extrabold text-primary-700 dark:text-primary-300">
+                    {formatINR(s.feePerYear)}
+                    <span className="text-[10px] font-medium text-muted-foreground"> / year</span>
+                  </p>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  )
+}
+
 function Faq({ q, a }: { q: string; a: string }) {
   return (
     <details className="group card-base overflow-hidden">
@@ -169,23 +244,42 @@ export default async function CourseDetailPage({
   const course = await getCourse(slug)
   if (!course) notFound()
 
-  // Students only see live courses. Operators and the owning partner may preview
-  // one that isn't live yet, so a reviewer sees exactly what will publish.
-  const preview = !isCourseLive(course)
-  if (preview) {
-    const viewer = await getCurrentUser()
+  const listed = isCourseListed(course)
+  const directory = isDirectoryCourse(course)
+  // Shown to admins/partners viewing something not yet publicly listed.
+  const preview = !listed
+
+  // Not publicly listed → only an admin or the owning partner may preview it, so
+  // a reviewer sees exactly what will publish. The viewer is reused to pre-fill
+  // the lead form on a directory listing.
+  const viewer = !listed || directory ? await getCurrentUser() : null
+  if (!listed) {
     const canPreview =
       viewer?.role === 'ADMIN' ||
       (viewer?.role === 'PARTNER' && viewer.universityId === course.universityId)
     if (!canPreview) notFound()
   }
+  const leadDefaults = viewer
+    ? { name: viewer.name, email: viewer.email, phone: viewer.phone ?? undefined }
+    : undefined
 
   const related = await prisma.course.findMany({
-    where: liveCourses({ stream: course.stream, id: { not: course.id } }),
+    where: listedCourses({ stream: course.stream, id: { not: course.id } }),
     select: courseSelect,
     orderBy: [{ featured: 'desc' }, { rating: 'desc' }],
     take: 4,
   })
+
+  // A directory listing can't be enrolled in — steer interest toward matching
+  // partner programmes instead.
+  const suggestions = directory
+    ? await prisma.course.findMany({
+        where: liveCourses({ stream: course.stream, level: course.level, id: { not: course.id } }),
+        select: courseSelect,
+        orderBy: [{ rating: 'desc' }, { reviews: 'desc' }],
+        take: 3,
+      })
+    : []
 
   const highlights = asList(course.highlights)
   const skills = asList(course.skills)
@@ -790,6 +884,14 @@ export default async function CourseDetailPage({
         <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_336px] xl:gap-8">
           {/* Rail first in the DOM so the price and CTA lead on mobile. */}
           <aside className="lg:order-2 lg:sticky lg:top-24">
+            {directory ? (
+              <DirectoryRail
+                universityName={course.university.name}
+                courseId={course.id}
+                suggestions={suggestions}
+                defaults={leadDefaults}
+              />
+            ) : (
             <div className="card-base holo-ring overflow-hidden">
               <div className="border-b border-border bg-muted/40 p-5">
                 <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
@@ -876,6 +978,7 @@ export default async function CourseDetailPage({
                   ))}
               </ul>
             </div>
+            )}
           </aside>
 
           <div className="min-w-0 lg:order-1">

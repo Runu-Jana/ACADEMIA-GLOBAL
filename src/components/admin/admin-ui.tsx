@@ -177,6 +177,12 @@ const APPLICATION_TONE: Record<string, Tone> = {
   // Also cover the course review + partner request lifecycles.
   PENDING: 'warning',
   PUBLISHED: 'success',
+  // Lead pipeline.
+  NEW: 'primary',
+  CONTACTED: 'warning',
+  QUALIFIED: 'violet',
+  CONVERTED: 'success',
+  LOST: 'danger',
 }
 
 export function StatusBadge({ status }: { status: string }) {

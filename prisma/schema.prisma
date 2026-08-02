@@ -72,6 +72,12 @@ model University {
   website   String?
   featured  Boolean @default(false)
 
+  /// Directory listing: shown publicly for information + lead-gen even when NOT
+  /// an ACTIVE partner. Its courses are source=DIRECTORY (display-only — applying
+  /// raises a Lead, not an enrolment). AI-scraped, facts-only, "not affiliated".
+  listed    Boolean @default(false)
+  sourceUrl String? // where directory data was sourced from, for attribution
+
   // ---- partnership (the revenue relationship) ----
   /// PROSPECT -> IN_TALKS -> ACTIVE. Only ACTIVE partners' courses go live.
   partnerStatus String @default("PROSPECT")
@@ -94,6 +100,7 @@ model University {
 
   @@index([featured])
   @@index([partnerStatus])
+  @@index([listed])
 }
 
 /// A public "Partner with us" enquiry.
@@ -126,6 +133,57 @@ model PartnerApplication {
   reviewedAt DateTime?
 
   @@index([status, createdAt])
+}
+
+/// A prospective student captured from a directory (non-partner) listing or a
+/// "talk to a counsellor" request. Counsellors work these and try to convert
+/// them onto an ACTIVE partner's programme — the revenue path. This is the lead
+/// side of the aggregator model: list many for traffic, monetise the few.
+model Lead {
+  id      String  @id @default(cuid())
+  name    String
+  email   String
+  phone   String?
+  message String?
+
+  /// NEW -> CONTACTED -> QUALIFIED -> CONVERTED | LOST
+  status String @default("NEW")
+  /// directory (applied to a non-partner listing) | callback | counsellor.
+  source String @default("directory")
+
+  /// What they showed interest in, snapshotted so the lead stays readable even
+  /// if the listing changes, plus the partner we're steering them toward.
+  /// Soft references (like Order) — no FK.
+  interestedUniversityId   String?
+  interestedUniversityName String?
+  interestedCourseId       String?
+  interestedCourseTitle    String?
+  suggestedUniversityId    String?
+
+  /// The signed-in student who raised it, if any, and the counsellor on it.
+  userId       String?
+  assignedToId String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  notes LeadNote[]
+
+  @@index([status, createdAt])
+  @@index([assignedToId])
+}
+
+/// Counsellor activity log on a lead — call outcomes, follow-ups.
+model LeadNote {
+  id         String   @id @default(cuid())
+  body       String
+  authorName String?
+  createdAt  DateTime @default(now())
+
+  leadId String
+  lead   Lead   @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  @@index([leadId, createdAt])
 }
 
 // ---------------------------------------------------------------- catalogue
@@ -161,7 +219,8 @@ model Course {
 
   /// UNIVERSITY = a partner's programme; we earn commission on enrolment.
   /// PLATFORM   = our own training programme (PGDCA, AI, etc.); we keep 100%.
-  /// A student can hold both at once — the two revenue paths are independent.
+  /// DIRECTORY  = an AI-scraped listing from a NON-partner university. Display-
+  ///             only: no enrol/pay — applying raises a Lead we convert to a partner.
   source String @default("UNIVERSITY")
 
   /// Publishing gate for partner-submitted programmes:

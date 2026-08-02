@@ -52,3 +52,62 @@ export function liveUniversities(
 ): Prisma.UniversityWhereInput {
   return where ? { AND: [liveUniversityWhere, where] } : liveUniversityWhere
 }
+
+// ===========================================================================
+// Directory (aggregator) tier
+//
+// Two DIFFERENT gates now exist, and mixing them up leaks money or breaks trust:
+//   - TRANSACTABLE (`live*` above) — a student can apply, enrol and PAY. Partner
+//     ACTIVE + PUBLISHED, or PLATFORM. Keep this on /apply, /api/enroll, /api/payments.
+//   - LISTED (`listed*` below) — merely SHOWN publicly for information + lead-gen.
+//     Adds directory (AI-scraped, non-partner) universities and their display-only
+//     courses. Use this on the browse/detail surfaces (/courses, /universities).
+// A directory course is never transactable: applying to one raises a Lead.
+// ===========================================================================
+
+/** Display-only listings scraped from a non-partner university that we've chosen
+ *  to surface (`University.listed`). */
+export const directoryCourseWhere: Prisma.CourseWhereInput = {
+  source: 'DIRECTORY',
+  university: { is: { listed: true } },
+}
+
+/** Everything a visitor may SEE: transactable courses PLUS directory listings. */
+export const listedCourseWhere: Prisma.CourseWhereInput = {
+  OR: [liveCourseWhere, directoryCourseWhere],
+}
+
+export function listedCourses(where?: Prisma.CourseWhereInput): Prisma.CourseWhereInput {
+  return where ? { AND: [listedCourseWhere, where] } : listedCourseWhere
+}
+
+/** Whether an already-loaded course may be shown (transactable OR directory). */
+export function isCourseListed(course: {
+  reviewStatus: string
+  source: string
+  university: { partnerStatus: string; listed: boolean } | null
+}): boolean {
+  if (isCourseLive(course)) return true
+  return course.source === 'DIRECTORY' && Boolean(course.university?.listed)
+}
+
+/** A directory course is display-only — applying raises a Lead, never an enrolment. */
+export function isDirectoryCourse(course: { source: string }): boolean {
+  return course.source === 'DIRECTORY'
+}
+
+/** Universities shown publicly: ACTIVE partners OR listed directory entries. */
+export const listedUniversityWhere: Prisma.UniversityWhereInput = {
+  OR: [{ partnerStatus: 'ACTIVE' }, { listed: true }],
+}
+
+export function listedUniversities(
+  where?: Prisma.UniversityWhereInput,
+): Prisma.UniversityWhereInput {
+  return where ? { AND: [listedUniversityWhere, where] } : listedUniversityWhere
+}
+
+/** A transactable partner (as opposed to a directory-only listing). */
+export function isPartnerUniversity(university: { partnerStatus: string }): boolean {
+  return university.partnerStatus === 'ACTIVE'
+}

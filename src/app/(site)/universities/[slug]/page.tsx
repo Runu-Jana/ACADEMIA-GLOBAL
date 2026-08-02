@@ -3,10 +3,10 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import {
   ChevronRight, MapPin, CalendarDays, Users, BookOpen, BadgeCheck, Award, Globe,
-  MessageSquare, ArrowRight, GraduationCap, Headset, Building2,
+  MessageSquare, ArrowRight, GraduationCap, Headset, Building2, Info,
 } from 'lucide-react'
 import { prisma } from '@/lib/prisma'
-import { liveCourseWhere } from '@/lib/visibility'
+import { listedCourseWhere } from '@/lib/visibility'
 import { CourseCard } from '@/components/course/course-card'
 import { UniversityMark } from '@/components/course/course-thumb'
 import { Badge } from '@/components/ui/badge'
@@ -110,16 +110,19 @@ export default async function UniversityProfilePage({
     where: { slug },
     include: {
       courses: {
-        where: liveCourseWhere,
+        where: listedCourseWhere,
         select: courseSelect,
         orderBy: [{ featured: 'desc' }, { rating: 'desc' }],
       },
     },
   })
 
-  // Only active partners have a public profile; prospects and unvetted sign-ups
-  // 404 until an operator activates them.
-  if (!university || university.partnerStatus !== 'ACTIVE') notFound()
+  // Active partners AND directory listings have a public profile; internal
+  // prospects (not listed) 404 until an operator lists or activates them.
+  if (!university || (university.partnerStatus !== 'ACTIVE' && !university.listed)) notFound()
+
+  // A listed non-partner: shown for information + lead-gen, not transactable.
+  const isDirectory = university.partnerStatus !== 'ACTIVE'
 
   const reviews = await prisma.review.findMany({
     where: { course: { universityId: university.id } },
@@ -243,14 +246,26 @@ export default async function UniversityProfilePage({
     {
       id: 'programs',
       label: `Programs (${courses.length})`,
-      content:
-        courses.length > 0 ? (
-          <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-            {courses.map((c) => (
-              <CourseCard key={c.id} course={c} />
-            ))}
-          </div>
-        ) : (
+      content: (
+        <>
+          {isDirectory && (
+            <div className="mb-4 flex items-start gap-2.5 rounded-xl border border-amber-300 bg-amber-50 p-4 text-[12.5px] leading-relaxed text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200">
+              <Info className="mt-0.5 h-4 w-4 shrink-0" />
+              <span>
+                <strong>Academia Global is not affiliated with {university.name}.</strong> This is an
+                informational directory listing — you can&rsquo;t enrol here through us. Open any
+                programme and request free admission help, and our counsellors will guide you to a
+                recognised partner university.
+              </span>
+            </div>
+          )}
+          {courses.length > 0 ? (
+            <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+              {courses.map((c) => (
+                <CourseCard key={c.id} course={c} />
+              ))}
+            </div>
+          ) : (
           <div className="card-base flex flex-col items-center gap-3 px-6 py-14 text-center">
             <GraduationCap aria-hidden className="h-9 w-9 text-muted-foreground/50" />
             <h3 className="text-base font-extrabold">No programs listed yet</h3>
@@ -261,7 +276,9 @@ export default async function UniversityProfilePage({
               Browse all courses
             </Link>
           </div>
-        ),
+          )}
+        </>
+      ),
     },
     {
       id: 'reviews',
