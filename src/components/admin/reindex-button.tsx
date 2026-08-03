@@ -53,7 +53,7 @@ export function ReindexButton({
             <Database className="h-4 w-4" />
           </span>
           <div className="min-w-0">
-            <p className="text-[13px] font-bold">AI Tutor index</p>
+            <p className="text-[13px] font-bold">Saarthi (AI tutor) index</p>
             <p className="text-[11.5px] text-muted-foreground">
               {chunks > 0
                 ? `${chunks} passage${chunks === 1 ? '' : 's'} indexed for the course tutor.`

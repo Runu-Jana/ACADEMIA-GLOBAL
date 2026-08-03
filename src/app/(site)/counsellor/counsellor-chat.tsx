@@ -51,7 +51,7 @@ const WELCOME: ChatTurn = {
   id: 'welcome',
   role: 'assistant',
   content:
-    'Hi! I am the Academia Global course recommender. I match what you tell me against our real course catalogue — subject, level, study mode and budget — and suggest programmes that fit. Ask me anything below, or start with one of these.',
+    "Hi! I'm Saarthi, your Academia Global study guide. I match what you tell me against our real course catalogue — subject, level, study mode and budget — and suggest programmes that fit. Ask me anything below, or start with one of these.",
 }
 
 export function CounsellorChat({
@@ -138,7 +138,7 @@ export function CounsellorChat({
         </span>
         <div className="min-w-0 flex-1">
           <h2 className="flex items-center gap-2 text-[15px] font-bold leading-tight">
-            Career Counsellor
+            Saarthi
             <Badge tone="cyan" className="shrink-0">
               Guided recommender
             </Badge>
@@ -236,7 +236,7 @@ export function CounsellorChat({
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="e.g. I finished 12th commerce and can spend ₹40,000 a year"
-            aria-label="Ask the course recommender"
+            aria-label="Ask Saarthi"
             maxLength={500}
             className="h-12 min-w-0 flex-1 rounded-xl border border-input bg-surface px-4 text-sm outline-none transition-all duration-200 placeholder:text-muted-foreground/70 focus:border-primary-400 focus:ring-4 focus:ring-primary-500/10"
           />

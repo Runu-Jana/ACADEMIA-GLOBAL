@@ -53,7 +53,7 @@ export function TutorPanel({
         aria-expanded={open}
       >
         <Sparkles className="h-4 w-4" />
-        Ask AI Tutor
+        Ask Saarthi
       </button>
 
       {mounted &&
@@ -263,7 +263,7 @@ function Drawer({
           </span>
           <div className="min-w-0 flex-1">
             <h2 className="flex items-center gap-2 text-[15px] font-bold leading-tight">
-              AI Tutor
+              Saarthi
               <Badge tone="holo" className="shrink-0">
                 Course-aware
               </Badge>
@@ -302,7 +302,7 @@ function Drawer({
             <div className="rounded-2xl border border-border bg-card p-4 text-[13px] leading-relaxed text-muted-foreground shadow-soft">
               <p className="font-semibold text-foreground">Hi{userName ? `, ${userName.split(' ')[0]}` : ''} 👋</p>
               <p className="mt-1.5">
-                I&rsquo;m your tutor for <span className="font-semibold text-foreground">{courseTitle}</span>.
+                I&rsquo;m Saarthi, your tutor for <span className="font-semibold text-foreground">{courseTitle}</span>.
                 Ask me about the syllabus, a lesson, or how the course is assessed — I answer from{' '}
                 <span className="font-semibold text-foreground">this course&rsquo;s materials</span>, and
                 I&rsquo;ll tell you when something isn&rsquo;t covered.
@@ -382,7 +382,7 @@ function Drawer({
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder={configured ? 'Ask anything about this course…' : 'Tutor unavailable'}
-              aria-label="Ask the AI tutor"
+              aria-label="Ask Saarthi"
               maxLength={1000}
               disabled={!configured || busy}
               className="h-12 min-w-0 flex-1 rounded-xl border border-input bg-surface px-4 text-sm outline-none transition-all duration-200 placeholder:text-muted-foreground/70 focus:border-primary-400 focus:ring-4 focus:ring-primary-500/10 disabled:opacity-60"

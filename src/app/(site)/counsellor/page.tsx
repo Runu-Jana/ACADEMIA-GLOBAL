@@ -9,7 +9,7 @@ import { buttonVariants } from '@/components/ui/button'
 import { CounsellorChat, type ChatTurn } from './counsellor-chat'
 
 export const metadata: Metadata = {
-  title: 'Career Counsellor',
+  title: 'Saarthi — AI Course Finder',
   description:
     'Answer a few questions and get course recommendations matched against Academia Global’s live catalogue — by subject, level, study mode and budget.',
 }
@@ -46,7 +46,7 @@ export default async function CounsellorPage() {
           <div className="mx-auto mb-6 max-w-2xl text-center">
             <span className="mb-3 inline-flex items-center gap-2 rounded-full border border-border bg-surface px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-primary-600 shadow-soft dark:text-primary-300">
               <Bot className="h-3.5 w-3.5" />
-              Course Recommender
+              Meet Saarthi
             </span>
             <h1 className="text-balance font-display text-3xl font-extrabold tracking-tight sm:text-4xl">
               Find the course that <span className="holo-text">fits your life</span>

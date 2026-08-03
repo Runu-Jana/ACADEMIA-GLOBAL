@@ -68,9 +68,9 @@ export function RestartPanel() {
               <div className="relative">
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <h3 className="font-display text-lg font-extrabold">AI Career Counsellor</h3>
+                    <h3 className="font-display text-lg font-extrabold">Saarthi</h3>
                     <p className="mt-2 max-w-[15rem] text-[13px] leading-relaxed text-muted-foreground">
-                      Get AI-powered answers to all your education &amp; career questions.
+                      Get instant answers to all your education &amp; career questions.
                     </p>
                   </div>
 
@@ -85,7 +85,7 @@ export function RestartPanel() {
                 href="/counsellor"
                 className={buttonVariants({ variant: 'primary', className: 'relative mt-6 w-full' })}
               >
-                Ask AI Now
+                Ask Saarthi
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </div>

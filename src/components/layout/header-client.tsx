@@ -180,7 +180,7 @@ export function HeaderClient({ user }: { user: HeaderUser }) {
               <span className="relative grid h-7 w-7 place-items-center rounded-lg bg-holo-sweep">
                 <Bot className="h-4 w-4 text-white" />
               </span>
-              AI Counsellor
+              Ask Saarthi
             </Link>
 
             <Link
@@ -374,7 +374,7 @@ export function HeaderClient({ user }: { user: HeaderUser }) {
               ))}
 
               <div className="mt-3 space-y-1 border-t border-border pt-3">
-                <Link href="/counsellor" className="block rounded-lg px-2 py-2.5 text-sm font-semibold">AI Counsellor</Link>
+                <Link href="/counsellor" className="block rounded-lg px-2 py-2.5 text-sm font-semibold">Ask Saarthi</Link>
                 <Link href="/compare" className="block rounded-lg px-2 py-2.5 text-sm font-semibold">Compare Courses {count > 0 && `(${count})`}</Link>
                 <Link href="/verify" className="block rounded-lg px-2 py-2.5 text-sm font-semibold">Verify Certificate</Link>
               </div>

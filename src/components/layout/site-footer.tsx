@@ -18,7 +18,7 @@ const columns = [
   {
     title: 'For Students',
     links: [
-      { label: 'Career Counselling', href: '/counsellor' },
+      { label: 'Ask Saarthi', href: '/counsellor' },
       { label: 'Admission Process', href: '/courses' },
       { label: 'EMI Options', href: '/scholarships' },
       { label: 'Study Material', href: '/dashboard/materials' },

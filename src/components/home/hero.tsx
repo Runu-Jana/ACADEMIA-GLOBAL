@@ -78,7 +78,7 @@ export function Hero() {
               </Link>
               <Link href="/counsellor" className={buttonVariants({ variant: 'outline', size: 'lg' })}>
                 <Bot className="h-4 w-4 text-primary-600" />
-                Talk to AI Counsellor
+                Ask Saarthi
               </Link>
             </div>
           </Reveal>
