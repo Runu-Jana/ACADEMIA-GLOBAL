@@ -264,6 +264,27 @@ export const CLARIFY_REPLY =
   'Could you tell me one of these — the subject you are interested in (management, IT, commerce, law, arts…), ' +
   'what you have completed (Class 10, Class 12, or a degree), or roughly what you can spend per year?'
 
+/** Reply shown once a live-counsellor handoff has been raised for the visitor. */
+export const HANDOFF_REPLY =
+  "Done — I've asked one of our counsellors to reach out to you. They'll call or email you shortly to take it forward. " +
+  'In the meantime, feel free to keep exploring courses with me.'
+
+/**
+ * Detects an explicit ask to talk to a human, so the chat can raise a handoff
+ * even when the visitor types it rather than clicking the button. Deliberately
+ * conservative: it looks for a talk/connect/call verb aimed at a person, or a
+ * "call me"/"live agent"/"human" phrasing — not the mere word "counsellor".
+ */
+export function detectAgentRequest(message: string): boolean {
+  const m = message.toLowerCase()
+  return (
+    /\b(talk|speak|connect|chat|call)\b[\s\S]{0,24}\b(agent|human|counsell?or|advisor|adviser|someone|person|representative|executive|expert|team|staff)\b/.test(m) ||
+    /\b(call|contact|reach|ring)\s+me\b/.test(m) ||
+    /\b(live|real|human)\s+(agent|counsell?or|advisor|adviser|support|chat|person)\b/.test(m) ||
+    /\bhuman\s+(being|help)\b/.test(m)
+  )
+}
+
 export function composeReply({
   intent,
   count,

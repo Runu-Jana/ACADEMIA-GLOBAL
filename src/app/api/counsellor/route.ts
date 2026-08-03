@@ -5,12 +5,15 @@ import { prisma } from '@/lib/prisma'
 import { getCurrentUser } from '@/lib/auth'
 import { liveCourses } from '@/lib/visibility'
 import { readJson } from '@/app/api/admin/_lib/guard'
+import { requestLiveAgent } from '@/lib/live-agent'
 import {
   parseIntent,
   relaxationLadder,
   composeReply,
+  detectAgentRequest,
   INTRO_REPLY,
   CLARIFY_REPLY,
+  HANDOFF_REPLY,
   type Constraint,
 } from './_lib/recommend'
 
@@ -22,6 +25,9 @@ const schema = z.object({
     .trim()
     .min(1, 'Type a question first')
     .max(500, 'That message is a bit long — try a shorter question'),
+  // The chat passes the lead it captured up front (anonymous visitors), so an
+  // in-message "talk to a human" can raise the handoff without a round-trip.
+  leadId: z.string().trim().max(40).optional(),
 })
 
 const courseSelect = {
@@ -57,8 +63,25 @@ export async function POST(req: Request) {
     )
   }
 
-  const { message } = parsed.data
+  const { message, leadId } = parsed.data
   const user = await getCurrentUser()
+
+  // Explicit "talk to a human" typed into the chat → raise the handoff and
+  // confirm, instead of trying to recommend courses. Needs a lead to attach to
+  // (the anonymous chat always has one; a signed-in visitor gets one created).
+  if (detectAgentRequest(message)) {
+    const handoff = await requestLiveAgent({
+      leadId,
+      user: user ? { id: user.id, name: user.name, email: user.email, phone: user.phone } : null,
+      message,
+    })
+    if (handoff.ok) {
+      return NextResponse.json({ reply: HANDOFF_REPLY, courses: [], handoff: true, persisted: Boolean(user) })
+    }
+    // No details on file yet (anonymous, pre-capture) — ask the UI to collect them.
+    return NextResponse.json({ reply: HANDOFF_REPLY, courses: [], needContact: true, persisted: false })
+  }
+
   const intent = parseIntent(message)
 
   const budgetLed = intent.cheapFirst || intent.maxFee !== null

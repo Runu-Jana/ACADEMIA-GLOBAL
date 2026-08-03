@@ -32,16 +32,18 @@ export default async function AdminLeadsPage({ searchParams }: { searchParams: S
       ? sp.status
       : ''
 
-  const [leads, counts] = await Promise.all([
+  const [leads, counts, wantsAgentCount] = await Promise.all([
     prisma.lead.findMany({
       where: status ? { status } : {},
-      orderBy: { createdAt: 'desc' },
+      // Prospects waiting on a live counsellor float to the top of the queue.
+      orderBy: [{ wantsAgent: 'desc' }, { createdAt: 'desc' }],
       include: {
         notes: { orderBy: { createdAt: 'desc' }, take: 1 },
         _count: { select: { notes: true } },
       },
     }),
     prisma.lead.groupBy({ by: ['status'], _count: { _all: true } }),
+    prisma.lead.count({ where: { wantsAgent: true, status: { in: ['NEW', 'CONTACTED'] } } }),
   ])
 
   const countFor = (s: string) => counts.find((c) => c.status === s)?._count._all ?? 0
@@ -65,6 +67,13 @@ export default async function AdminLeadsPage({ searchParams }: { searchParams: S
         title="Leads"
         sub="Prospects captured from directory listings and callback requests — work them toward an enrolment at a partner university."
       />
+
+      {wantsAgentCount > 0 && (
+        <div className="mb-3 flex items-center gap-2 rounded-xl border border-amber-300 bg-amber-50 px-3 py-2 text-[12.5px] font-semibold text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200">
+          <PhoneCall className="h-4 w-4 shrink-0" />
+          {wantsAgentCount} prospect{wantsAgentCount === 1 ? '' : 's'} asked Saarthi for a live counsellor — call them back.
+        </div>
+      )}
 
       <div className="mb-3 flex flex-wrap gap-1.5">
         <StatusChip href="/admin/leads" label="All" count={total} active={!status} />
@@ -102,7 +111,15 @@ export default async function AdminLeadsPage({ searchParams }: { searchParams: S
                 return (
                   <tr key={l.id} className="align-top transition-colors hover:bg-muted/40">
                     <Td className="max-w-[15rem]">
-                      <span className="block font-semibold">{l.name}</span>
+                      <span className="flex items-center gap-1.5 font-semibold">
+                        {l.name}
+                        {l.wantsAgent && (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-bold text-amber-700 dark:bg-amber-500/15 dark:text-amber-300">
+                            <PhoneCall className="h-2.5 w-2.5" />
+                            Wants call
+                          </span>
+                        )}
+                      </span>
                       <span className="block truncate text-[11px] text-muted-foreground">{l.email}</span>
                       {l.phone && (
                         <a href={`tel:${l.phone}`} className="mt-0.5 inline-flex items-center gap-1 text-[11px] font-semibold text-primary-600 hover:underline">

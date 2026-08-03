@@ -22,12 +22,14 @@ import {
   ExternalLink,
   LogOut,
   ShieldCheck,
+  Bell,
 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { ThemeToggle } from '@/components/layout/theme-toggle'
 import { cn, initials } from '@/lib/utils'
 
 export type AdminShellUser = { name: string; email: string }
+export type AdminNotification = { title: string; body: string; href: string }
 
 /**
  * Nav is declared as data (not JSX) so the same list drives the desktop rail,
@@ -60,17 +62,21 @@ function isActive(pathname: string, href: string, exact?: boolean) {
 
 export function AdminShell({
   user,
+  notifications = [],
   children,
 }: {
   user: AdminShellUser
+  notifications?: AdminNotification[]
   children: React.ReactNode
 }) {
   const pathname = usePathname()
   const [drawer, setDrawer] = React.useState(false)
+  const [bell, setBell] = React.useState(false)
 
-  // Any navigation closes the drawer.
+  // Any navigation closes the drawer and the notifications panel.
   React.useEffect(() => {
     setDrawer(false)
+    setBell(false)
   }, [pathname])
 
   React.useEffect(() => {
@@ -152,6 +158,57 @@ export function AdminShell({
               <ExternalLink className="h-3.5 w-3.5" />
               View site
             </Link>
+
+            {/* ------------------------------------------ notifications bell */}
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setBell((v) => !v)}
+                aria-expanded={bell}
+                aria-haspopup="dialog"
+                aria-label={`Notifications${notifications.length ? ` (${notifications.length} waiting)` : ''}`}
+                className="relative grid h-9 w-9 place-items-center rounded-lg border border-border text-muted-foreground transition-colors hover:border-primary-300 hover:text-primary-600"
+              >
+                <Bell className="h-4 w-4" />
+                {notifications.length > 0 && (
+                  <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-accent-orange ring-2 ring-background" />
+                )}
+              </button>
+
+              {bell && (
+                <>
+                  <div className="fixed inset-0 z-10" onClick={() => setBell(false)} aria-hidden />
+                  <div
+                    role="dialog"
+                    aria-label="Notifications"
+                    className="absolute right-0 top-[calc(100%+8px)] z-20 w-[min(20rem,calc(100vw-2rem))] animate-scale-in origin-top-right overflow-hidden rounded-2xl border border-border bg-card shadow-lift"
+                  >
+                    <div className="flex items-center justify-between border-b border-border bg-muted/50 px-4 py-3">
+                      <p className="text-sm font-bold">Callback requests</p>
+                      {notifications.length > 0 && (
+                        <Badge tone="warning" className="shrink-0">{notifications.length}</Badge>
+                      )}
+                    </div>
+                    {notifications.length ? (
+                      <ul className="max-h-80 divide-y divide-border overflow-y-auto">
+                        {notifications.map((n, i) => (
+                          <li key={i}>
+                            <Link href={n.href} className="block px-4 py-3 transition-colors hover:bg-muted/60">
+                              <p className="text-[13px] font-bold">{n.title}</p>
+                              <p className="mt-0.5 text-xs text-muted-foreground">{n.body}</p>
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="px-4 py-6 text-center text-sm text-muted-foreground">
+                        No callback requests right now.
+                      </p>
+                    )}
+                  </div>
+                </>
+              )}
+            </div>
 
             <ThemeToggle />
 

@@ -151,6 +151,12 @@ model Lead {
   /// directory (applied to a non-partner listing) | callback | counsellor.
   source String @default("directory")
 
+  /// The prospect explicitly asked to speak to a human counsellor (via the chat
+  /// handoff). Floats the lead to the top of /admin/leads and drives the admin
+  /// notification + email so a live counsellor can call back promptly.
+  wantsAgent       Boolean   @default(false)
+  agentRequestedAt DateTime?
+
   /// What they showed interest in, snapshotted so the lead stays readable even
   /// if the listing changes, plus the partner we're steering them toward.
   /// Soft references (like Order) — no FK.

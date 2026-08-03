@@ -11,9 +11,12 @@ import {
   Info,
   Trash2,
   AlertCircle,
+  Headset,
+  CheckCircle2,
 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Field, Input } from '@/components/ui/field'
 import { Stars } from '@/components/ui/stars'
 import { UniversityMark } from '@/components/course/course-thumb'
 import { useCompare } from '@/lib/use-compare'
@@ -70,6 +73,13 @@ export function CounsellorChat({
   const [thinking, setThinking] = React.useState(false)
   const [error, setError] = React.useState('')
 
+  // Anonymous visitors introduce themselves first, so a handoff has someone to
+  // call back. Signed-in visitors already have an account, so they skip straight
+  // to chatting and a lead is created lazily only if they ask for a counsellor.
+  const [collecting, setCollecting] = React.useState(!signedIn)
+  const [leadId, setLeadId] = React.useState<string | null>(null)
+  const [handoff, setHandoff] = React.useState<'idle' | 'sending' | 'done'>('idle')
+
   const scrollRef = React.useRef<HTMLDivElement>(null)
   const inputRef = React.useRef<HTMLInputElement>(null)
 
@@ -78,6 +88,10 @@ export function CounsellorChat({
     const el = scrollRef.current
     if (el) el.scrollTop = el.scrollHeight
   }, [turns, thinking])
+
+  function appendAssistant(content: string, courses: CourseRec[] = []) {
+    setTurns((t) => [...t, { id: `a-${Date.now()}`, role: 'assistant', content, courses }])
+  }
 
   async function send(message: string) {
     const text = message.trim()
@@ -92,7 +106,7 @@ export function CounsellorChat({
       const res = await fetch('/api/counsellor', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: text }),
+        body: JSON.stringify({ message: text, leadId: leadId ?? undefined }),
       })
       const data = await res.json().catch(() => ({}))
 
@@ -101,20 +115,41 @@ export function CounsellorChat({
         return
       }
 
-      setTurns((t) => [
-        ...t,
-        {
-          id: `a-${Date.now()}`,
-          role: 'assistant',
-          content: data.reply as string,
-          courses: (data.courses as CourseRec[]) ?? [],
-        },
-      ])
+      appendAssistant(data.reply as string, (data.courses as CourseRec[]) ?? [])
+      // The visitor asked for a human in the message itself — reflect the handoff.
+      if (data.handoff) setHandoff('done')
+      else if (data.needContact) setCollecting(true)
     } catch {
       setError('Network error — check your connection and try again.')
     } finally {
       setThinking(false)
       inputRef.current?.focus()
+    }
+  }
+
+  async function requestAgent() {
+    if (handoff !== 'idle') return
+    setHandoff('sending')
+    setError('')
+    try {
+      const res = await fetch('/api/counsellor/handoff', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ leadId: leadId ?? undefined }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        // Anonymous with no lead yet — send them back to the intro form.
+        if (res.status === 400) setCollecting(true)
+        setError(typeof data.error === 'string' ? data.error : 'Could not reach a counsellor. Please try again.')
+        setHandoff('idle')
+        return
+      }
+      appendAssistant(data.reply as string)
+      setHandoff('done')
+    } catch {
+      setError('Network error — please try again.')
+      setHandoff('idle')
     }
   }
 
@@ -161,104 +196,231 @@ export function CounsellorChat({
         )}
       </div>
 
-      {/*
-        Messages. The height cap applies at every width, not just sm+: without
-        it the log grows with the conversation on a phone and pushes the
-        composer off the bottom of the page.
-      */}
-      <div
-        ref={scrollRef}
-        role="log"
-        aria-live="polite"
-        aria-label="Conversation"
-        className="max-h-[55vh] min-h-[20rem] flex-1 space-y-4 overflow-y-auto bg-muted/30 p-4 sm:max-h-[60vh]"
-      >
-        {turns.map((turn) => (
-          <Turn key={turn.id} turn={turn} userName={userName} />
-        ))}
-
-        {thinking && (
-          <div className="flex items-end gap-2.5">
-            <Avatar role="assistant" userName={userName} />
-            <div className="rounded-2xl rounded-bl-md border border-border bg-card px-4 py-3 shadow-soft">
-              <span className="sr-only">Finding courses…</span>
-              <span className="flex items-center gap-1" aria-hidden>
-                {/* Staggered delays turn three pulses into a "typing" ripple. */}
-                {[0, 1, 2].map((i) => (
-                  <span
-                    key={i}
-                    className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary-400"
-                    style={{ animationDelay: `${i * 180}ms` }}
-                  />
-                ))}
-              </span>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* -------------------------------------------------------- composer */}
-      <div className="border-t border-border p-3 sm:p-4">
-        {error && (
-          <p
-            role="alert"
-            className="mb-2.5 flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 p-2.5 text-[12.5px] font-medium text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300"
+      {collecting ? (
+        <IntroForm
+          onError={setError}
+          onDone={(id, firstName) => {
+            setLeadId(id)
+            setCollecting(false)
+            setTurns([
+              WELCOME,
+              {
+                id: `a-hi-${Date.now()}`,
+                role: 'assistant',
+                content: `Thanks${firstName ? `, ${firstName}` : ''}! Now tell me what you're looking for — a subject, your level, or a budget — and I'll suggest programmes. You can ask to connect with a counsellor any time.`,
+              },
+            ])
+          }}
+          error={error}
+        />
+      ) : (
+        <>
+          {/*
+            Messages. The height cap applies at every width, not just sm+: without
+            it the log grows with the conversation on a phone and pushes the
+            composer off the bottom of the page.
+          */}
+          <div
+            ref={scrollRef}
+            role="log"
+            aria-live="polite"
+            aria-label="Conversation"
+            className="max-h-[55vh] min-h-[20rem] flex-1 space-y-4 overflow-y-auto bg-muted/30 p-4 sm:max-h-[60vh]"
           >
+            {turns.map((turn) => (
+              <Turn key={turn.id} turn={turn} userName={userName} />
+            ))}
+
+            {thinking && (
+              <div className="flex items-end gap-2.5">
+                <Avatar role="assistant" userName={userName} />
+                <div className="rounded-2xl rounded-bl-md border border-border bg-card px-4 py-3 shadow-soft">
+                  <span className="sr-only">Finding courses…</span>
+                  <span className="flex items-center gap-1" aria-hidden>
+                    {/* Staggered delays turn three pulses into a "typing" ripple. */}
+                    {[0, 1, 2].map((i) => (
+                      <span
+                        key={i}
+                        className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary-400"
+                        style={{ animationDelay: `${i * 180}ms` }}
+                      />
+                    ))}
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* -------------------------------------------------------- composer */}
+          <div className="border-t border-border p-3 sm:p-4">
+            {error && (
+              <p
+                role="alert"
+                className="mb-2.5 flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 p-2.5 text-[12.5px] font-medium text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300"
+              >
+                <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                {error}
+              </p>
+            )}
+
+            {/* Live-agent handoff — always one tap away, and reflects its state. */}
+            <div className="mb-2.5">
+              {handoff === 'done' ? (
+                <p className="flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-[12.5px] font-semibold text-emerald-700 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-300">
+                  <CheckCircle2 className="h-4 w-4 shrink-0" />
+                  A counsellor has been notified and will reach out to you shortly.
+                </p>
+              ) : (
+                <button
+                  type="button"
+                  onClick={requestAgent}
+                  disabled={handoff === 'sending'}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-primary-300 bg-primary-50 px-3.5 py-1.5 text-[12.5px] font-bold text-primary-700 transition-all duration-200 hover:-translate-y-0.5 hover:border-primary-400 hover:shadow-soft disabled:opacity-60 dark:border-primary-500/40 dark:bg-primary-500/15 dark:text-primary-200"
+                >
+                  <Headset className="h-3.5 w-3.5 shrink-0" />
+                  {handoff === 'sending' ? 'Connecting…' : 'Connect with a live agent'}
+                </button>
+              )}
+            </div>
+
+            <div className="mb-2.5 flex flex-wrap gap-1.5">
+              {SUGGESTIONS.map((s) => (
+                <button
+                  key={s}
+                  type="button"
+                  onClick={() => send(s)}
+                  disabled={thinking}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-left text-[12px] font-semibold text-muted-foreground transition-all duration-200 hover:-translate-y-0.5 hover:border-primary-300 hover:text-primary-600 disabled:opacity-50"
+                >
+                  <Sparkles className="h-3 w-3 shrink-0 text-primary-500" aria-hidden />
+                  {s}
+                </button>
+              ))}
+            </div>
+
+            <form
+              onSubmit={(e) => {
+                e.preventDefault()
+                send(input)
+              }}
+              className="flex items-center gap-2"
+            >
+              <input
+                ref={inputRef}
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder="e.g. I finished 12th commerce and can spend ₹40,000 a year"
+                aria-label="Ask Saarthi"
+                maxLength={500}
+                className="h-12 min-w-0 flex-1 rounded-xl border border-input bg-surface px-4 text-sm outline-none transition-all duration-200 placeholder:text-muted-foreground/70 focus:border-primary-400 focus:ring-4 focus:ring-primary-500/10"
+              />
+              <Button
+                type="submit"
+                variant="holo"
+                size="icon"
+                className="h-12 w-12 shrink-0"
+                disabled={thinking || !input.trim()}
+                aria-label="Send message"
+              >
+                <Send className="h-4.5 w-4.5" />
+              </Button>
+            </form>
+
+            <p className="mt-2.5 flex items-start gap-1.5 text-[11px] leading-relaxed text-muted-foreground">
+              <Info className="mt-0.5 h-3 w-3 shrink-0" aria-hidden />
+              This is a rule-based recommender over our course database, not a general-purpose AI. It
+              cannot answer questions outside course selection.
+              {!signedIn && ' Sign in if you would like this conversation saved for next time.'}
+            </p>
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
+
+/* ------------------------------------------------------------ intro form */
+
+/** Collects a name/email/phone for anonymous visitors and opens a counsellor lead. */
+function IntroForm({
+  onDone,
+  onError,
+  error,
+}: {
+  onDone: (leadId: string | null, firstName: string) => void
+  onError: (msg: string) => void
+  error: string
+}) {
+  const [form, setForm] = React.useState({ name: '', email: '', phone: '' })
+  const [busy, setBusy] = React.useState(false)
+
+  const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) =>
+    setForm((f) => ({ ...f, [k]: e.target.value }))
+
+  const ready = form.name.trim().length >= 2 && /.+@.+\..+/.test(form.email) && form.phone.trim().length >= 8
+
+  async function start(e: React.FormEvent) {
+    e.preventDefault()
+    if (!ready || busy) return
+    setBusy(true)
+    onError('')
+    try {
+      const res = await fetch('/api/leads', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...form, source: 'counsellor' }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        onError(typeof data.error === 'string' ? data.error : 'Please check your details and try again.')
+        return
+      }
+      onDone(typeof data.leadId === 'string' ? data.leadId : null, form.name.trim().split(/\s+/)[0])
+    } catch {
+      onError('Network error — please try again.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <div className="p-5 sm:p-6">
+      <p className="text-[13.5px] leading-relaxed text-muted-foreground">
+        Hi! I&rsquo;m <span className="font-bold text-foreground">Saarthi</span>, your Academia Global
+        study guide. Leave your details so a counsellor can follow up if you&rsquo;d like — then ask me
+        anything about our courses.
+      </p>
+
+      <form onSubmit={start} className="mt-4 space-y-3.5">
+        <Field label="Your name" required>
+          <Input value={form.name} onChange={set('name')} placeholder="e.g. Aditi Sharma" maxLength={80} />
+        </Field>
+        <div className="grid gap-3.5 sm:grid-cols-2">
+          <Field label="Email" required>
+            <Input type="email" value={form.email} onChange={set('email')} placeholder="you@example.com" maxLength={120} />
+          </Field>
+          <Field label="Phone" required>
+            <Input type="tel" value={form.phone} onChange={set('phone')} placeholder="+91 98765 43210" maxLength={20} />
+          </Field>
+        </div>
+
+        {error && (
+          <p role="alert" className="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 p-2.5 text-[12.5px] font-medium text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300">
             <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
             {error}
           </p>
         )}
 
-        <div className="mb-2.5 flex flex-wrap gap-1.5">
-          {SUGGESTIONS.map((s) => (
-            <button
-              key={s}
-              type="button"
-              onClick={() => send(s)}
-              disabled={thinking}
-              className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-left text-[12px] font-semibold text-muted-foreground transition-all duration-200 hover:-translate-y-0.5 hover:border-primary-300 hover:text-primary-600 disabled:opacity-50"
-            >
-              <Sparkles className="h-3 w-3 shrink-0 text-primary-500" aria-hidden />
-              {s}
-            </button>
-          ))}
-        </div>
-
-        <form
-          onSubmit={(e) => {
-            e.preventDefault()
-            send(input)
-          }}
-          className="flex items-center gap-2"
-        >
-          <input
-            ref={inputRef}
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="e.g. I finished 12th commerce and can spend ₹40,000 a year"
-            aria-label="Ask Saarthi"
-            maxLength={500}
-            className="h-12 min-w-0 flex-1 rounded-xl border border-input bg-surface px-4 text-sm outline-none transition-all duration-200 placeholder:text-muted-foreground/70 focus:border-primary-400 focus:ring-4 focus:ring-primary-500/10"
-          />
-          <Button
-            type="submit"
-            variant="holo"
-            size="icon"
-            className="h-12 w-12 shrink-0"
-            disabled={thinking || !input.trim()}
-            aria-label="Send message"
-          >
-            <Send className="h-4.5 w-4.5" />
-          </Button>
-        </form>
-
-        <p className="mt-2.5 flex items-start gap-1.5 text-[11px] leading-relaxed text-muted-foreground">
+        <Button type="submit" variant="holo" size="lg" loading={busy} disabled={busy || !ready} className="w-full">
+          {!busy && <Sparkles className="h-4 w-4" />}
+          Start chatting with Saarthi
+        </Button>
+        <p className="flex items-start gap-1.5 text-[11px] leading-relaxed text-muted-foreground">
           <Info className="mt-0.5 h-3 w-3 shrink-0" aria-hidden />
-          This is a rule-based recommender over our course database, not a general-purpose AI. It
-          cannot answer questions outside course selection.
-          {!signedIn && ' Sign in if you would like this conversation saved for next time.'}
+          We use these only to help you with admissions — no spam. Saarthi answers from our real course
+          catalogue and can connect you with a human counsellor whenever you want.
         </p>
-      </div>
+      </form>
     </div>
   )
 }
