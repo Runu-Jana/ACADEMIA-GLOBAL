@@ -2,14 +2,15 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import {
-  ChevronRight, ChevronDown, Clock, Monitor, ShieldCheck, Sparkles, Check, Download,
+  ChevronRight, ChevronDown, Clock, Monitor, ShieldCheck, Sparkles, Check,
   PlayCircle, FileText, Radio, Award, Briefcase, GraduationCap, MapPin, Users, CalendarDays,
   BadgeCheck, Wallet, MessageSquare, ArrowRight, BookOpen, Info,
 } from 'lucide-react'
 import { prisma } from '@/lib/prisma'
-import { getCurrentUser } from '@/lib/auth'
+import { getCurrentUser, getSession } from '@/lib/auth'
 import { isCourseLive, isCourseListed, isDirectoryCourse, liveCourses, listedCourses } from '@/lib/visibility'
 import { LeadForm } from '@/components/lead/lead-form'
+import { BrochureGate } from '@/components/course/brochure-gate'
 import { CourseCard } from '@/components/course/course-card'
 import { UniversityMark } from '@/components/course/course-thumb'
 import { Badge } from '@/components/ui/badge'
@@ -262,6 +263,10 @@ export default async function CourseDetailPage({
   const leadDefaults = viewer
     ? { name: viewer.name, email: viewer.email, phone: viewer.phone ?? undefined }
     : undefined
+
+  // Whether to gate the brochure download. `viewer` is only fetched for directory
+  // listings, so fall back to a cheap session check for ordinary partner courses.
+  const signedIn = Boolean(viewer) || Boolean(await getSession())
 
   const related = await prisma.course.findMany({
     where: listedCourses({ stream: course.stream, id: { not: course.id } }),
@@ -938,15 +943,12 @@ export default async function CourseDetailPage({
                   <ArrowRight className="h-4 w-4" />
                 </Link>
 
-                <a
-                  href={`/brochure/${course.slug}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={buttonVariants({ variant: 'outline', className: 'w-full' })}
-                >
-                  <Download className="h-4 w-4" />
-                  Download Brochure
-                </a>
+                <BrochureGate
+                  slug={course.slug}
+                  courseId={course.id}
+                  courseTitle={course.title}
+                  signedIn={signedIn}
+                />
 
                 {syllabus && (
                   <a

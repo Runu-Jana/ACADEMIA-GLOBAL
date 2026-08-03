@@ -23,7 +23,7 @@ const schema = z.object({
     .trim()
     .regex(/^[+\d][\d\s-]{7,17}$/, 'Enter a valid phone number'),
   message: z.string().trim().max(1000).optional(),
-  source: z.enum(['directory', 'callback', 'counsellor']).default('directory'),
+  source: z.enum(['directory', 'callback', 'counsellor', 'brochure']).default('directory'),
   interestedUniversityId: z.string().trim().max(40).optional(),
   interestedCourseId: z.string().trim().max(40).optional(),
 })
