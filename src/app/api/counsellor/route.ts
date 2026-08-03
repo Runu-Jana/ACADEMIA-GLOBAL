@@ -6,6 +6,7 @@ import { getCurrentUser } from '@/lib/auth'
 import { liveCourses } from '@/lib/visibility'
 import { readJson } from '@/app/api/admin/_lib/guard'
 import { requestLiveAgent } from '@/lib/live-agent'
+import { enforceRateLimit, MINUTE } from '@/lib/rate-limit'
 import {
   parseIntent,
   relaxationLadder,
@@ -55,6 +56,9 @@ function whereFor(c: Constraint): Prisma.CourseWhereInput {
 }
 
 export async function POST(req: Request) {
+  const limited = enforceRateLimit(req, 'counsellor', 30, 5 * MINUTE)
+  if (limited) return limited
+
   const parsed = schema.safeParse(await readJson(req))
   if (!parsed.success) {
     return NextResponse.json(

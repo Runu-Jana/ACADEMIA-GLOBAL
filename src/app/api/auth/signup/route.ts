@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { prisma } from '@/lib/prisma'
 import { createSession, hashPassword } from '@/lib/auth'
+import { enforceRateLimit, HOUR } from '@/lib/rate-limit'
 
 const schema = z.object({
   name: z.string().trim().min(2, 'Please enter your full name').max(80),
@@ -16,6 +17,9 @@ const schema = z.object({
 })
 
 export async function POST(req: Request) {
+  const limited = enforceRateLimit(req, 'signup', 5, HOUR)
+  if (limited) return limited
+
   let body: unknown
   try {
     body = await req.json()

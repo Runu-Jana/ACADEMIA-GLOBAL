@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { getCurrentUser } from '@/lib/auth'
 import { readJson } from '@/app/api/admin/_lib/guard'
 import { requestLiveAgent } from '@/lib/live-agent'
+import { enforceRateLimit, MINUTE } from '@/lib/rate-limit'
 import { HANDOFF_REPLY } from '../_lib/recommend'
 
 export const dynamic = 'force-dynamic'
@@ -21,6 +22,10 @@ const schema = z.object({
  * back. Idempotent — a second click won't re-notify.
  */
 export async function POST(req: Request) {
+  // Each handoff emails the admin — throttle harder to prevent email bombing.
+  const limited = enforceRateLimit(req, 'handoff', 4, 15 * MINUTE)
+  if (limited) return limited
+
   const parsed = schema.safeParse(await readJson(req))
   if (!parsed.success) {
     return NextResponse.json({ error: parsed.error.errors[0]?.message ?? 'Invalid request' }, { status: 400 })

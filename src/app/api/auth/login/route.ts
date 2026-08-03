@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { prisma } from '@/lib/prisma'
 import { createSession, verifyPassword } from '@/lib/auth'
 import type { Role } from '@/lib/session'
+import { enforceRateLimit, MINUTE } from '@/lib/rate-limit'
 
 const schema = z.object({
   email: z.string().trim().toLowerCase().email('Enter a valid email address'),
@@ -10,6 +11,10 @@ const schema = z.object({
 })
 
 export async function POST(req: Request) {
+  // Blunt the brute-force / credential-stuffing surface.
+  const limited = enforceRateLimit(req, 'login', 10, 10 * MINUTE)
+  if (limited) return limited
+
   let body: unknown
   try {
     body = await req.json()

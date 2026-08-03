@@ -16,9 +16,25 @@ export interface SessionPayload {
   email: string
 }
 
+// The values shipped in .env / .env.example for local dev. If any of these — or
+// a too-short secret — is still in use in production, sessions are forgeable, so
+// we refuse to sign/verify rather than boot insecure.
+const INSECURE_SECRETS = new Set([
+  'change-me-to-a-long-random-string',
+  'academia-global-dev-secret-change-me-in-production-0192837465',
+])
+
 function secretKey() {
   const secret = process.env.AUTH_SECRET
   if (!secret) throw new Error('AUTH_SECRET is not set')
+  if (
+    process.env.NODE_ENV === 'production' &&
+    (INSECURE_SECRETS.has(secret) || secret.length < 32)
+  ) {
+    throw new Error(
+      'AUTH_SECRET is a default or too-short value in production. Set a long, random secret.',
+    )
+  }
   return new TextEncoder().encode(secret)
 }
 

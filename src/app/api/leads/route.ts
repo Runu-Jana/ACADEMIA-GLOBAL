@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUser } from '@/lib/auth'
 import { liveCourses } from '@/lib/visibility'
+import { enforceRateLimit, MINUTE } from '@/lib/rate-limit'
 
 export const dynamic = 'force-dynamic'
 
@@ -29,6 +30,10 @@ const schema = z.object({
 })
 
 export async function POST(req: Request) {
+  // Anonymous and DB-writing — cap it so the lead table can't be flooded.
+  const limited = enforceRateLimit(req, 'lead', 8, 10 * MINUTE)
+  if (limited) return limited
+
   const user = await getCurrentUser() // optional
 
   let body: unknown
