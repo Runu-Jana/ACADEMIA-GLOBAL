@@ -242,6 +242,27 @@ export function CourseFilterSidebar({
   const { state, apply, toggle, clearAll, pending } = useFilterState()
   const active = activeFilterCount(state)
 
+  // The panel is taller than the pinned sidebar, so it scrolls internally. Track
+  // whether we're at the bottom to fade the last (often half-clipped) row rather
+  // than hard-cutting it against the card's rounded edge, which reads as broken.
+  const scrollRef = React.useRef<HTMLDivElement>(null)
+  const [atBottom, setAtBottom] = React.useState(true)
+
+  const syncFade = React.useCallback(() => {
+    const el = scrollRef.current
+    if (!el) return
+    setAtBottom(el.scrollTop + el.clientHeight >= el.scrollHeight - 4)
+  }, [])
+
+  React.useEffect(() => {
+    const el = scrollRef.current
+    if (!el) return
+    syncFade()
+    const ro = new ResizeObserver(syncFade)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [syncFade])
+
   return (
     <aside
       aria-label="Refine your search"
@@ -263,13 +284,28 @@ export function CourseFilterSidebar({
           ) : null}
         </div>
 
-        <div className="max-h-[calc(100dvh-11rem)] overflow-y-auto">
-          <FilterPanelBody
-            counts={counts}
-            state={state}
-            toggle={toggle}
-            apply={apply}
-            clearAll={clearAll}
+        <div className="relative">
+          <div
+            ref={scrollRef}
+            onScroll={syncFade}
+            className="max-h-[calc(100dvh-11rem)] overflow-y-auto"
+          >
+            <FilterPanelBody
+              counts={counts}
+              state={state}
+              toggle={toggle}
+              apply={apply}
+              clearAll={clearAll}
+            />
+          </div>
+
+          {/* "More below" affordance — soft-fades whatever the scroll clips. */}
+          <div
+            aria-hidden
+            className={cn(
+              'pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-card to-transparent transition-opacity duration-200',
+              atBottom ? 'opacity-0' : 'opacity-100',
+            )}
           />
         </div>
       </div>
