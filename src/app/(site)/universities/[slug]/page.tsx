@@ -6,7 +6,9 @@ import {
   MessageSquare, ArrowRight, GraduationCap, Headset, Building2, Info,
 } from 'lucide-react'
 import { prisma } from '@/lib/prisma'
+import { getCurrentUser } from '@/lib/auth'
 import { listedCourseWhere } from '@/lib/visibility'
+import { LeadForm } from '@/components/lead/lead-form'
 import { CourseCard } from '@/components/course/course-card'
 import { UniversityMark } from '@/components/course/course-thumb'
 import { Badge } from '@/components/ui/badge'
@@ -124,6 +126,12 @@ export default async function UniversityProfilePage({
   // A listed non-partner: shown for information + lead-gen, not transactable.
   const isDirectory = university.partnerStatus !== 'ACTIVE'
 
+  // Pre-fill the callback form for signed-in visitors; anonymous is fine too.
+  const viewer = await getCurrentUser()
+  const leadDefaults = viewer
+    ? { name: viewer.name, email: viewer.email, phone: viewer.phone ?? undefined }
+    : undefined
+
   const reviews = await prisma.review.findMany({
     where: { course: { universityId: university.id } },
     orderBy: { createdAt: 'desc' },
@@ -147,6 +155,27 @@ export default async function UniversityProfilePage({
       label: 'About',
       content: (
         <div className="space-y-5">
+          {isDirectory && (
+            <Panel title="Get free admission help" className="holo-ring">
+              <div className="mb-4 flex items-start gap-2.5 rounded-xl border border-amber-300 bg-amber-50 p-3.5 text-[12.5px] leading-relaxed text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200">
+                <Info aria-hidden className="mt-0.5 h-4 w-4 shrink-0" />
+                <span>
+                  <strong>Academia Global is not affiliated with {university.name}.</strong> This is an
+                  informational directory listing — you can&rsquo;t enrol here through us. Share your
+                  details and our counsellors will guide you to a recognised{' '}
+                  <strong className="text-foreground">partner university</strong>, often faster and with
+                  scholarships.
+                </span>
+              </div>
+              <LeadForm
+                source="directory"
+                interestedUniversityId={university.id}
+                defaults={leadDefaults}
+                submitLabel="Get admission help"
+              />
+            </Panel>
+          )}
+
           <Panel title={`About ${university.shortName}`}>
             <p className="text-pretty text-sm leading-relaxed text-muted-foreground">
               {university.about}
@@ -175,23 +204,27 @@ export default async function UniversityProfilePage({
             </dl>
           </Panel>
 
-          <Panel title="Why Students Choose It">
-            <ul className="grid gap-2.5 sm:grid-cols-2">
-              {[
-                'Degrees recognised on par with on-campus programs',
-                'Learn entirely online with recorded and live sessions',
-                'Dedicated academic mentors and doubt-clearing support',
-                'Flexible examination slots with online proctoring',
-                'Digital library, e-journals and case-study repositories',
-                'Placement and career services for enrolled learners',
-              ].map((item) => (
-                <li key={item} className="flex items-start gap-2.5 text-[13px]">
-                  <BadgeCheck aria-hidden className="mt-0.5 h-4 w-4 shrink-0 text-accent-green" />
-                  <span className="font-medium leading-snug">{item}</span>
-                </li>
-              ))}
-            </ul>
-          </Panel>
+          {/* Enrolment-benefit copy implies you can join through us — true only for
+              partner universities, so it's hidden on not-affiliated directory listings. */}
+          {!isDirectory && (
+            <Panel title="Why Students Choose It">
+              <ul className="grid gap-2.5 sm:grid-cols-2">
+                {[
+                  'Degrees recognised on par with on-campus programs',
+                  'Learn entirely online with recorded and live sessions',
+                  'Dedicated academic mentors and doubt-clearing support',
+                  'Flexible examination slots with online proctoring',
+                  'Digital library, e-journals and case-study repositories',
+                  'Placement and career services for enrolled learners',
+                ].map((item) => (
+                  <li key={item} className="flex items-start gap-2.5 text-[13px]">
+                    <BadgeCheck aria-hidden className="mt-0.5 h-4 w-4 shrink-0 text-accent-green" />
+                    <span className="font-medium leading-snug">{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </Panel>
+          )}
         </div>
       ),
     },
@@ -399,9 +432,20 @@ export default async function UniversityProfilePage({
                 <Headset className="h-6 w-6 text-white" />
               </span>
               <p className="flex-1 text-pretty text-[13px] leading-relaxed text-muted-foreground">
-                Admissions for {university.shortName} run through Academia Global. Our counsellors
-                can walk you through eligibility, fee plans, scholarships and the documents you
-                need — at no cost.
+                {isDirectory ? (
+                  <>
+                    Academia Global isn&rsquo;t affiliated with {university.shortName}, so you can&rsquo;t
+                    enrol here through us. Our counsellors can still help you get admission to a
+                    recognised partner university — eligibility, fee plans, scholarships and documents,
+                    at no cost.
+                  </>
+                ) : (
+                  <>
+                    Admissions for {university.shortName} run through Academia Global. Our counsellors
+                    can walk you through eligibility, fee plans, scholarships and the documents you
+                    need — at no cost.
+                  </>
+                )}
               </p>
               <Link
                 href="/courses"
