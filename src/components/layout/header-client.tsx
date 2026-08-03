@@ -103,6 +103,10 @@ export function HeaderClient({ user }: { user: HeaderUser }) {
   const [drawer, setDrawer] = React.useState(false)
   const [menu, setMenu] = React.useState(false)
   const [q, setQ] = React.useState('')
+  // The mega-nav dropdown is CSS hover/focus driven; clicking a link inside it
+  // leaves the cursor hovering and the link focused, so it would stay open.
+  // This force-closes the just-clicked menu until the pointer leaves the item.
+  const [closedMenu, setClosedMenu] = React.useState<string | null>(null)
 
   React.useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8)
@@ -115,6 +119,7 @@ export function HeaderClient({ user }: { user: HeaderUser }) {
   React.useEffect(() => {
     setDrawer(false)
     setMenu(false)
+    setClosedMenu(null)
   }, [pathname])
 
   React.useEffect(() => {
@@ -264,9 +269,17 @@ export function HeaderClient({ user }: { user: HeaderUser }) {
         <nav aria-label="Course categories" className="hidden border-t border-border lg:block">
           <ul className="container flex items-center gap-1">
             {NAV.map((item) => (
-              <li key={item.label} className="group relative">
+              <li
+                key={item.label}
+                className="group relative"
+                onMouseLeave={() => setClosedMenu(null)}
+              >
                 <Link
                   href={item.href}
+                  onClick={(e) => {
+                    setClosedMenu(item.label)
+                    e.currentTarget.blur()
+                  }}
                   className="flex items-center gap-1 px-3 py-3 text-[13px] font-semibold text-foreground/85 transition-colors hover:text-primary-600 group-hover:text-primary-600"
                 >
                   {item.label}
@@ -276,7 +289,13 @@ export function HeaderClient({ user }: { user: HeaderUser }) {
                 </Link>
 
                 {item.columns && (
-                  <div className="invisible absolute left-0 top-full z-30 translate-y-2 opacity-0 transition-all duration-300 ease-spring group-hover:visible group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:visible group-focus-within:translate-y-0 group-focus-within:opacity-100">
+                  <div
+                    className={cn(
+                      'invisible absolute left-0 top-full z-30 translate-y-2 opacity-0 transition-all duration-300 ease-spring group-hover:visible group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:visible group-focus-within:translate-y-0 group-focus-within:opacity-100',
+                      // Force-hidden after a click, overriding hover/focus, until the pointer leaves.
+                      closedMenu === item.label && 'pointer-events-none !invisible !translate-y-2 !opacity-0',
+                    )}
+                  >
                     <div className="holo-ring mt-1 flex gap-7 rounded-2xl border border-border bg-card p-5 shadow-lift">
                       {item.columns.map((col) => (
                         <div key={col.title} className="min-w-[190px]">
@@ -288,6 +307,10 @@ export function HeaderClient({ user }: { user: HeaderUser }) {
                               <li key={l.href}>
                                 <Link
                                   href={l.href}
+                                  onClick={(e) => {
+                                    setClosedMenu(item.label)
+                                    e.currentTarget.blur()
+                                  }}
                                   className="block rounded-lg px-2.5 py-1.5 text-[13px] font-medium text-foreground/85 transition-all hover:translate-x-0.5 hover:bg-primary-50 hover:text-primary-700 dark:hover:bg-primary-500/10"
                                 >
                                   {l.label}
