@@ -87,11 +87,6 @@ export function CourseCard({
           {inCompare ? <Check className="h-4 w-4" /> : <GitCompare className="h-4 w-4" />}
         </button>
 
-        {course.discountPct > 0 && (
-          <span className="absolute bottom-3 right-3 rounded-lg bg-accent-green px-2 py-0.5 text-[11px] font-bold text-white shadow-sm">
-            {course.discountPct}% OFF
-          </span>
-        )}
       </div>
 
       <div className="flex flex-1 flex-col p-4">
@@ -123,7 +118,7 @@ export function CourseCard({
           </span>
         </div>
 
-        <div className="mt-3.5 flex items-baseline gap-2">
+        <div className="mt-3.5 flex flex-wrap items-baseline gap-x-2 gap-y-1">
           <span className="text-lg font-extrabold text-primary-700 dark:text-primary-300">
             {formatINR(course.feePerYear)}
           </span>
@@ -131,6 +126,11 @@ export function CourseCard({
           {course.originalFee && (
             <span className="text-xs text-muted-foreground line-through">
               {formatINR(course.originalFee)}
+            </span>
+          )}
+          {course.discountPct > 0 && (
+            <span className="rounded-md bg-accent-green px-1.5 py-0.5 text-[10.5px] font-bold leading-none text-white">
+              {course.discountPct}% OFF
             </span>
           )}
         </div>
