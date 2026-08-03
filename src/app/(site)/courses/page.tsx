@@ -8,6 +8,7 @@ import {
 } from '@/components/course/course-filters'
 import { Reveal } from '@/components/fx/reveal'
 import { Aurora, GridPattern } from '@/components/fx/aurora'
+import { SmartScrollToResults } from '@/components/course/smart-scroll'
 import { buttonVariants } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import {
@@ -161,8 +162,13 @@ export default async function CoursesPage({
 
   const heading = state.q ? `Search Results for “${state.q}”` : 'All Courses'
 
+  // Empty on a bare /courses visit; a stable string per active filter set. Drives
+  // the smart-scroll: arrive via a category link → glide to the results below.
+  const scrollSignature = courseQueryString(state)
+
   return (
     <>
+      <SmartScrollToResults targetId="course-results" signature={scrollSignature} />
       {/* ------------------------------------------------------------- hero */}
       <section className="relative overflow-hidden border-b border-border bg-gradient-to-br from-primary-950 via-primary-800 to-primary-600 text-white">
         <Aurora palette="holo" density={3} />
@@ -196,7 +202,10 @@ export default async function CoursesPage({
       </section>
 
       {/* ---------------------------------------------------------- results */}
-      <section className="container py-8 lg:py-10">
+      <section
+        id="course-results"
+        className="container scroll-mt-24 py-8 lg:scroll-mt-28 lg:py-10"
+      >
         <div className="grid items-start gap-6 lg:grid-cols-[264px_minmax(0,1fr)] xl:gap-8">
           <CourseFilterSidebar counts={counts} />
 

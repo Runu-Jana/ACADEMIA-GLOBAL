@@ -153,7 +153,7 @@ export function Hero() {
                   style={{ animationDelay: c.delay }}
                 >
                   <TiltCard intensity={14} scale={1.06}>
-                    <div className="glass flex items-center gap-2.5 rounded-2xl p-3 shadow-card">
+                    <div className="glass flex items-center gap-2.5 rounded-2xl border-primary-200/70 p-3 shadow-card dark:border-white/20">
                       <span
                         className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-gradient-to-br ${c.tone} shadow-sm`}
                       >
