@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { getCurrentUser } from '@/lib/auth'
 import { streamAi, isFeatureConfigured, type AiMessage } from '@/lib/ai'
 import { retrieve, type RetrievedChunk } from '@/lib/ai/retrieval'
+import { captureError } from '@/lib/observability'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 60
@@ -180,9 +181,10 @@ export async function POST(req: Request) {
         }
         await stream.final() // writes the metering row
         controller.close()
-      } catch {
+      } catch (err) {
         // The student has already seen partial text; close cleanly rather than
         // erroring the stream, and skip persistence of a truncated answer.
+        captureError(err, { scope: 'ai/tutor', phase: 'stream', courseId })
         try {
           controller.close()
         } catch {
@@ -204,8 +206,10 @@ export async function POST(req: Request) {
               data: { userId: user.id, courseId, role: 'assistant', content: full, createdAt: new Date(now + 1) },
             }),
           ])
-        } catch {
-          /* a dropped thread write is not worth failing a delivered answer */
+        } catch (err) {
+          // A dropped thread write isn't worth failing a delivered answer, but
+          // it shouldn't vanish silently either.
+          captureError(err, { scope: 'ai/tutor', phase: 'persist', courseId })
         }
       }
     },

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { promoteClaimable } from '@/lib/commission'
+import { captureError } from '@/lib/observability'
 
 export const dynamic = 'force-dynamic'
 
@@ -38,8 +39,13 @@ async function handle(req: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const commissions = await promoteClaimable()
-  return NextResponse.json({ ok: true, ...commissions })
+  try {
+    const commissions = await promoteClaimable()
+    return NextResponse.json({ ok: true, ...commissions })
+  } catch (err) {
+    captureError(err, { scope: 'cron', task: 'promoteClaimable' })
+    return NextResponse.json({ error: 'Maintenance run failed' }, { status: 500 })
+  }
 }
 
 // Cron services use GET; POST is accepted too for flexibility.

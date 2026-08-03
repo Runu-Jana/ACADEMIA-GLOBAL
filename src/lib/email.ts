@@ -9,6 +9,8 @@
  * Set RESEND_API_KEY and ADMIN_EMAIL (and optionally EMAIL_FROM) to switch it on.
  */
 
+import { captureError } from '@/lib/observability'
+
 export interface AdminMail {
   subject: string
   text: string
@@ -47,12 +49,12 @@ export async function sendAdminEmail(mail: AdminMail): Promise<EmailResult> {
     })
     if (!res.ok) {
       const body = await res.text().catch(() => '')
-      console.error(`[email] provider error ${res.status}: ${body.slice(0, 200)}`)
+      captureError(new Error(`Resend ${res.status}: ${body.slice(0, 200)}`), { scope: 'email' })
       return { sent: false, reason: `provider_error_${res.status}` }
     }
     return { sent: true }
   } catch (err) {
-    console.error('[email] send failed:', err instanceof Error ? err.message : err)
+    captureError(err, { scope: 'email', subject: mail.subject })
     return { sent: false, reason: 'send_error' }
   }
 }

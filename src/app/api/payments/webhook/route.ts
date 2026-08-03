@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { markOrderPaid, refundOrder } from '@/lib/commission'
 import { verifyWebhookSignature } from '@/lib/payments/razorpay'
+import { captureError } from '@/lib/observability'
 
 export const dynamic = 'force-dynamic'
 
@@ -41,12 +42,19 @@ export async function POST(req: Request) {
   const gatewayOrderId =
     event.payload?.payment?.entity?.order_id ?? event.payload?.order?.entity?.id ?? null
 
-  if ((type === 'payment.captured' || type === 'order.paid') && gatewayOrderId) {
-    const order = await prisma.order.findUnique({ where: { gatewayOrderId } })
-    if (order) await markOrderPaid(order.id, event.payload?.payment?.entity?.id)
-  } else if (type === 'refund.processed' && gatewayOrderId) {
-    const order = await prisma.order.findUnique({ where: { gatewayOrderId } })
-    if (order) await refundOrder(order.id)
+  try {
+    if ((type === 'payment.captured' || type === 'order.paid') && gatewayOrderId) {
+      const order = await prisma.order.findUnique({ where: { gatewayOrderId } })
+      if (order) await markOrderPaid(order.id, event.payload?.payment?.entity?.id)
+    } else if (type === 'refund.processed' && gatewayOrderId) {
+      const order = await prisma.order.findUnique({ where: { gatewayOrderId } })
+      if (order) await refundOrder(order.id)
+    }
+  } catch (err) {
+    // Capture, then 500 so Razorpay retries — the handlers are idempotent, so a
+    // retry after a transient failure is safe.
+    captureError(err, { scope: 'payments/webhook', event: type, gatewayOrderId })
+    return NextResponse.json({ error: 'Processing failed' }, { status: 500 })
   }
 
   // Always 200 a signed event we understood — Razorpay retries on non-2xx.
