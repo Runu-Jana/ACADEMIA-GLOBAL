@@ -92,6 +92,7 @@ model University {
   contactPhone  String?
 
   createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
 
   courses     Course[]
   commissions Commission[]
@@ -523,6 +524,7 @@ model Order {
   method           String?
 
   createdAt DateTime  @default(now())
+  updatedAt DateTime  @default(now()) @updatedAt
   paidAt    DateTime?
   refundedAt DateTime?
 
@@ -531,8 +533,9 @@ model Order {
 
   commission Commission?
 
-  @@index([userId])
+  @@index([userId, status])
   @@index([status])
+  @@index([courseId])
 }
 
 /// What a partner university owes us for one enrolment.
@@ -550,6 +553,7 @@ model Commission {
 
   claimableAt DateTime
   createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now()) @updatedAt
 
   universityId String
   university   University @relation(fields: [universityId], references: [id], onDelete: Cascade)
@@ -573,6 +577,7 @@ model Payout {
   notes       String?
 
   createdAt DateTime  @default(now())
+  updatedAt DateTime  @default(now()) @updatedAt
   paidAt    DateTime?
 
   universityId String
@@ -640,6 +645,7 @@ model AiUsageLog {
   @@index([createdAt])
   @@index([feature])
   @@index([userId])
+  @@index([courseId])
 }
 
 // ===========================================================================
