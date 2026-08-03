@@ -16,6 +16,7 @@ import {
   Inbox,
   Wallet,
   PhoneCall,
+  Import,
   Menu,
   X,
   ExternalLink,
@@ -49,6 +50,7 @@ const NAV: {
   { href: '/admin/reviews', label: 'Programme Reviews', icon: BadgeCheck },
   { href: '/admin/partners', label: 'Partner Requests', icon: Inbox },
   { href: '/admin/universities', label: 'Universities', icon: Building2 },
+  { href: '/admin/directory', label: 'Directory Import', icon: Import },
   { href: '/admin/finance', label: 'Finance', icon: Wallet },
 ]
 
