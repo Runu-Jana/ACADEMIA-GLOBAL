@@ -10,8 +10,14 @@ import {
   Plus,
   ArrowRight,
   FileText,
+  Coins,
+  Wallet,
+  PhoneCall,
+  BadgeCheck,
+  Sparkles,
 } from 'lucide-react'
 import { prisma } from '@/lib/prisma'
+import { commissionSummary } from '@/lib/commission'
 import { buttonVariants } from '@/components/ui/button'
 import { Reveal } from '@/components/fx/reveal'
 import { Progress } from '@/components/ui/progress'
@@ -86,6 +92,26 @@ export default async function AdminDashboardPage() {
     }),
   ])
 
+  // Money & operations signals — what an operator opens the panel to check.
+  const [finance, newLeads, wantsAgent, pendingReviews, aiSpend] = await Promise.all([
+    commissionSummary(),
+    prisma.lead.count({ where: { status: 'NEW' } }),
+    prisma.lead.count({ where: { wantsAgent: true, status: { in: ['NEW', 'CONTACTED'] } } }),
+    prisma.course.count({ where: { reviewStatus: 'PENDING' } }),
+    prisma.aiUsageLog.aggregate({ _sum: { costPaise: true } }),
+  ])
+
+  const rupees = (paise: number) =>
+    `₹${(paise / 100).toLocaleString('en-IN', { maximumFractionDigits: 0 })}`
+
+  const opsTiles = [
+    { label: 'Lifetime earned', value: rupees(finance.lifetimeEarned), sub: 'commission booked', icon: Coins, tone: 'text-emerald-600', href: '/admin/finance' },
+    { label: 'Claimable now', value: rupees(finance.claimable.amount), sub: `${finance.claimable.count} to invoice`, icon: Wallet, tone: 'text-primary-600', href: '/admin/finance' },
+    { label: 'New leads', value: String(newLeads), sub: wantsAgent > 0 ? `${wantsAgent} want a callback` : 'in the funnel', icon: PhoneCall, tone: 'text-amber-600', href: '/admin/leads' },
+    { label: 'Reviews to approve', value: String(pendingReviews), sub: 'partner programmes', icon: BadgeCheck, tone: 'text-violet-600', href: '/admin/reviews' },
+    { label: 'AI spend', value: rupees(aiSpend._sum.costPaise ?? 0), sub: 'metered total', icon: Sparkles, tone: 'text-cyan-600', href: '/admin/ai-usage' },
+  ]
+
   const maxEnrol = Math.max(1, ...topCourses.map((c) => c._count.enrollments))
 
   return (
@@ -126,6 +152,20 @@ export default async function AdminDashboardPage() {
           <Reveal key={tile.label} delay={i * 50} className="h-full">
             <StatTile {...tile} delay={i * 40} />
           </Reveal>
+        ))}
+      </div>
+
+      {/* ----------------------------------------------- money & queues */}
+      <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-5">
+        {opsTiles.map((t) => (
+          <Link key={t.label} href={t.href} className="card-base holo-ring holo-ring-hover h-full p-4 transition-transform duration-300 hover:-translate-y-0.5">
+            <div className="flex items-start justify-between gap-2">
+              <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">{t.label}</p>
+              <t.icon className={`h-4 w-4 shrink-0 ${t.tone}`} />
+            </div>
+            <p className="mt-2 truncate text-xl font-extrabold tracking-tight">{t.value}</p>
+            <p className="mt-0.5 truncate text-[11px] text-muted-foreground">{t.sub}</p>
+          </Link>
         ))}
       </div>
 
