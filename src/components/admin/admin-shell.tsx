@@ -18,6 +18,7 @@ import {
   Inbox,
   Wallet,
   PhoneCall,
+  Sparkles,
   Import,
   Menu,
   X,
@@ -58,6 +59,7 @@ const NAV: {
   { href: '/admin/universities', label: 'Universities', icon: Building2 },
   { href: '/admin/directory', label: 'Directory Import', icon: Import },
   { href: '/admin/finance', label: 'Finance', icon: Wallet },
+  { href: '/admin/ai-usage', label: 'AI Usage', icon: Sparkles },
 ]
 
 function isActive(pathname: string, href: string, exact?: boolean) {
