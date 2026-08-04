@@ -458,6 +458,10 @@ model Certificate {
   grade    String   @default("A")
   issuedAt DateTime @default(now())
 
+  /// Revoked certificates fail public verification (see verify/actions.ts).
+  revoked   Boolean   @default(false)
+  revokedAt DateTime?
+
   userId       String
   user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   courseId     String

@@ -53,6 +53,7 @@ export async function verifyCertificate(input: {
       serial: true,
       grade: true,
       issuedAt: true,
+      revoked: true,
       user: { select: { name: true, dob: true } },
       course: { select: { title: true, university: { select: { name: true } } } },
     },
@@ -66,6 +67,14 @@ export async function verifyCertificate(input: {
 
   if (!certificate) return noMatch
   if (!certificate.user.dob || certificate.user.dob !== parsed.data.dob) return noMatch
+  // Only reveal a revocation once both factors match, so it can't be used to
+  // probe which serials exist.
+  if (certificate.revoked) {
+    return {
+      ok: false,
+      error: 'This certificate has been revoked by the issuer and is no longer valid.',
+    }
+  }
 
   return {
     ok: true,
