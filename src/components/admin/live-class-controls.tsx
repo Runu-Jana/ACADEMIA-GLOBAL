@@ -2,8 +2,8 @@
 
 import * as React from 'react'
 import { useRouter } from 'next/navigation'
-import { Radio, Square, XCircle, Film, Trash2 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { Radio, Square, XCircle, Film, Trash2, Video } from 'lucide-react'
+import { Button, buttonVariants } from '@/components/ui/button'
 
 /**
  * Per-class operator controls: advance the status, attach a recording, or delete.
@@ -75,11 +75,31 @@ export function LiveClassControls({
       {error && <span className="mr-1 text-[11px] font-medium text-red-600">{error}</span>}
 
       {status === 'SCHEDULED' && (
-        <Button size="sm" variant="holo" disabled={busy} onClick={() => patch({ status: 'LIVE' })}>
+        <Button size="sm" variant="outline" disabled={busy} onClick={() => patch({ status: 'LIVE' })}>
           <Radio className="h-3.5 w-3.5" />
           Go live
         </Button>
       )}
+
+      {/* Opening the room is what actually starts the broadcast: it drops the
+          host into the Jitsi/Zoom/Meet room, where the browser asks for camera
+          and mic. "Go live" only flags the class as live for students. */}
+      {(status === 'SCHEDULED' || status === 'LIVE') && (
+        <a
+          href={`/api/live/${id}/host`}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={() => {
+            // Flip to LIVE as the host enters, so students see it immediately.
+            if (status === 'SCHEDULED') patch({ status: 'LIVE' })
+          }}
+          className={buttonVariants({ variant: 'holo', size: 'sm' })}
+        >
+          <Video className="h-3.5 w-3.5" />
+          Open room
+        </a>
+      )}
+
       {status === 'LIVE' && (
         <Button size="sm" variant="outline" disabled={busy} onClick={() => patch({ status: 'ENDED' })}>
           <Square className="h-3.5 w-3.5" />
