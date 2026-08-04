@@ -1,6 +1,15 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { GraduationCap, Sparkles, PhoneCall } from 'lucide-react'
+import {
+  GraduationCap,
+  Sparkles,
+  PhoneCall,
+  ArrowRight,
+  FolderTree,
+  Headphones,
+  FileDown,
+  MessageCircle,
+} from 'lucide-react'
 import { prisma } from '@/lib/prisma'
 import { requireAdmin } from '@/lib/auth'
 import {
@@ -23,6 +32,16 @@ export const dynamic = 'force-dynamic'
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>
 
+// How each capture channel reads in the funnel view.
+const SOURCE_META: Record<string, { label: string; hint: string; icon: typeof FolderTree }> = {
+  directory: { label: 'Directory listing', hint: 'Enquired from a university in the directory', icon: FolderTree },
+  callback: { label: 'Callback request', hint: 'Asked us to call back', icon: PhoneCall },
+  counsellor: { label: 'Saarthi live chat', hint: 'Requested a human counsellor in chat', icon: MessageCircle },
+  brochure: { label: 'Brochure download', hint: 'Downloaded a course brochure', icon: FileDown },
+}
+const sourceMeta = (s: string) =>
+  SOURCE_META[s] ?? { label: s || 'Other', hint: 'Uncategorised capture', icon: Headphones }
+
 export default async function AdminLeadsPage({ searchParams }: { searchParams: SearchParams }) {
   await requireAdmin()
 
@@ -31,23 +50,170 @@ export default async function AdminLeadsPage({ searchParams }: { searchParams: S
     typeof sp.status === 'string' && (LEAD_STATUS as readonly string[]).includes(sp.status)
       ? sp.status
       : ''
+  const source = typeof sp.source === 'string' ? sp.source : ''
+  const grouped = sp.view === 'source'
 
-  const [leads, counts, wantsAgentCount] = await Promise.all([
-    prisma.lead.findMany({
-      where: status ? { status } : {},
-      // Prospects waiting on a live counsellor float to the top of the queue.
-      orderBy: [{ wantsAgent: 'desc' }, { createdAt: 'desc' }],
-      include: {
-        notes: { orderBy: { createdAt: 'desc' }, take: 1 },
-        _count: { select: { notes: true } },
-      },
-    }),
+  const [counts, wantsAgentCount] = await Promise.all([
     prisma.lead.groupBy({ by: ['status'], _count: { _all: true } }),
     prisma.lead.count({ where: { wantsAgent: true, status: { in: ['NEW', 'CONTACTED'] } } }),
   ])
-
   const countFor = (s: string) => counts.find((c) => c.status === s)?._count._all ?? 0
   const total = counts.reduce((n, c) => n + c._count._all, 0)
+
+  const header = (
+    <>
+      <PageHeader
+        title="Leads"
+        sub="Prospects captured from directory listings and callback requests — work them toward an enrolment at a partner university."
+      />
+
+      {wantsAgentCount > 0 && (
+        <div className="mb-3 flex items-center gap-2 rounded-xl border border-amber-300 bg-amber-50 px-3 py-2 text-[12.5px] font-semibold text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200">
+          <PhoneCall className="h-4 w-4 shrink-0" />
+          {wantsAgentCount} prospect{wantsAgentCount === 1 ? '' : 's'} asked Saarthi for a live counsellor — call them back.
+        </div>
+      )}
+
+      {/* List ↔ funnel toggle */}
+      <div className="mb-3 inline-flex rounded-xl border border-border bg-muted/50 p-0.5">
+        <Link
+          href={status ? `/admin/leads?status=${status}` : '/admin/leads'}
+          aria-pressed={!grouped}
+          className={
+            'inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[12.5px] font-bold transition-colors ' +
+            (!grouped ? 'bg-card text-primary-700 shadow-soft dark:text-primary-300' : 'text-muted-foreground hover:text-foreground')
+          }
+        >
+          <PhoneCall className="h-3.5 w-3.5" />
+          List
+        </Link>
+        <Link
+          href="/admin/leads?view=source"
+          aria-pressed={grouped}
+          className={
+            'inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[12.5px] font-bold transition-colors ' +
+            (grouped ? 'bg-card text-primary-700 shadow-soft dark:text-primary-300' : 'text-muted-foreground hover:text-foreground')
+          }
+        >
+          <FolderTree className="h-3.5 w-3.5" />
+          Group by source
+        </Link>
+      </div>
+    </>
+  )
+
+  // ------------------------------------------------------- grouped by source
+  if (grouped) {
+    const [bySource, bySourceStatus, bySourceAgent] = await Promise.all([
+      prisma.lead.groupBy({ by: ['source'], _count: { _all: true } }),
+      prisma.lead.groupBy({ by: ['source', 'status'], _count: { _all: true } }),
+      prisma.lead.groupBy({ by: ['source'], where: { wantsAgent: true }, _count: { _all: true } }),
+    ])
+
+    const statusBySource = new Map<string, Record<string, number>>()
+    for (const g of bySourceStatus) {
+      const m = statusBySource.get(g.source) ?? {}
+      m[g.status] = g._count._all
+      statusBySource.set(g.source, m)
+    }
+    const agentBySource = new Map(bySourceAgent.map((g) => [g.source, g._count._all]))
+
+    const groups = bySource
+      .map((g) => ({
+        source: g.source,
+        total: g._count._all,
+        wantsAgent: agentBySource.get(g.source) ?? 0,
+        statuses: statusBySource.get(g.source) ?? {},
+      }))
+      .sort((a, b) => b.total - a.total)
+
+    return (
+      <>
+        {header}
+
+        <div className="card-base overflow-hidden">
+          <TableWrap>
+            <DataTable>
+              <Thead>
+                <Th>Source</Th>
+                <Th>Leads</Th>
+                <Th>Pipeline</Th>
+                <Th>Wants call</Th>
+                <Th className="text-right">View</Th>
+              </Thead>
+              <Tbody>
+                {groups.length === 0 && <TableEmpty colSpan={5}>No leads captured yet.</TableEmpty>}
+                {groups.map((g) => {
+                  const meta = sourceMeta(g.source)
+                  const Icon = meta.icon
+                  return (
+                    <tr key={g.source} className="align-top transition-colors hover:bg-muted/40">
+                      <Td className="max-w-[18rem]">
+                        <span className="flex items-center gap-2 font-semibold">
+                          <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-brand-fade text-white">
+                            <Icon className="h-3.5 w-3.5" />
+                          </span>
+                          {meta.label}
+                        </span>
+                        <span className="mt-0.5 block pl-9 text-[11px] text-muted-foreground">{meta.hint}</span>
+                      </Td>
+                      <Td>
+                        <span className="text-lg font-extrabold tabular-nums">{g.total}</span>
+                      </Td>
+                      <Td>
+                        <div className="flex flex-wrap gap-1.5">
+                          {LEAD_STATUS.filter((s) => g.statuses[s]).map((s) => (
+                            <span key={s} className="rounded-md bg-muted px-1.5 py-0.5 text-[11px] font-semibold text-muted-foreground">
+                              {g.statuses[s]} {s.toLowerCase()}
+                            </span>
+                          ))}
+                        </div>
+                      </Td>
+                      <Td>
+                        {g.wantsAgent > 0 ? (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-bold text-amber-700 dark:bg-amber-500/15 dark:text-amber-300">
+                            <PhoneCall className="h-3 w-3" />
+                            {g.wantsAgent}
+                          </span>
+                        ) : (
+                          <span className="text-[11px] text-muted-foreground/70">—</span>
+                        )}
+                      </Td>
+                      <Td>
+                        <div className="flex justify-end">
+                          <Link
+                            href={`/admin/leads?source=${encodeURIComponent(g.source)}`}
+                            className="inline-flex items-center gap-1 text-[12.5px] font-semibold text-primary-600 hover:underline"
+                          >
+                            Open
+                            <ArrowRight className="h-3.5 w-3.5" />
+                          </Link>
+                        </div>
+                      </Td>
+                    </tr>
+                  )
+                })}
+              </Tbody>
+            </DataTable>
+          </TableWrap>
+        </div>
+      </>
+    )
+  }
+
+  // -------------------------------------------------------------- list view
+  const leads = await prisma.lead.findMany({
+    where: {
+      ...(status && { status }),
+      ...(source && { source }),
+    },
+    // Prospects waiting on a live counsellor float to the top of the queue.
+    orderBy: [{ wantsAgent: 'desc' }, { createdAt: 'desc' }],
+    include: {
+      notes: { orderBy: { createdAt: 'desc' }, take: 1 },
+      _count: { select: { notes: true } },
+    },
+  })
 
   // Resolve the partner universities we're steering leads toward.
   const suggestedIds = [
@@ -63,30 +229,35 @@ export default async function AdminLeadsPage({ searchParams }: { searchParams: S
 
   return (
     <>
-      <PageHeader
-        title="Leads"
-        sub="Prospects captured from directory listings and callback requests — work them toward an enrolment at a partner university."
-      />
+      {header}
 
-      {wantsAgentCount > 0 && (
-        <div className="mb-3 flex items-center gap-2 rounded-xl border border-amber-300 bg-amber-50 px-3 py-2 text-[12.5px] font-semibold text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200">
-          <PhoneCall className="h-4 w-4 shrink-0" />
-          {wantsAgentCount} prospect{wantsAgentCount === 1 ? '' : 's'} asked Saarthi for a live counsellor — call them back.
-        </div>
-      )}
-
-      <div className="mb-3 flex flex-wrap gap-1.5">
-        <StatusChip href="/admin/leads" label="All" count={total} active={!status} />
+      <div className="mb-3 flex flex-wrap items-center gap-1.5">
+        <StatusChip
+          href={source ? `/admin/leads?source=${encodeURIComponent(source)}` : '/admin/leads'}
+          label="All"
+          count={total}
+          active={!status}
+        />
         {LEAD_STATUS.map((s) => (
           <StatusChip
             key={s}
-            href={`/admin/leads?status=${s}`}
+            href={`/admin/leads?status=${s}${source ? `&source=${encodeURIComponent(source)}` : ''}`}
             label={s.toLowerCase()}
             count={countFor(s)}
             active={status === s}
           />
         ))}
       </div>
+
+      {source && (
+        <div className="mb-3 inline-flex items-center gap-2 rounded-lg border border-primary-200 bg-primary-50 px-2.5 py-1 text-[12px] font-semibold text-primary-700 dark:border-primary-500/30 dark:bg-primary-500/10 dark:text-primary-300">
+          <FolderTree className="h-3.5 w-3.5" />
+          Source: {sourceMeta(source).label}
+          <Link href={status ? `/admin/leads?status=${status}` : '/admin/leads'} className="text-muted-foreground hover:text-primary-700 hover:underline">
+            clear
+          </Link>
+        </div>
+      )}
 
       <div className="card-base overflow-hidden">
         <TableWrap>
