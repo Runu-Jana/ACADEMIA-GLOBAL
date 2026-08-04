@@ -1,6 +1,7 @@
 'use client'
 
 import * as React from 'react'
+import { usePathname } from 'next/navigation'
 import { Download, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
@@ -17,10 +18,14 @@ const DISMISS_KEY = 'ag_install_dismissed'
  * and users install via the browser menu (mentioned on the homepage).
  */
 export function InstallPrompt() {
+  const pathname = usePathname()
+  // Installing the student PWA is irrelevant inside the admin panel.
+  const onAdmin = pathname?.startsWith('/admin') ?? false
   const [deferred, setDeferred] = React.useState<BeforeInstallPromptEvent | null>(null)
   const [visible, setVisible] = React.useState(false)
 
   React.useEffect(() => {
+    if (onAdmin) return
     try {
       if (localStorage.getItem(DISMISS_KEY)) return
     } catch {
@@ -35,7 +40,7 @@ export function InstallPrompt() {
 
     window.addEventListener('beforeinstallprompt', onPrompt)
     return () => window.removeEventListener('beforeinstallprompt', onPrompt)
-  }, [])
+  }, [onAdmin])
 
   function dismiss() {
     setVisible(false)
@@ -54,7 +59,7 @@ export function InstallPrompt() {
     setVisible(false)
   }
 
-  if (!visible) return null
+  if (onAdmin || !visible) return null
 
   return (
     <div className="fixed inset-x-3 bottom-[76px] z-50 lg:bottom-4 lg:left-auto lg:right-4 lg:w-80">
