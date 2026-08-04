@@ -521,7 +521,7 @@ export function CourseSearchBox({ className }: { className?: string }) {
       <Button
         type="submit"
         variant="holo"
-        className="h-10 shrink-0 px-5 !bg-[linear-gradient(120deg,#7dd3fc_0%,#c4b5fd_50%,#f0abfc_100%)] !text-slate-900 hover:brightness-[1.04]"
+        className="h-10 shrink-0 px-5 !bg-none !bg-white !text-primary-700 shadow-lift hover:!bg-primary-50 hover:!text-primary-800"
         loading={pending}
       >
         Search
