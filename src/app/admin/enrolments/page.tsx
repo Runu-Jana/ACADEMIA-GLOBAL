@@ -17,6 +17,7 @@ import {
   EnrollmentStatusBadge,
 } from '@/components/admin/admin-ui'
 import { FilterBar } from '@/components/admin/filter-bar'
+import { EnrolmentControls } from '@/components/admin/enrolment-controls'
 import { ENROLLMENT_STATUS } from '@/lib/constants'
 import { formatDate, initials } from '@/lib/utils'
 
@@ -99,10 +100,11 @@ export default async function AdminEnrolmentsPage({ searchParams }: { searchPara
               <Th>Status</Th>
               <Th>Certificate</Th>
               <Th>Enrolled</Th>
+              <Th className="text-right">Actions</Th>
             </Thead>
             <Tbody>
               {enrolments.length === 0 && (
-                <TableEmpty colSpan={6}>No enrolments match those filters.</TableEmpty>
+                <TableEmpty colSpan={7}>No enrolments match those filters.</TableEmpty>
               )}
 
               {enrolments.map((e) => (
@@ -158,6 +160,9 @@ export default async function AdminEnrolmentsPage({ searchParams }: { searchPara
                   </Td>
                   <Td className="whitespace-nowrap text-muted-foreground">
                     {formatDate(e.enrolledAt)}
+                  </Td>
+                  <Td>
+                    <EnrolmentControls id={e.id} status={e.status} />
                   </Td>
                 </tr>
               ))}
