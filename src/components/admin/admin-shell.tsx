@@ -83,12 +83,35 @@ export function AdminShell({
   const pathname = usePathname()
   const [drawer, setDrawer] = React.useState(false)
   const [bell, setBell] = React.useState(false)
+  const bellPanelRef = React.useRef<HTMLDivElement>(null)
 
   // Any navigation closes the drawer and the notifications panel.
   React.useEffect(() => {
     setDrawer(false)
     setBell(false)
   }, [pathname])
+
+  // Scrolling the page (or pressing Escape) dismisses the notifications panel —
+  // but keep it open while scrolling inside its own list.
+  React.useEffect(() => {
+    if (!bell) return
+    const onScroll = (e: Event) => {
+      // `e.target` may be `window`/`document` (not an Element) — guard the
+      // containment check so it never throws and always closes on page scroll.
+      const t = e.target
+      if (t instanceof Node && bellPanelRef.current?.contains(t)) return
+      setBell(false)
+    }
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setBell(false)
+    }
+    window.addEventListener('scroll', onScroll, true)
+    window.addEventListener('keydown', onKey)
+    return () => {
+      window.removeEventListener('scroll', onScroll, true)
+      window.removeEventListener('keydown', onKey)
+    }
+  }, [bell])
 
   React.useEffect(() => {
     document.body.style.overflow = drawer ? 'hidden' : ''
@@ -190,6 +213,7 @@ export function AdminShell({
                 <>
                   <div className="fixed inset-0 z-10" onClick={() => setBell(false)} aria-hidden />
                   <div
+                    ref={bellPanelRef}
                     role="dialog"
                     aria-label="Notifications"
                     className="absolute right-0 top-[calc(100%+8px)] z-20 w-[min(20rem,calc(100vw-2rem))] animate-scale-in origin-top-right overflow-hidden rounded-2xl border border-border bg-card shadow-lift"
