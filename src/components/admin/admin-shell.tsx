@@ -51,6 +51,7 @@ const NAV: {
   { href: '/admin/materials', label: 'Study Material', icon: FolderUp },
   { href: '/admin/live', label: 'Live Classes', icon: Video },
   { href: '/admin/tests', label: 'Tests & Exams', icon: ClipboardList },
+  { href: '/admin/academics', label: 'Academics', icon: GraduationCap },
   { href: '/admin/students', label: 'Students', icon: Users },
   { href: '/admin/enrolments', label: 'Enrolments', icon: ClipboardCheck },
   { href: '/admin/applications', label: 'Applications', icon: FileCheck2 },
