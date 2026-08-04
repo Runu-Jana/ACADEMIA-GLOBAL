@@ -84,6 +84,7 @@ export function AdminShell({
   const [drawer, setDrawer] = React.useState(false)
   const [bell, setBell] = React.useState(false)
   const bellPanelRef = React.useRef<HTMLDivElement>(null)
+  const bellWrapRef = React.useRef<HTMLDivElement>(null)
 
   // Any navigation closes the drawer and the notifications panel.
   React.useEffect(() => {
@@ -102,13 +103,23 @@ export function AdminShell({
       if (t instanceof Node && bellPanelRef.current?.contains(t)) return
       setBell(false)
     }
+    const onPointerDown = (e: Event) => {
+      // Clicks/taps outside the bell (button + panel) close it. A document
+      // listener is robust; an overlay div can't span the viewport because the
+      // header's backdrop-filter makes it the containing block for fixed kids.
+      const t = e.target
+      if (t instanceof Node && bellWrapRef.current?.contains(t)) return
+      setBell(false)
+    }
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setBell(false)
     }
     window.addEventListener('scroll', onScroll, true)
+    document.addEventListener('pointerdown', onPointerDown, true)
     window.addEventListener('keydown', onKey)
     return () => {
       window.removeEventListener('scroll', onScroll, true)
+      document.removeEventListener('pointerdown', onPointerDown, true)
       window.removeEventListener('keydown', onKey)
     }
   }, [bell])
@@ -194,7 +205,7 @@ export function AdminShell({
             </Link>
 
             {/* ------------------------------------------ notifications bell */}
-            <div className="relative">
+            <div className="relative" ref={bellWrapRef}>
               <button
                 type="button"
                 onClick={() => setBell((v) => !v)}
@@ -211,7 +222,6 @@ export function AdminShell({
 
               {bell && (
                 <>
-                  <div className="fixed inset-0 z-10" onClick={() => setBell(false)} aria-hidden />
                   <div
                     ref={bellPanelRef}
                     role="dialog"
