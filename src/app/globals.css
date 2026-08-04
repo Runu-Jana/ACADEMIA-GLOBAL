@@ -214,6 +214,14 @@
   .dark .holo-text {
     background-image: linear-gradient(120deg, #60a5fa 0%, #818cf8 50%, #a5b4fc 100%);
   }
+  /* Wordmark for the dark navy hero sections. holo-text's default gradient is
+     navy→indigo (great on a light page) but blends into the dark hero, so this
+     variant uses bright pastels that stay legible on the deep-blue ground in
+     both themes. */
+  .holo-text-bright {
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(120deg, #7dd3fc 0%, #c4b5fd 50%, #f0abfc 100%);
+  }
 
   /* -------------------------------------------------------- 3D tilt card */
   .tilt-scene {

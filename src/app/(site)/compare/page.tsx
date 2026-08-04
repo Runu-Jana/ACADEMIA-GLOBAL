@@ -254,7 +254,7 @@ export default function ComparePage() {
                 Side by side
               </span>
               <h1 className="mt-2 text-balance text-3xl font-extrabold leading-tight sm:text-4xl">
-                Compare <span className="holo-text">Courses</span>
+                Compare <span className="holo-text-bright">Courses</span>
               </h1>
               <p className="mt-2 max-w-xl text-pretty text-sm text-white/80">
                 {count > 0

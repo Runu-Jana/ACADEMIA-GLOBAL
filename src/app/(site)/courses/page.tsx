@@ -190,7 +190,7 @@ export default async function CoursesPage({
           </nav>
 
           <h1 className="mt-3 text-balance text-3xl font-extrabold leading-tight sm:text-4xl lg:text-[2.75rem]">
-            Find the <span className="holo-text">right program</span> for you
+            Find the <span className="holo-text-bright">right program</span> for you
           </h1>
           <p className="mt-2.5 max-w-xl text-pretty text-sm text-white/80 sm:text-[15px]">
             {total} UGC-entitled programs from India&rsquo;s leading universities — filter by level,

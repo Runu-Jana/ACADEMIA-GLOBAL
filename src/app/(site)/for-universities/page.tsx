@@ -56,7 +56,7 @@ export default async function ForUniversitiesPage() {
                 For Universities & Institutions
               </span>
               <h1 className="text-balance text-3xl font-extrabold leading-tight sm:text-4xl lg:text-[2.9rem]">
-                List your programmes where <span className="holo-text">India is choosing</span> to study
+                List your programmes where <span className="holo-text-bright">India is choosing</span> to study
               </h1>
               <p className="mt-4 max-w-xl text-pretty text-[15px] text-white/85">
                 Academia Global connects recognised universities with learners restarting, continuing

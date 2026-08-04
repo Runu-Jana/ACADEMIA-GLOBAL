@@ -67,7 +67,7 @@ export default async function UniversitiesPage() {
           </nav>
 
           <h1 className="mt-3 text-balance text-3xl font-extrabold leading-tight sm:text-4xl lg:text-[2.75rem]">
-            Top <span className="holo-text">Universities</span> &amp; Institutions
+            Top <span className="holo-text-bright">Universities</span> &amp; Institutions
           </h1>
           <p className="mt-2.5 max-w-xl text-pretty text-sm text-white/80 sm:text-[15px]">
             {universities.length} UGC-entitled institutions trusted by over{' '}
