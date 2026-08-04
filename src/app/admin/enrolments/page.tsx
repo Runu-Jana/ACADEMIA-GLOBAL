@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import type { Prisma } from '@prisma/client'
+import { ArrowRight, GraduationCap } from 'lucide-react'
 import { prisma } from '@/lib/prisma'
 import { requireAdmin } from '@/lib/auth'
 import { Progress } from '@/components/ui/progress'
@@ -17,6 +18,7 @@ import {
   EnrollmentStatusBadge,
 } from '@/components/admin/admin-ui'
 import { FilterBar } from '@/components/admin/filter-bar'
+import { EnrolmentToolbar } from '@/components/admin/enrolment-toolbar'
 import { EnrolmentControls } from '@/components/admin/enrolment-controls'
 import { ENROLLMENT_STATUS } from '@/lib/constants'
 import { formatDate, initials } from '@/lib/utils'
@@ -33,6 +35,19 @@ export default async function AdminEnrolmentsPage({ searchParams }: { searchPara
   const q = typeof sp.q === 'string' ? sp.q : ''
   const status = typeof sp.status === 'string' ? sp.status : ''
   const courseId = typeof sp.course === 'string' ? sp.course : ''
+  const from = typeof sp.from === 'string' ? sp.from : ''
+  const to = typeof sp.to === 'string' ? sp.to : ''
+  const grouped = sp.view === 'grouped'
+
+  // Enrolled-date range.
+  const enrolledAt: Prisma.DateTimeFilter = {}
+  const fromDate = from ? new Date(from) : null
+  if (fromDate && !Number.isNaN(fromDate.getTime())) enrolledAt.gte = fromDate
+  const toDate = to ? new Date(to) : null
+  if (toDate && !Number.isNaN(toDate.getTime())) {
+    toDate.setHours(23, 59, 59, 999) // inclusive of the whole end day
+    enrolledAt.lte = toDate
+  }
 
   const where: Prisma.EnrollmentWhereInput = {
     ...(status && { status }),
@@ -44,51 +59,140 @@ export default async function AdminEnrolmentsPage({ searchParams }: { searchPara
         { course: { title: { contains: q } } },
       ],
     }),
+    ...((enrolledAt.gte || enrolledAt.lte) && { enrolledAt }),
   }
 
-  const [enrolments, courses, total] = await Promise.all([
-    prisma.enrollment.findMany({
-      where,
-      orderBy: { enrolledAt: 'desc' },
-      select: {
-        id: true,
-        status: true,
-        progressPct: true,
-        enrolledAt: true,
-        completedAt: true,
-        user: { select: { id: true, name: true, email: true } },
-        course: { select: { id: true, title: true, university: { select: { shortName: true } } } },
-        certificate: { select: { serial: true } },
-      },
-    }),
-    prisma.course.findMany({ orderBy: { title: 'asc' }, select: { id: true, title: true } }),
-    prisma.enrollment.count(),
-  ])
+  const courses = await prisma.course.findMany({ orderBy: { title: 'asc' }, select: { id: true, title: true } })
+  const total = await prisma.enrollment.count()
+
+  const values = { q, status, course: courseId, from, to, view: grouped ? 'grouped' : '' }
+
+  const filters = (
+    <>
+      <FilterBar
+        basePath="/admin/enrolments"
+        values={values}
+        searchPlaceholder="Search by student or course…"
+        selects={[
+          { name: 'status', label: 'All statuses', options: ENROLLMENT_STATUS.map((s) => ({ value: s, label: s.toLowerCase() })) },
+          { name: 'course', label: 'All courses', options: courses.map((c) => ({ value: c.id, label: c.title })) },
+        ]}
+      />
+      <EnrolmentToolbar values={values} />
+    </>
+  )
+
+  // ------------------------------------------------------- grouped by course
+  if (grouped) {
+    const [byCourse, byCourseStatus] = await Promise.all([
+      prisma.enrollment.groupBy({ by: ['courseId'], where, _count: { _all: true } }),
+      prisma.enrollment.groupBy({ by: ['courseId', 'status'], where, _count: { _all: true } }),
+    ])
+
+    const ids = byCourse.map((g) => g.courseId)
+    const info = ids.length
+      ? await prisma.course.findMany({
+          where: { id: { in: ids } },
+          select: { id: true, title: true, university: { select: { shortName: true } } },
+        })
+      : []
+    const infoById = new Map(info.map((c) => [c.id, c]))
+
+    const statusByCourse = new Map<string, Record<string, number>>()
+    for (const g of byCourseStatus) {
+      const m = statusByCourse.get(g.courseId) ?? {}
+      m[g.status] = g._count._all
+      statusByCourse.set(g.courseId, m)
+    }
+
+    const groups = byCourse
+      .map((g) => ({
+        courseId: g.courseId,
+        title: infoById.get(g.courseId)?.title ?? '—',
+        shortName: infoById.get(g.courseId)?.university.shortName ?? '',
+        total: g._count._all,
+        statuses: statusByCourse.get(g.courseId) ?? {},
+      }))
+      .sort((a, b) => b.total - a.total)
+
+    const grandTotal = groups.reduce((s, g) => s + g.total, 0)
+
+    return (
+      <>
+        <PageHeader title="Enrolments" sub={`${groups.length} course${groups.length === 1 ? '' : 's'} · ${grandTotal} enrolment${grandTotal === 1 ? '' : 's'} in view`} />
+        {filters}
+
+        <div className="card-base overflow-hidden">
+          <TableWrap>
+            <DataTable>
+              <Thead>
+                <Th>Course</Th>
+                <Th>Students</Th>
+                <Th>Breakdown</Th>
+                <Th className="text-right">View</Th>
+              </Thead>
+              <Tbody>
+                {groups.length === 0 && <TableEmpty colSpan={4}>No enrolments match those filters.</TableEmpty>}
+                {groups.map((g) => (
+                  <tr key={g.courseId} className="align-top transition-colors hover:bg-muted/40">
+                    <Td className="max-w-[22rem]">
+                      <span className="line-clamp-2 font-semibold">{g.title}</span>
+                      {g.shortName && <span className="block text-[11px] text-muted-foreground">{g.shortName}</span>}
+                    </Td>
+                    <Td>
+                      <span className="text-lg font-extrabold tabular-nums">{g.total}</span>
+                    </Td>
+                    <Td>
+                      <div className="flex flex-wrap gap-1.5">
+                        {ENROLLMENT_STATUS.filter((s) => g.statuses[s]).map((s) => (
+                          <span key={s} className="rounded-md bg-muted px-1.5 py-0.5 text-[11px] font-semibold text-muted-foreground">
+                            {g.statuses[s]} {s.toLowerCase()}
+                          </span>
+                        ))}
+                      </div>
+                    </Td>
+                    <Td>
+                      <div className="flex justify-end">
+                        <Link
+                          href={`/admin/enrolments?course=${g.courseId}${from ? `&from=${from}` : ''}${to ? `&to=${to}` : ''}`}
+                          className="inline-flex items-center gap-1 text-[12.5px] font-semibold text-primary-600 hover:underline"
+                        >
+                          <GraduationCap className="h-3.5 w-3.5" />
+                          Students
+                          <ArrowRight className="h-3.5 w-3.5" />
+                        </Link>
+                      </div>
+                    </Td>
+                  </tr>
+                ))}
+              </Tbody>
+            </DataTable>
+          </TableWrap>
+        </div>
+      </>
+    )
+  }
+
+  // -------------------------------------------------------------- list view
+  const enrolments = await prisma.enrollment.findMany({
+    where,
+    orderBy: { enrolledAt: 'desc' },
+    select: {
+      id: true,
+      status: true,
+      progressPct: true,
+      enrolledAt: true,
+      completedAt: true,
+      user: { select: { id: true, name: true, email: true } },
+      course: { select: { id: true, title: true, university: { select: { shortName: true } } } },
+      certificate: { select: { serial: true } },
+    },
+  })
 
   return (
     <>
-      <PageHeader
-        title="Enrolments"
-        sub={`${enrolments.length} of ${total} enrolment${total === 1 ? '' : 's'}`}
-      />
-
-      <FilterBar
-        basePath="/admin/enrolments"
-        values={{ q, status, course: courseId }}
-        searchPlaceholder="Search by student or course…"
-        selects={[
-          {
-            name: 'status',
-            label: 'All statuses',
-            options: ENROLLMENT_STATUS.map((s) => ({ value: s, label: s.toLowerCase() })),
-          },
-          {
-            name: 'course',
-            label: 'All courses',
-            options: courses.map((c) => ({ value: c.id, label: c.title })),
-          },
-        ]}
-      />
+      <PageHeader title="Enrolments" sub={`${enrolments.length} of ${total} enrolment${total === 1 ? '' : 's'}`} />
+      {filters}
 
       <div className="card-base overflow-hidden">
         <TableWrap>
