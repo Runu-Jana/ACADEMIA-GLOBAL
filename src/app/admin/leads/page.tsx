@@ -158,7 +158,7 @@ export default async function AdminLeadsPage({ searchParams }: { searchParams: S
                         <span className="mt-0.5 block pl-9 text-[11px] text-muted-foreground">{meta.hint}</span>
                       </Td>
                       <Td>
-                        <span className="text-lg font-extrabold tabular-nums">{g.total}</span>
+                        <span className="text-[15px] font-bold tabular-nums">{g.total}</span>
                       </Td>
                       <Td>
                         <div className="flex flex-wrap gap-1.5">

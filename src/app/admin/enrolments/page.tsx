@@ -140,7 +140,7 @@ export default async function AdminEnrolmentsPage({ searchParams }: { searchPara
                       {g.shortName && <span className="block text-[11px] text-muted-foreground">{g.shortName}</span>}
                     </Td>
                     <Td>
-                      <span className="text-lg font-extrabold tabular-nums">{g.total}</span>
+                      <span className="text-[15px] font-bold tabular-nums">{g.total}</span>
                     </Td>
                     <Td>
                       <div className="flex flex-wrap gap-1.5">
