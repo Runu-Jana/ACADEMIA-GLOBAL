@@ -518,7 +518,12 @@ export function CourseSearchBox({ className }: { className?: string }) {
           )}
         />
       </div>
-      <Button type="submit" variant="holo" className="h-10 shrink-0 px-5" loading={pending}>
+      <Button
+        type="submit"
+        variant="holo"
+        className="h-10 shrink-0 px-5 !bg-[linear-gradient(120deg,#7dd3fc_0%,#c4b5fd_50%,#f0abfc_100%)] !text-slate-900 hover:brightness-[1.04]"
+        loading={pending}
+      >
         Search
       </Button>
     </form>
