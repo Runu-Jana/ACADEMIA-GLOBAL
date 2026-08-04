@@ -136,9 +136,11 @@ export function AdminShell({
     .find((n) => isActive(pathname, n.href, n.exact))
 
   return (
-    <div className="min-h-dvh bg-muted/40">
+    <div className="flex min-h-dvh bg-muted/40 lg:h-dvh lg:overflow-hidden">
       {/* ------------------------------------------------------ desktop rail */}
-      <aside className="fixed inset-y-0 left-0 z-40 hidden w-60 flex-col border-r border-primary-900/60 bg-primary-950 lg:flex">
+      {/* Static flex column (not fixed) so it can never overlap the content
+          and owns its own internal scroll, independent of the main pane. */}
+      <aside className="hidden w-60 shrink-0 flex-col border-r border-primary-900/60 bg-primary-950 lg:flex">
         <SidebarBody pathname={pathname} user={user} />
       </aside>
 
@@ -170,7 +172,7 @@ export function AdminShell({
       )}
 
       {/* ------------------------------------------------------------ shell */}
-      <div className="lg:pl-60">
+      <div className="flex min-w-0 flex-1 flex-col lg:h-dvh lg:overflow-y-auto">
         <header className="sticky top-0 z-30 border-b border-border bg-background/85 backdrop-blur-xl">
           <div className="flex h-14 items-center gap-2.5 px-4 sm:px-5">
             <button
