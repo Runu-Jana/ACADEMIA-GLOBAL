@@ -503,7 +503,7 @@ export function CourseSearchBox({ className }: { className?: string }) {
       <div className="relative flex-1">
         <Search
           aria-hidden
-          className="pointer-events-none absolute left-4 top-1/2 h-4.5 w-4.5 -translate-y-1/2 text-muted-foreground"
+          className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
         />
         <input
           type="search"
@@ -512,13 +512,13 @@ export function CourseSearchBox({ className }: { className?: string }) {
           placeholder="Search courses, streams or universities…"
           aria-label="Search courses"
           className={cn(
-            'h-12 w-full rounded-xl border border-white/25 bg-white/95 pl-11 pr-4 text-sm font-medium text-slate-900',
+            'h-10 w-full rounded-xl border border-white/25 bg-white/95 pl-10 pr-4 text-sm font-medium text-slate-900',
             'shadow-lift outline-none transition-all duration-200 placeholder:text-slate-400',
             'focus:border-white focus:ring-4 focus:ring-white/25 dark:bg-slate-900/90 dark:text-slate-100',
           )}
         />
       </div>
-      <Button type="submit" variant="holo" className="h-12 shrink-0 px-5" loading={pending}>
+      <Button type="submit" variant="holo" className="h-10 shrink-0 px-5" loading={pending}>
         Search
       </Button>
     </form>
