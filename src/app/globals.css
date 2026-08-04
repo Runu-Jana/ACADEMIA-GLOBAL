@@ -328,6 +328,30 @@
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
+  /* Thin scrollbar for tight columns like the admin sidebar nav.
+     WebKit/Blink: the pseudo-element controls width — but only when the
+     standard `scrollbar-width` is NOT set (otherwise Chromium ignores it),
+     so that property is scoped to Firefox below. */
+  .scrollbar-slim::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+  }
+  .scrollbar-slim::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .scrollbar-slim::-webkit-scrollbar-thumb {
+    border-radius: 9999px;
+    background: rgba(255, 255, 255, 0.18);
+  }
+  .scrollbar-slim::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.32);
+  }
+  @supports not selector(::-webkit-scrollbar) {
+    .scrollbar-slim {
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
+    }
+  }
   /* Fades the edges of horizontally scrolling rails. */
   .mask-fade-x {
     -webkit-mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent);

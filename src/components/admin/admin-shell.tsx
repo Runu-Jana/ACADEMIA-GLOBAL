@@ -294,7 +294,7 @@ function SidebarBody({ pathname, user }: { pathname: string; user: AdminShellUse
         </span>
       </div>
 
-      <nav aria-label="Admin sections" className="flex-1 overflow-y-auto p-2.5">
+      <nav aria-label="Admin sections" className="scrollbar-slim flex-1 overflow-y-auto p-2.5">
         <ul className="space-y-0.5">
           {NAV.map(({ href, label, icon: Icon, exact }) => {
             const active = isActive(pathname, href, exact)
