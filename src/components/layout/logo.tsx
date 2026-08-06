@@ -35,11 +35,11 @@ export function Logo({
         <span className="flex flex-col leading-none">
           <span
             className={cn(
-              'font-display text-[17px] font-extrabold tracking-tight',
+              'whitespace-nowrap font-display text-[17px] font-extrabold tracking-tight',
               invert ? 'text-white' : 'text-primary-800 dark:text-white',
             )}
           >
-            ACADEMIA
+            SHIKSHA SARTHI
           </span>
           <span
             className={cn(
@@ -47,7 +47,7 @@ export function Logo({
               invert ? 'text-white/70' : 'text-primary-500 dark:text-primary-300',
             )}
           >
-            Global Virtual Learning
+            Virtual Learning
           </span>
         </span>
       )}
