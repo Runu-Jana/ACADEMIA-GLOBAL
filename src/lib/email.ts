@@ -23,14 +23,24 @@ export function isEmailConfigured(): boolean {
   return Boolean(process.env.RESEND_API_KEY && process.env.ADMIN_EMAIL)
 }
 
+/** Notifies the operator (ADMIN_EMAIL) — leads, callback requests, etc. */
 export async function sendAdminEmail(mail: AdminMail): Promise<EmailResult> {
+  return sendEmail(process.env.ADMIN_EMAIL ?? '', mail)
+}
+
+/**
+ * Sends a transactional email to a specific recipient (a student's welcome,
+ * enrolment confirmation, receipt…). Same graceful degradation as the admin
+ * path: with no RESEND_API_KEY it logs and returns { sent: false } rather than
+ * throwing, so the calling flow (signup, payment) always completes.
+ */
+export async function sendEmail(to: string, mail: AdminMail): Promise<EmailResult> {
   const key = process.env.RESEND_API_KEY
-  const to = process.env.ADMIN_EMAIL
   // Resend's shared sender works without domain verification for quick starts.
   const from = process.env.EMAIL_FROM || 'Shiksha Sarthi <onboarding@resend.dev>'
 
   if (!key || !to) {
-    console.info(`[email] not configured — skipping admin notification: "${mail.subject}"`)
+    console.info(`[email] not configured — skipping: "${mail.subject}"`)
     return { sent: false, reason: 'email_not_configured' }
   }
 

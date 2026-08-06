@@ -3,6 +3,8 @@ import { z } from 'zod'
 import { prisma } from '@/lib/prisma'
 import { createSession, hashPassword } from '@/lib/auth'
 import { enforceRateLimit, HOUR } from '@/lib/rate-limit'
+import { sendEmail } from '@/lib/email'
+import { welcomeEmail } from '@/lib/emails'
 
 const schema = z.object({
   name: z.string().trim().min(2, 'Please enter your full name').max(80),
@@ -62,6 +64,9 @@ export async function POST(req: Request) {
     name: user.name,
     email: user.email,
   })
+
+  // Best-effort welcome (no-op when email isn't configured; never throws).
+  await sendEmail(user.email, welcomeEmail(user.name))
 
   return NextResponse.json({ ok: true, user })
 }

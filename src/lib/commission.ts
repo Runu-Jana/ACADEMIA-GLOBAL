@@ -1,4 +1,6 @@
 import { prisma } from './prisma'
+import { sendEmail } from './email'
+import { enrolmentEmail } from './emails'
 
 /**
  * Marketplace money.
@@ -73,10 +75,11 @@ export async function markOrderPaid(orderId: string, gatewayPaymentId?: string) 
     where: { id: order.courseId },
     select: {
       id: true,
+      title: true,
       source: true,
       feePerYear: true,
       university: {
-        select: { id: true, partnerStatus: true, commissionPct: true, cooloffDays: true },
+        select: { id: true, name: true, partnerStatus: true, commissionPct: true, cooloffDays: true },
       },
     },
   })
@@ -95,6 +98,26 @@ export async function markOrderPaid(orderId: string, gatewayPaymentId?: string) 
     update: {},
     create: { userId: order.userId, courseId: order.courseId, status: 'ACTIVE' },
   })
+
+  // Confirmation + receipt to the student. This runs once (the already-PAID
+  // guard above means retries/webhook re-confirms won't re-send). Best-effort:
+  // sendEmail no-ops without RESEND_API_KEY and never throws.
+  const student = await prisma.user.findUnique({
+    where: { id: order.userId },
+    select: { name: true, email: true },
+  })
+  if (student) {
+    await sendEmail(
+      student.email,
+      enrolmentEmail({
+        name: student.name,
+        courseTitle: course.title,
+        universityName: course.university.name,
+        amountRupees: toRupees(order.amount),
+        paymentId: gatewayPaymentId,
+      }),
+    )
+  }
 
   const uni = course.university
   const eligible =
