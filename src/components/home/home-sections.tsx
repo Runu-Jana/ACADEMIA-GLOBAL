@@ -2,6 +2,7 @@ import Link from 'next/link'
 import {
   ShieldCheck, CreditCard, Award, Lock, Briefcase, Headset,
   Check, Smartphone, ArrowRight, Quote, CalendarDays, HelpCircle,
+  GraduationCap, Laptop, Landmark,
 } from 'lucide-react'
 import { SectionTitle } from '@/components/ui/card'
 import { buttonVariants } from '@/components/ui/button'
@@ -186,9 +187,9 @@ function StoreButton({ store, tagline }: { store: string; tagline: string }) {
 // ------------------------------------------------------------ blog + closer
 
 const posts = [
-  { title: 'How to Complete Your Degree After Dropout?', date: 'May 20, 2026', tone: 'from-primary-500 to-holo-indigo' },
-  { title: 'Best Online Degrees for Working Professionals', date: 'May 18, 2026', tone: 'from-emerald-500 to-teal-500' },
-  { title: 'Top Government Exams after Graduation', date: 'May 15, 2026', tone: 'from-orange-500 to-rose-500' },
+  { title: 'How to Complete Your Degree After Dropout?', date: 'May 20, 2026', category: 'Guidance', icon: GraduationCap, tone: 'from-primary-500 to-holo-indigo' },
+  { title: 'Best Online Degrees for Working Professionals', date: 'May 18, 2026', category: 'Online Learning', icon: Laptop, tone: 'from-emerald-500 to-teal-500' },
+  { title: 'Top Government Exams after Graduation', date: 'May 15, 2026', category: 'Exams', icon: Landmark, tone: 'from-orange-500 to-rose-500' },
 ]
 
 export function BlogAndCta() {
@@ -204,26 +205,38 @@ export function BlogAndCta() {
           </div>
 
           <div className="grid gap-3 sm:grid-cols-3">
-            {posts.map((p) => (
-              <Link key={p.title} href="/blog" className="group">
-                <div
-                  className={`relative mb-2.5 h-20 overflow-hidden rounded-xl bg-gradient-to-br ${p.tone}`}
-                >
+            {posts.map((p) => {
+              const Icon = p.icon
+              return (
+                <Link key={p.title} href="/blog" className="group">
                   <div
-                    aria-hidden
-                    className="absolute inset-0 opacity-25 [background-image:repeating-linear-gradient(45deg,rgba(255,255,255,.4)_0,rgba(255,255,255,.4)_1px,transparent_1px,transparent_12px)]"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/25 to-transparent" />
-                </div>
-                <p className="line-clamp-2 text-[13px] font-bold leading-snug transition-colors group-hover:text-primary-600">
-                  {p.title}
-                </p>
-                <p className="mt-1 flex items-center gap-1 text-[11px] text-muted-foreground">
-                  <CalendarDays className="h-3 w-3" />
-                  {p.date}
-                </p>
-              </Link>
-            ))}
+                    className={`relative mb-2.5 h-24 overflow-hidden rounded-xl bg-gradient-to-br ${p.tone}`}
+                  >
+                    {/* soft light bloom for depth */}
+                    <div aria-hidden className="absolute -right-5 -top-7 h-24 w-24 rounded-full bg-white/25 blur-2xl" />
+                    {/* oversized subject icon, bleeding off the corner like cover art */}
+                    <Icon
+                      aria-hidden
+                      strokeWidth={1.5}
+                      className="absolute -bottom-3 -right-2 h-20 w-20 text-white/25 transition-transform duration-500 group-hover:scale-110 group-hover:rotate-3"
+                    />
+                    {/* category chip */}
+                    <span className="absolute left-2.5 top-2.5 inline-flex items-center gap-1 rounded-full bg-white/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white backdrop-blur-sm">
+                      <Icon className="h-2.5 w-2.5" />
+                      {p.category}
+                    </span>
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
+                  </div>
+                  <p className="line-clamp-2 text-[13px] font-bold leading-snug transition-colors group-hover:text-primary-600">
+                    {p.title}
+                  </p>
+                  <p className="mt-1 flex items-center gap-1 text-[11px] text-muted-foreground">
+                    <CalendarDays className="h-3 w-3" />
+                    {p.date}
+                  </p>
+                </Link>
+              )
+            })}
           </div>
         </div>
       </Reveal>
