@@ -35,10 +35,10 @@ export default async function AdminUniversitiesPage({ searchParams }: { searchPa
   const where: Prisma.UniversityWhereInput = {
     ...(q && {
       OR: [
-        { name: { contains: q } },
-        { shortName: { contains: q } },
-        { city: { contains: q } },
-        { state: { contains: q } },
+        { name: { contains: q, mode: 'insensitive' } },
+        { shortName: { contains: q, mode: 'insensitive' } },
+        { city: { contains: q, mode: 'insensitive' } },
+        { state: { contains: q, mode: 'insensitive' } },
       ],
     }),
     ...(featured === 'yes' && { featured: true }),

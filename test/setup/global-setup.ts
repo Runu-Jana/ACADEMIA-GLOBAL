@@ -1,21 +1,23 @@
 import { execSync } from 'node:child_process'
-import { rmSync } from 'node:fs'
-import { resolve } from 'node:path'
 
 /**
- * Builds a fresh schema in the isolated test DB (prisma/test.db) before the
- * suite runs. We delete the file first (a plain fs op) so a *non-destructive*
- * `db push` re-creates the schema on an empty database — this avoids
- * `--force-reset`, which Prisma (rightly) blocks for automated agents.
+ * Ensures the isolated Postgres test database has the current schema before the
+ * suite runs. `db push` is idempotent — it creates the tables on an empty DB
+ * and reconciles them when they already exist; `--accept-data-loss` lets it do
+ * so non-interactively (per-test row cleanup is handled by resetDb()).
  * `--skip-generate` sidesteps the client generator's Windows file lock.
+ *
+ * The target database (default: shiksha_sarthi_test on the docker-compose
+ * Postgres) must already exist — create it once with:
+ *   docker exec shiksha-sarthi-db psql -U shiksha -d shiksha_sarthi -c "CREATE DATABASE shiksha_sarthi_test;"
  */
 export default function setup() {
-  const dbFile = resolve(process.cwd(), 'prisma', 'test.db')
-  rmSync(dbFile, { force: true })
-  rmSync(`${dbFile}-journal`, { force: true })
+  const url =
+    process.env.TEST_DATABASE_URL ??
+    'postgresql://shiksha:shiksha@127.0.0.1:5544/shiksha_sarthi_test?schema=public'
 
-  execSync('npx prisma db push --skip-generate', {
+  execSync('npx prisma db push --skip-generate --accept-data-loss', {
     stdio: 'inherit',
-    env: { ...process.env, DATABASE_URL: 'file:./test.db' },
+    env: { ...process.env, DATABASE_URL: url },
   })
 }

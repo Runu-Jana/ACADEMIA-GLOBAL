@@ -24,7 +24,7 @@ export default async function AdminModulesPage({ searchParams }: { searchParams:
   const stream = typeof sp.stream === 'string' ? sp.stream : ''
 
   const where: Prisma.CourseWhereInput = {
-    ...(q && { OR: [{ title: { contains: q } }, { slug: { contains: q } }] }),
+    ...(q && { OR: [{ title: { contains: q, mode: 'insensitive' } }, { slug: { contains: q, mode: 'insensitive' } }] }),
     ...(stream && { stream }),
   }
 

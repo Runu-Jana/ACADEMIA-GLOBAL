@@ -203,9 +203,9 @@ export function buildCourseWhere(
     // case-insensitive for ASCII, which is all we need here.
     and.push({
       OR: [
-        { title: { contains: s.q } },
-        { subtitle: { contains: s.q } },
-        { university: { name: { contains: s.q } } },
+        { title: { contains: s.q, mode: 'insensitive' } },
+        { subtitle: { contains: s.q, mode: 'insensitive' } },
+        { university: { name: { contains: s.q, mode: 'insensitive' } } },
       ],
     })
   }

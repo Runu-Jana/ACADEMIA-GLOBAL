@@ -32,10 +32,10 @@ export default async function AdminStudentsPage({ searchParams }: { searchParams
     role: 'STUDENT',
     ...(q && {
       OR: [
-        { name: { contains: q } },
-        { email: { contains: q } },
-        { phone: { contains: q } },
-        { city: { contains: q } },
+        { name: { contains: q, mode: 'insensitive' } },
+        { email: { contains: q, mode: 'insensitive' } },
+        { phone: { contains: q, mode: 'insensitive' } },
+        { city: { contains: q, mode: 'insensitive' } },
       ],
     }),
   }

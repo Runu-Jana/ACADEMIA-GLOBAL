@@ -35,9 +35,9 @@ export default async function AdminApplicationsPage({ searchParams }: { searchPa
     ...(status && { status }),
     ...(q && {
       OR: [
-        { user: { name: { contains: q } } },
-        { user: { email: { contains: q } } },
-        { course: { title: { contains: q } } },
+        { user: { name: { contains: q, mode: 'insensitive' } } },
+        { user: { email: { contains: q, mode: 'insensitive' } } },
+        { course: { title: { contains: q, mode: 'insensitive' } } },
       ],
     }),
   }

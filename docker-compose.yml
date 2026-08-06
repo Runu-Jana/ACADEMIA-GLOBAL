@@ -1,0 +1,25 @@
+# Local Postgres for development. Start it with:  docker compose up -d
+# The app connects via DATABASE_URL in .env (see .env.example).
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: shiksha-sarthi-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: shiksha
+      POSTGRES_PASSWORD: shiksha
+      POSTGRES_DB: shiksha_sarthi
+    # Bind to 127.0.0.1:5544 — a native Postgres on this host already holds
+    # 5432/5433 on IPv4, so we use a clear port and pin the loopback address.
+    ports:
+      - '127.0.0.1:5544:5432'
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U shiksha -d shiksha_sarthi']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  db-data:

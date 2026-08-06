@@ -46,9 +46,9 @@ export default async function AdminCoursesPage({ searchParams }: { searchParams:
   const where: Prisma.CourseWhereInput = {
     ...(values.q && {
       OR: [
-        { title: { contains: values.q } },
-        { slug: { contains: values.q } },
-        { subtitle: { contains: values.q } },
+        { title: { contains: values.q, mode: 'insensitive' } },
+        { slug: { contains: values.q, mode: 'insensitive' } },
+        { subtitle: { contains: values.q, mode: 'insensitive' } },
       ],
     }),
     ...(values.level && { level: values.level }),
