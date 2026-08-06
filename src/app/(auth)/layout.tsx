@@ -47,7 +47,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         </div>
 
         <p className="relative text-xs text-white/50">
-          © {new Date().getFullYear()} Academia Global Virtual Learning
+          © {new Date().getFullYear()} Shiksha Sarthi Virtual Learning
         </p>
       </aside>
 

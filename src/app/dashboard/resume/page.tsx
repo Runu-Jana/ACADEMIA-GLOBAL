@@ -20,7 +20,7 @@ export default async function ResumePage() {
     <div>
       <PanelHeading
         title="AI Resume Builder"
-        sub="Turn rough notes and your Academia Global record into a polished, ATS-friendly resume you can download as a PDF."
+        sub="Turn rough notes and your Shiksha Sarthi record into a polished, ATS-friendly resume you can download as a PDF."
       />
       <ResumeBuilder
         contact={{

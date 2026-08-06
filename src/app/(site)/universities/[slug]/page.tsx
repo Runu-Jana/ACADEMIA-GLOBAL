@@ -160,7 +160,7 @@ export default async function UniversityProfilePage({
               <div className="mb-4 flex items-start gap-2.5 rounded-xl border border-amber-300 bg-amber-50 p-3.5 text-[12.5px] leading-relaxed text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200">
                 <Info aria-hidden className="mt-0.5 h-4 w-4 shrink-0" />
                 <span>
-                  <strong>Academia Global is not affiliated with {university.name}.</strong> This is an
+                  <strong>Shiksha Sarthi is not affiliated with {university.name}.</strong> This is an
                   informational directory listing — you can&rsquo;t enrol here through us. Share your
                   details and our counsellors will guide you to a recognised{' '}
                   <strong className="text-foreground">partner university</strong>, often faster and with
@@ -185,7 +185,7 @@ export default async function UniversityProfilePage({
               {[
                 { icon: CalendarDays, label: 'Established', value: String(university.estYear) },
                 { icon: MapPin, label: 'Campus', value: `${university.city}, ${university.state}` },
-                { icon: BookOpen, label: 'Programs on Academia Global', value: String(courses.length) },
+                { icon: BookOpen, label: 'Programs on Shiksha Sarthi', value: String(courses.length) },
                 { icon: Users, label: 'Learners Enrolled', value: formatCount(university.students) },
               ].map((row) => (
                 <div
@@ -285,7 +285,7 @@ export default async function UniversityProfilePage({
             <div className="mb-4 flex items-start gap-2.5 rounded-xl border border-amber-300 bg-amber-50 p-4 text-[12.5px] leading-relaxed text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200">
               <Info className="mt-0.5 h-4 w-4 shrink-0" />
               <span>
-                <strong>Academia Global is not affiliated with {university.name}.</strong> This is an
+                <strong>Shiksha Sarthi is not affiliated with {university.name}.</strong> This is an
                 informational directory listing — you can&rsquo;t enrol here through us. Open any
                 programme and request free admission help, and our counsellors will guide you to a
                 recognised partner university.
@@ -434,14 +434,14 @@ export default async function UniversityProfilePage({
               <p className="flex-1 text-pretty text-[13px] leading-relaxed text-muted-foreground">
                 {isDirectory ? (
                   <>
-                    Academia Global isn&rsquo;t affiliated with {university.shortName}, so you can&rsquo;t
+                    Shiksha Sarthi isn&rsquo;t affiliated with {university.shortName}, so you can&rsquo;t
                     enrol here through us. Our counsellors can still help you get admission to a
                     recognised partner university — eligibility, fee plans, scholarships and documents,
                     at no cost.
                   </>
                 ) : (
                   <>
-                    Admissions for {university.shortName} run through Academia Global. Our counsellors
+                    Admissions for {university.shortName} run through Shiksha Sarthi. Our counsellors
                     can walk you through eligibility, fee plans, scholarships and the documents you
                     need — at no cost.
                   </>

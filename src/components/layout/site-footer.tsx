@@ -134,7 +134,7 @@ export function SiteFooter() {
         </div>
 
         <div className="mt-11 border-t border-white/12 pt-6 text-center text-xs text-white/55">
-          © {new Date().getFullYear()} Academia Global Virtual Learning. All Rights Reserved.
+          © {new Date().getFullYear()} Shiksha Sarthi Virtual Learning. All Rights Reserved.
         </div>
       </div>
     </footer>

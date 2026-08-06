@@ -8,7 +8,7 @@ import {
 } from 'lucide-react'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUser, getSession } from '@/lib/auth'
-import { isCourseLive, isCourseListed, isDirectoryCourse, liveCourses, listedCourses } from '@/lib/visibility'
+import { isCourseLive, isCourseListed, isDirectoryCourse, listedCourses } from '@/lib/visibility'
 import { LeadForm } from '@/components/lead/lead-form'
 import { BrochureGate } from '@/components/course/brochure-gate'
 import { CourseCard } from '@/components/course/course-card'
@@ -138,25 +138,16 @@ function Fact({
   )
 }
 
-type SuggestionCourse = {
-  id: string
-  slug: string
-  title: string
-  feePerYear: number
-  university: { name: string }
-}
-
-/** The rail shown for a DIRECTORY (non-partner) course: a not-affiliated notice,
- *  a lead form, and matching partner programmes to steer the student toward. */
+/** The rail shown for a DIRECTORY (non-partner) course: a not-affiliated notice
+ *  and a lead form. A counsellor follows up to guide the student — we do NOT
+ *  recommend similar courses at other universities here. */
 function DirectoryRail({
   universityName,
   courseId,
-  suggestions,
   defaults,
 }: {
   universityName: string
   courseId: string
-  suggestions: SuggestionCourse[]
   defaults?: { name: string; email: string; phone?: string }
 }) {
   return (
@@ -168,46 +159,21 @@ function DirectoryRail({
             Directory listing
           </Badge>
           <p className="mt-2 text-[12px] leading-relaxed text-muted-foreground">
-            Academia Global is <strong className="text-foreground">not affiliated</strong> with{' '}
-            {universityName}; this listing is compiled for information only. You can&rsquo;t enrol in it
-            through us — but our counsellors can help you get admission to a recognised{' '}
-            <strong className="text-foreground">partner university</strong>, often faster and with
-            scholarships.
+            Shiksha Sarthi is <strong className="text-foreground">not affiliated</strong> with{' '}
+            {universityName}; this listing is compiled for information only. Share your details below
+            and one of our counsellors will get in touch to guide you through the admission process.
           </p>
         </div>
         <div className="p-4">
-          <h3 className="mb-2.5 text-[14px] font-bold">Get free admission help</h3>
+          <h3 className="mb-2.5 text-[14px] font-bold">Request admission help</h3>
           <LeadForm
             source="directory"
             interestedCourseId={courseId}
             defaults={defaults}
-            submitLabel="Get admission help"
+            submitLabel="Request a callback"
           />
         </div>
       </div>
-
-      {suggestions.length > 0 && (
-        <div className="card-base p-4">
-          <h3 className="mb-2.5 flex items-center gap-1.5 text-[13px] font-bold">
-            <Sparkles className="h-3.5 w-3.5 text-primary-500" />
-            Partner programmes you can join
-          </h3>
-          <ul className="space-y-2">
-            {suggestions.map((s) => (
-              <li key={s.id}>
-                <Link href={`/courses/${s.slug}`} className="card-base card-hover block p-3">
-                  <p className="line-clamp-2 text-[12.5px] font-bold leading-snug">{s.title}</p>
-                  <p className="mt-0.5 truncate text-[11px] text-muted-foreground">{s.university.name}</p>
-                  <p className="mt-1 text-[12.5px] font-extrabold text-primary-700 dark:text-primary-300">
-                    {formatINR(s.feePerYear)}
-                    <span className="text-[10px] font-medium text-muted-foreground"> / year</span>
-                  </p>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
     </div>
   )
 }
@@ -268,23 +234,15 @@ export default async function CourseDetailPage({
   // listings, so fall back to a cheap session check for ordinary partner courses.
   const signedIn = Boolean(viewer) || Boolean(await getSession())
 
+  // "Keep exploring" stays WITHIN the same university — we never recommend
+  // similar courses at a different university while a student is deciding to
+  // apply, so we don't pull their interest away to a competitor's programme.
   const related = await prisma.course.findMany({
-    where: listedCourses({ stream: course.stream, id: { not: course.id } }),
+    where: listedCourses({ universityId: course.universityId, id: { not: course.id } }),
     select: courseSelect,
     orderBy: [{ featured: 'desc' }, { rating: 'desc' }],
     take: 4,
   })
-
-  // A directory listing can't be enrolled in — steer interest toward matching
-  // partner programmes instead.
-  const suggestions = directory
-    ? await prisma.course.findMany({
-        where: liveCourses({ stream: course.stream, level: course.level, id: { not: course.id } }),
-        select: courseSelect,
-        orderBy: [{ rating: 'desc' }, { reviews: 'desc' }],
-        take: 3,
-      })
-    : []
 
   const highlights = asList(course.highlights)
   const skills = asList(course.skills)
@@ -777,7 +735,7 @@ export default async function CourseDetailPage({
           />
           <Faq
             q="How are the classes conducted?"
-            a={`Learning is delivered ${modeLabel.toLowerCase()} through the Academia Global platform. ${
+            a={`Learning is delivered ${modeLabel.toLowerCase()} through the Shiksha Sarthi platform. ${
               course.hasLiveClass
                 ? 'You get live interactive sessions with faculty plus recorded lectures you can revisit any time,'
                 : 'You get self-paced recorded lectures you can revisit any time,'
@@ -796,7 +754,7 @@ export default async function CourseDetailPage({
             a={
               course.hasPlacement
                 ? `Yes. Enrolled students get access to the placement cell, the job portal, resume and interview preparation, and virtual hiring drives with recruiters such as ${recruiters.slice(0, 3).join(', ') || 'leading Indian and global employers'}. Placement assistance is support for your job search — it is not a guaranteed job offer.`
-                : 'This program focuses on academic and skill outcomes rather than campus placement. You still get career counselling, resume reviews and access to the Academia Global alumni network.'
+                : 'This program focuses on academic and skill outcomes rather than campus placement. You still get career counselling, resume reviews and access to the Shiksha Sarthi alumni network.'
             }
           />
         </div>
@@ -893,7 +851,6 @@ export default async function CourseDetailPage({
               <DirectoryRail
                 universityName={course.university.name}
                 courseId={course.id}
-                suggestions={suggestions}
                 defaults={leadDefaults}
               />
             ) : (
@@ -994,14 +951,14 @@ export default async function CourseDetailPage({
         <section className="container pb-12 pt-2">
           <SectionTitle
             eyebrow="Keep exploring"
-            title="Related Courses"
-            sub={`More ${streamLabel} programs students shortlist alongside this one.`}
+            title={`More from ${course.university.shortName || course.university.name}`}
+            sub="Other programmes offered by the same university."
             action={
               <Link
-                href={`/courses?stream=${course.stream}`}
+                href={`/universities/${course.university.slug}`}
                 className={buttonVariants({ variant: 'outline', size: 'sm' })}
               >
-                View All
+                View University
                 <ArrowRight className="h-3.5 w-3.5" />
               </Link>
             }

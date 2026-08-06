@@ -1,4 +1,4 @@
-// Academia Global — Virtual Learning Platform
+// Shiksha Sarthi — Virtual Learning Platform
 // Data model for the student-facing site/PWA and the admin panel.
 //
 // Enum-like columns are plain Strings (SQLite has no native enums) and the

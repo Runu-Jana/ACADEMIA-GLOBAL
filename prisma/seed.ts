@@ -775,7 +775,7 @@ async function main() {
     data: {
       email: 'admin@academiaglobal.in',
       passwordHash: pwAdmin,
-      name: 'Academia Admin',
+      name: 'Shiksha Sarthi Admin',
       role: 'ADMIN',
       phone: '+91 98765 43210',
       city: 'Karnal',
@@ -846,7 +846,7 @@ async function main() {
       city: 'Pune',
       state: 'Maharashtra',
       message:
-        'We run online BBA, BCA and MBA programmes and would like to list them on Academia Global.',
+        'We run online BBA, BCA and MBA programmes and would like to list them on Shiksha Sarthi.',
     },
   })
 
@@ -902,7 +902,7 @@ async function main() {
         ...curriculum.map((m, i) => `  ${i + 1}. ${m.title}`),
         '',
         'Assessment: continuous assignments, module quizzes and a final examination.',
-        'Issued by Academia Global Virtual Learning.',
+        'Issued by Shiksha Sarthi Virtual Learning.',
       ],
     )
     await prisma.material.create({
@@ -1084,7 +1084,7 @@ async function main() {
     data: {
       rating: 5,
       body:
-        'I had to drop my studies after 12th due to financial problems. Academia Global helped me complete my BBA through distance learning. Today I am working in a top MNC.',
+        'I had to drop my studies after 12th due to financial problems. Shiksha Sarthi helped me complete my BBA through distance learning. Today I am working in a top MNC.',
       userId: rahul.id,
       courseId: courseIdBySlug['online-bba-digital-marketing'],
     },

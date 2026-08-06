@@ -1,4 +1,4 @@
-# Academia Global — Design System & Conventions
+# Shiksha Sarthi — Design System & Conventions
 
 Read this before writing any page. Everything below already exists — **import it, do not
 re-implement it, and do not add new dependencies.**

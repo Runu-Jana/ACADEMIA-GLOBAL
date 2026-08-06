@@ -13,7 +13,7 @@ import { Aurora, GridPattern } from '@/components/fx/aurora'
 
 export const metadata: Metadata = {
   title: 'About Us',
-  description: 'Academia Global helps learners across India restart, continue and complete their education.',
+  description: 'Shiksha Sarthi helps learners across India restart, continue and complete their education.',
 }
 
 export const revalidate = 300
@@ -28,7 +28,7 @@ const faqs = [
   { q: 'Are these degrees valid for government jobs?', a: 'Yes. UGC-entitled online and UGC-DEB approved distance degrees hold the same status as on-campus degrees for employment and higher study, per UGC regulations.' },
   { q: 'I dropped out years ago. Can I still continue?', a: 'In most cases yes. Open universities accept learners without an unbroken academic record, and several programmes have no upper age limit. Tell the counsellor your last completed level and we will map the options.' },
   { q: 'How are classes delivered?', a: 'Online programmes combine live sessions with recorded lectures, downloadable notes and assignments — all available in your dashboard. Distance programmes are self-paced with study material and term-end exams.' },
-  { q: 'What does Academia Global charge me?', a: 'Nothing for counselling or admission support. You pay the university’s fee directly; we earn a referral fee from partner institutions.' },
+  { q: 'What does Shiksha Sarthi charge me?', a: 'Nothing for counselling or admission support. You pay the university’s fee directly; we earn a referral fee from partner institutions.' },
 ]
 
 export default async function AboutPage() {
@@ -51,7 +51,7 @@ export default async function AboutPage() {
           </h1>
           <p className="mx-auto mt-4 max-w-2xl text-pretty text-[15px] leading-relaxed text-muted-foreground">
             Millions of Indians leave formal education for reasons that have nothing to do with
-            ability — money, family, illness, a job that couldn&apos;t wait. Academia Global exists
+            ability — money, family, illness, a job that couldn&apos;t wait. Shiksha Sarthi exists
             to help them pick it back up, from Class 10 all the way to postgraduate study.
           </p>
         </div>

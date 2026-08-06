@@ -68,7 +68,7 @@ export function InstallPrompt() {
           <Download className="h-5 w-5 text-white" />
         </span>
         <div className="min-w-0 flex-1">
-          <p className="text-[13px] font-bold leading-tight">Install Academia Global</p>
+          <p className="text-[13px] font-bold leading-tight">Install Shiksha Sarthi</p>
           <p className="mt-0.5 text-[11px] text-muted-foreground">
             Add to your home screen for offline study material.
           </p>

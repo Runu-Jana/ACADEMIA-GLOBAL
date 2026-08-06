@@ -659,7 +659,7 @@ export function ApplyWizard({
                 />
                 <span className="text-[12.5px] leading-relaxed">
                   I declare that the information provided is accurate to the best of my knowledge and
-                  agree to Academia Global&rsquo;s admission terms.
+                  agree to Shiksha Sarthi&rsquo;s admission terms.
                 </span>
               </label>
             </div>

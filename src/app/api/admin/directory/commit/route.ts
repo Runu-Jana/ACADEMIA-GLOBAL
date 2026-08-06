@@ -83,7 +83,7 @@ export async function POST(req: Request) {
         slug,
         name,
         shortName: (name.split(/\s+/)[0] ?? name).slice(0, 24),
-        about: `${name} — a directory listing on Academia Global, compiled from public information. Academia Global is not affiliated with this institution.`,
+        about: `${name} — a directory listing on Shiksha Sarthi, compiled from public information. Shiksha Sarthi is not affiliated with this institution.`,
         estYear: new Date().getFullYear(),
         approvals: [],
         city: input.city?.trim() || 'India',

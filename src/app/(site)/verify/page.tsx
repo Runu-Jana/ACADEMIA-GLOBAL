@@ -7,7 +7,7 @@ import { VerifyForm } from './verify-form'
 export const metadata: Metadata = {
   title: 'Verify Certificate',
   description:
-    'Confirm that an Academia Global certificate is genuine using its serial number and the holder’s date of birth.',
+    'Confirm that an Shiksha Sarthi certificate is genuine using its serial number and the holder’s date of birth.',
 }
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>
@@ -28,7 +28,7 @@ export default async function VerifyPage({ searchParams }: { searchParams: Searc
               Certificate Verification
             </span>
             <h1 className="text-balance font-display text-3xl font-extrabold tracking-tight sm:text-4xl">
-              Verify an <span className="holo-text">Academia Global</span> certificate
+              Verify an <span className="holo-text">Shiksha Sarthi</span> certificate
             </h1>
             <p className="mt-3 text-pretty text-[14.5px] text-muted-foreground">
               Employers and institutions can confirm any certificate issued through our platform.

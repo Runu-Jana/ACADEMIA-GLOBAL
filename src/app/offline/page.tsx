@@ -15,7 +15,7 @@ export default function OfflinePage() {
         </span>
         <h1 className="font-display text-2xl font-extrabold">You&apos;re offline</h1>
         <p className="mt-2.5 text-pretty text-sm text-muted-foreground">
-          We couldn&apos;t reach Academia Global. Downloaded study material stays available on
+          We couldn&apos;t reach Shiksha Sarthi. Downloaded study material stays available on
           your device — reconnect to sync your progress and open new lessons.
         </p>
         <div className="mt-7 flex justify-center gap-3">

@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { getCurrentUser } from '@/lib/auth'
 import { liveCourses } from '@/lib/visibility'
 import { enforceRateLimit, MINUTE } from '@/lib/rate-limit'
+import { sendAdminEmail } from '@/lib/email'
 
 export const dynamic = 'force-dynamic'
 
@@ -102,6 +103,31 @@ export async function POST(req: Request) {
       suggestedUniversityId,
     },
     select: { id: true },
+  })
+
+  // Ping the admin so a counsellor can call the student back. This is the
+  // nudge on top of the in-app bell (the leads table is the source of truth);
+  // sendAdminEmail degrades to a no-op when email isn't configured.
+  const interest = interestedCourseTitle
+    ? `${interestedCourseTitle}${interestedUniversityName ? ` at ${interestedUniversityName}` : ''}`
+    : interestedUniversityName ?? 'a listed programme'
+  const adminUrl = `${process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'}/admin/leads`
+  await sendAdminEmail({
+    subject: `New enquiry: ${data.name} — ${interest}`,
+    text: [
+      `A prospective student has requested admission help.`,
+      ``,
+      `Name:     ${data.name}`,
+      `Email:    ${data.email}`,
+      `Phone:    ${data.phone}`,
+      `Interest: ${interest}`,
+      `Source:   ${data.source}`,
+      data.message ? `Message:  ${data.message}` : ``,
+      ``,
+      `Work this lead: ${adminUrl}`,
+    ]
+      .filter(Boolean)
+      .join('\n'),
   })
 
   return NextResponse.json({ ok: true, leadId: lead.id })

@@ -12,7 +12,7 @@ const DOCS = {
   privacy: {
     title: 'Privacy Policy',
     intro:
-      'This policy explains what Academia Global collects when you use the platform, why we collect it, and the choices you have.',
+      'This policy explains what Shiksha Sarthi collects when you use the platform, why we collect it, and the choices you have.',
     sections: [
       { h: 'What we collect', p: 'Account details you give us (name, email, mobile, date of birth, city), the programmes you view or apply to, your learning progress and assessment results, and standard technical logs such as browser type and IP address.' },
       { h: 'Why we collect it', p: 'To create and secure your account, process admission applications with the university you choose, deliver course material and track your progress, and respond to support requests.' },
@@ -26,7 +26,7 @@ const DOCS = {
     title: 'Terms & Conditions',
     intro: 'By creating an account you agree to these terms. Please read them before enrolling in any programme.',
     sections: [
-      { h: 'What Academia Global is', p: 'We are an education discovery and support platform. We are not a university and we do not award degrees. Degrees are awarded solely by the partner institution you enrol with.' },
+      { h: 'What Shiksha Sarthi is', p: 'We are an education discovery and support platform. We are not a university and we do not award degrees. Degrees are awarded solely by the partner institution you enrol with.' },
       { h: 'Your account', p: 'Keep your password confidential and your details accurate. You are responsible for activity under your account. Tell us immediately if you suspect unauthorised access.' },
       { h: 'Admissions and eligibility', p: 'Final admission, eligibility and fee decisions rest with the university. Information shown here is indicative and may change without notice.' },
       { h: 'Course material', p: 'Material in your dashboard is licensed to you for personal study only. Redistributing, reselling or publicly posting it is not permitted.' },
@@ -38,7 +38,7 @@ const DOCS = {
     title: 'Refund Policy',
     intro: 'Refunds for tuition are governed by the awarding university’s policy. This page explains how the process works in practice.',
     sections: [
-      { h: 'Counselling is free', p: 'Academia Global does not charge learners for counselling, shortlisting or admission support. If anyone asks you to pay us a fee, report it to support@academiaglobal.in.' },
+      { h: 'Counselling is free', p: 'Shiksha Sarthi does not charge learners for counselling, shortlisting or admission support. If anyone asks you to pay us a fee, report it to support@academiaglobal.in.' },
       { h: 'University fees', p: 'Tuition is paid to and refunded by the university. Their published refund schedule — typically tied to how many days have passed since enrolment — applies in full.' },
       { h: 'How to request a refund', p: 'Raise the request from your dashboard or email support@academiaglobal.in with your enrolment number. We will forward it to the university and track it on your behalf.' },
       { h: 'Timelines', p: 'Universities generally process approved refunds within 21–45 working days to the original payment method.' },

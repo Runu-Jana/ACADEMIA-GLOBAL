@@ -54,7 +54,7 @@ const WELCOME: ChatTurn = {
   id: 'welcome',
   role: 'assistant',
   content:
-    "Hi! I'm Saarthi, your Academia Global study guide. I match what you tell me against our real course catalogue — subject, level, study mode and budget — and suggest programmes that fit. Ask me anything below, or start with one of these.",
+    "Hi! I'm Saarthi, your Shiksha Sarthi study guide. I match what you tell me against our real course catalogue — subject, level, study mode and budget — and suggest programmes that fit. Ask me anything below, or start with one of these.",
 }
 
 export function CounsellorChat({
@@ -386,7 +386,7 @@ function IntroForm({
   return (
     <div className="p-5 sm:p-6">
       <p className="text-[13.5px] leading-relaxed text-muted-foreground">
-        Hi! I&rsquo;m <span className="font-bold text-foreground">Saarthi</span>, your Academia Global
+        Hi! I&rsquo;m <span className="font-bold text-foreground">Saarthi</span>, your Shiksha Sarthi
         study guide. Leave your details so a counsellor can follow up if you&rsquo;d like — then ask me
         anything about our courses.
       </p>

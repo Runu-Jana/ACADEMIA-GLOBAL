@@ -16,7 +16,7 @@ export default async function CareerKitHubPage() {
     <div>
       <PanelHeading
         title="AI Career Kit"
-        sub="Four AI tools that turn your Academia Global record into a plan — find your direction, map the skills, write your SOP and prep for the interview."
+        sub="Four AI tools that turn your Shiksha Sarthi record into a plan — find your direction, map the skills, write your SOP and prep for the interview."
       />
 
       <div className="grid gap-4 sm:grid-cols-2">

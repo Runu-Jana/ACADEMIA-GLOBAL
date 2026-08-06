@@ -11,7 +11,7 @@ import { CounsellorChat, type ChatTurn } from './counsellor-chat'
 export const metadata: Metadata = {
   title: 'Saarthi — AI Course Finder',
   description:
-    'Answer a few questions and get course recommendations matched against Academia Global’s live catalogue — by subject, level, study mode and budget.',
+    'Answer a few questions and get course recommendations matched against Shiksha Sarthi’s live catalogue — by subject, level, study mode and budget.',
 }
 
 export const dynamic = 'force-dynamic'
@@ -53,7 +53,7 @@ export default async function CounsellorPage() {
             </h1>
             <p className="mt-3 text-pretty text-[14.5px] text-muted-foreground">
               Tell us what you have studied, what interests you, how much time you have and what you
-              can spend. We match it against every programme on Academia Global and suggest the ones
+              can spend. We match it against every programme on Shiksha Sarthi and suggest the ones
               that fit.
             </p>
           </div>

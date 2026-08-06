@@ -105,7 +105,7 @@ export function LeadForm({
         {loading ? 'Submitting…' : submitLabel}
       </Button>
       <p className="text-center text-[10.5px] leading-relaxed text-muted-foreground">
-        By submitting, you agree to be contacted by an Academia Global counsellor.
+        By submitting, you agree to be contacted by an Shiksha Sarthi counsellor.
       </p>
     </form>
   )

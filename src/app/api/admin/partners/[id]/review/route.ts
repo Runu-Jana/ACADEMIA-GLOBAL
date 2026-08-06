@@ -65,7 +65,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
         // A starter profile the operator can flesh out on the University page.
         about: app.message?.trim()
           ? app.message.trim()
-          : `${app.universityName} is a partner institution on Academia Global.`,
+          : `${app.universityName} is a partner institution on Shiksha Sarthi.`,
         estYear: new Date().getFullYear(),
         approvals: [],
         city: app.city?.trim() || 'India',

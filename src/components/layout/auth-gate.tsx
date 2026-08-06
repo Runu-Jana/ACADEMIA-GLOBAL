@@ -185,7 +185,7 @@ export function AuthGate({ signedIn }: { signedIn: boolean }) {
             Free account
           </span>
           <h2 id="authgate-title" className="mt-2.5 text-balance font-display text-xl font-extrabold tracking-tight sm:text-2xl">
-            {isSignup ? 'Get the most out of Academia Global' : 'Welcome back'}
+            {isSignup ? 'Get the most out of Shiksha Sarthi' : 'Welcome back'}
           </h2>
           <ul className="mt-3 space-y-1.5">
             {BENEFITS.map((b) => (
@@ -236,7 +236,7 @@ export function AuthGate({ signedIn }: { signedIn: boolean }) {
           </Button>
 
           <p className="text-center text-[12.5px] text-muted-foreground">
-            {isSignup ? 'Already have an account?' : 'New to Academia Global?'}{' '}
+            {isSignup ? 'Already have an account?' : 'New to Shiksha Sarthi?'}{' '}
             <button
               type="button"
               onClick={() => {

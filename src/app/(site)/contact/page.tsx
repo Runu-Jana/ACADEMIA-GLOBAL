@@ -7,7 +7,7 @@ import { ContactForm } from './contact-form'
 
 export const metadata: Metadata = {
   title: 'Contact Us',
-  description: 'Talk to the Academia Global team about admissions, partnerships or support.',
+  description: 'Talk to the Shiksha Sarthi team about admissions, partnerships or support.',
 }
 
 const channels = [

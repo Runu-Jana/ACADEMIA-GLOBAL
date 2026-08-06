@@ -139,7 +139,7 @@ export function ResumeBuilder({
           <p className="mt-3 flex items-start gap-1.5 text-[11px] leading-relaxed text-muted-foreground">
             <ShieldCheck className="mt-0.5 h-3 w-3 shrink-0 text-emerald-500" />
             Your {certCount} verified certificate{certCount === 1 ? '' : 's'} and {courseCount} programme
-            {courseCount === 1 ? '' : 's'} from Academia Global are added automatically. The AI never
+            {courseCount === 1 ? '' : 's'} from Shiksha Sarthi are added automatically. The AI never
             invents experience it wasn&rsquo;t given.
           </p>
 

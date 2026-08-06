@@ -258,7 +258,7 @@ function VerifiedPanel({
           This certificate is genuine
         </h2>
         <p className="mt-1.5 max-w-md text-pretty text-[13px] text-muted-foreground">
-          The serial number and date of birth match a certificate issued through Academia Global.
+          The serial number and date of birth match a certificate issued through Shiksha Sarthi.
         </p>
       </div>
 

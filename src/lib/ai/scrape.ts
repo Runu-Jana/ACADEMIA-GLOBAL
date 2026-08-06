@@ -23,7 +23,7 @@ import { lookup } from 'node:dns/promises'
 const MAX_BYTES = 3_000_000
 const TIMEOUT_MS = 15_000
 const MAX_REDIRECTS = 4
-const UA = 'AcademiaGlobalBot/1.0 (+https://academiaglobal.in; directory listing; support@academiaglobal.in)'
+const UA = 'ShikshaSarthiBot/1.0 (+https://academiaglobal.in; directory listing; support@academiaglobal.in)'
 const BLOCKED = 'That address is not allowed.'
 
 function ipv4IsPrivate(ip: string): boolean {

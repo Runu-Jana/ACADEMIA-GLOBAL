@@ -1,4 +1,4 @@
-/* Academia Global — service worker.
+/* Shiksha Sarthi — service worker.
  *
  * Deliberately conservative about what it stores. Authenticated HTML
  * (/dashboard, /admin) and every API response are NEVER cached: this app is

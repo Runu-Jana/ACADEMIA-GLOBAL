@@ -92,7 +92,7 @@ export default async function BrochurePage({ params }: { params: Promise<{ slug:
           <div>
             <div className="flex items-center gap-2 text-[13px] font-bold uppercase tracking-widest text-white/80">
               <GraduationCap className="h-4 w-4" />
-              Academia Global
+              Shiksha Sarthi
             </div>
             <h1 className="mt-3 text-[26px] font-extrabold leading-tight">{course.title}</h1>
             <p className="mt-1 max-w-xl text-[13px] text-white/85">{course.subtitle}</p>
@@ -234,7 +234,7 @@ export default async function BrochurePage({ params }: { params: Promise<{ slug:
             </p>
           </div>
           <div className="text-right text-[11.5px] text-slate-500">
-            <p className="font-semibold text-slate-700">Academia Global</p>
+            <p className="font-semibold text-slate-700">Shiksha Sarthi</p>
             <p>support@academiaglobal.in · 1800-123-4567</p>
           </div>
         </footer>

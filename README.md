@@ -1,4 +1,4 @@
-# Academia Global — Virtual Learning Platform
+# Shiksha Sarthi — Virtual Learning Platform
 
 A responsive web app **and installable mobile app (PWA)** for an online/distance education
 platform: students browse programmes, apply, enrol, study through an LMS, download material

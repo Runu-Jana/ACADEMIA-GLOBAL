@@ -73,7 +73,7 @@ export const docSchema = z.object({
 })
 export type AiDoc = z.infer<typeof docSchema>
 
-/** Real, verifiable bits of the student's Academia Global record. */
+/** Real, verifiable bits of the student's Shiksha Sarthi record. */
 export interface StudentContext {
   name: string
   courses: string[]
@@ -83,7 +83,7 @@ export interface StudentContext {
 
 function contextBlock(ctx: StudentContext): string {
   return `Student name: ${ctx.name}
-Programmes on Academia Global: ${ctx.courses.join(', ') || '(none yet)'}
+Programmes on Shiksha Sarthi: ${ctx.courses.join(', ') || '(none yet)'}
 Streams studied: ${ctx.streams.join(', ') || '(none)'}
 Certificates earned (real, verifiable): ${ctx.certificates.join(', ') || '(none)'}`
 }

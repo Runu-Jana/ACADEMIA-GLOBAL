@@ -2,7 +2,7 @@ import { prisma } from '@/lib/prisma'
 import type { StudentContext } from './career-kit'
 
 /**
- * Loads the real, verifiable slice of a student's Academia Global record that
+ * Loads the real, verifiable slice of a student's Shiksha Sarthi record that
  * the Career Kit tools ground their output in. Kept here (not in career-kit.ts)
  * so the model layer stays free of database concerns, matching the resume tool.
  */
@@ -35,5 +35,5 @@ export async function loadRecordSummary(userId: string): Promise<string> {
     prisma.certificate.count({ where: { userId } }),
     prisma.enrollment.count({ where: { userId } }),
   ])
-  return `Your ${certCount} verified certificate${certCount === 1 ? '' : 's'} and ${courseCount} programme${courseCount === 1 ? '' : 's'} from Academia Global are used automatically.`
+  return `Your ${certCount} verified certificate${certCount === 1 ? '' : 's'} and ${courseCount} programme${courseCount === 1 ? '' : 's'} from Shiksha Sarthi are used automatically.`
 }

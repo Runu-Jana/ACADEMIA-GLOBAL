@@ -111,7 +111,7 @@ export function LoginForm() {
       </form>
 
       <p className="mt-5 text-center text-sm text-muted-foreground">
-        New to Academia Global?{' '}
+        New to Shiksha Sarthi?{' '}
         <Link
           href={next ? `/signup?next=${encodeURIComponent(next)}` : '/signup'}
           className="font-bold text-primary-600 hover:underline"

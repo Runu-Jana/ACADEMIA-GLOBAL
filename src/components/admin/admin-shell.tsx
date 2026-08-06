@@ -189,7 +189,7 @@ export function AdminShell({
                 {current?.label ?? 'Admin'}
               </h1>
               <p className="hidden truncate text-[11px] text-muted-foreground sm:block">
-                Academia Global control panel
+                Shiksha Sarthi control panel
               </p>
             </div>
 
@@ -231,7 +231,7 @@ export function AdminShell({
                     className="absolute right-0 top-[calc(100%+8px)] z-20 w-[min(20rem,calc(100vw-2rem))] animate-scale-in origin-top-right overflow-hidden rounded-2xl border border-border bg-card shadow-lift"
                   >
                     <div className="flex items-center justify-between border-b border-border bg-muted/50 px-4 py-3">
-                      <p className="text-sm font-bold">Callback requests</p>
+                      <p className="text-sm font-bold">Leads to work</p>
                       {notifications.length > 0 && (
                         <Badge tone="warning" className="shrink-0">{notifications.length}</Badge>
                       )}
@@ -249,7 +249,7 @@ export function AdminShell({
                       </ul>
                     ) : (
                       <p className="px-4 py-6 text-center text-sm text-muted-foreground">
-                        No callback requests right now.
+                        No leads waiting right now.
                       </p>
                     )}
                   </div>
@@ -286,7 +286,7 @@ function SidebarBody({ pathname, user }: { pathname: string; user: AdminShellUse
         </span>
         <span className="min-w-0">
           <span className="block truncate font-display text-[13px] font-extrabold leading-tight text-white">
-            Academia Global
+            Shiksha Sarthi
           </span>
           <span className="block text-[10px] font-bold uppercase tracking-[.16em] text-holo-cyan">
             Admin Panel

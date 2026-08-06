@@ -4,7 +4,7 @@ import { requireUser } from '@/lib/auth'
 import { DashboardShell, type ShellNotification } from '@/components/dashboard/dashboard-shell'
 
 export const metadata: Metadata = {
-  title: { default: 'Dashboard', template: '%s · Dashboard · Academia Global' },
+  title: { default: 'Dashboard', template: '%s · Dashboard · Shiksha Sarthi' },
 }
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {

@@ -81,7 +81,7 @@ function systemPrompt(course: { title: string; university: string }, ctx: BuiltC
       ? `No passage directly matched the question. The context below is general information about the course. If it does not answer the question, say you could not find it in this course's materials — do not fill the gap with a guess.`
       : `Answer using the numbered context below, and cite what you use inline as [1], [2] matching the source numbers.`
 
-  return `You are the AI study tutor for the online programme "${course.title}" offered by ${course.university} on Academia Global, an Indian learning platform.
+  return `You are the AI study tutor for the online programme "${course.title}" offered by ${course.university} on Shiksha Sarthi, an Indian learning platform.
 
 You are helping ONE enrolled student understand THIS course. Follow these rules strictly:
 

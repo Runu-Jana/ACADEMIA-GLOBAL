@@ -106,7 +106,7 @@ export async function POST(req: Request) {
       orderId: gatewayOrderId,
       amount: order.amount,
       currency: order.currency,
-      name: 'Academia Global',
+      name: 'Shiksha Sarthi',
       description: course.title,
       prefill: { name: user.name, email: user.email, contact: user.phone ?? '' },
     },

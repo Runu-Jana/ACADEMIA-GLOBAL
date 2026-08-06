@@ -19,8 +19,8 @@ const outfit = Outfit({
 export const metadata: Metadata = {
   metadataBase: new URL('http://localhost:3000'),
   title: {
-    default: 'Academia Global — Learn Today, Lead Tomorrow',
-    template: '%s · Academia Global',
+    default: 'Shiksha Sarthi — Learn Today, Lead Tomorrow',
+    template: '%s · Shiksha Sarthi',
   },
   description:
     'India’s trusted virtual learning platform. Restart, continue and complete your education from Class 10 to PG with UGC-entitled online, distance and regular degrees.',
@@ -31,11 +31,11 @@ export const metadata: Metadata = {
   manifest: '/manifest.webmanifest',
   appleWebApp: {
     capable: true,
-    title: 'Academia Global',
+    title: 'Shiksha Sarthi',
     statusBarStyle: 'black-translucent',
   },
   openGraph: {
-    title: 'Academia Global — Learn Today, Lead Tomorrow',
+    title: 'Shiksha Sarthi — Learn Today, Lead Tomorrow',
     description: 'Restart, continue and complete your education journey.',
     type: 'website',
   },

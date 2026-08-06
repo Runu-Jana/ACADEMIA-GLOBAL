@@ -27,7 +27,7 @@ export async function sendAdminEmail(mail: AdminMail): Promise<EmailResult> {
   const key = process.env.RESEND_API_KEY
   const to = process.env.ADMIN_EMAIL
   // Resend's shared sender works without domain verification for quick starts.
-  const from = process.env.EMAIL_FROM || 'Academia Global <onboarding@resend.dev>'
+  const from = process.env.EMAIL_FROM || 'Shiksha Sarthi <onboarding@resend.dev>'
 
   if (!key || !to) {
     console.info(`[email] not configured — skipping admin notification: "${mail.subject}"`)

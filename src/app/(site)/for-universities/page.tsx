@@ -7,9 +7,9 @@ import { Reveal } from '@/components/fx/reveal'
 import { PartnerApplyForm } from './partner-apply-form'
 
 export const metadata: Metadata = {
-  title: 'Partner with Academia Global',
+  title: 'Partner with Shiksha Sarthi',
   description:
-    'List your university’s online and distance programmes on Academia Global. Reach lakhs of learners across India, submit programmes yourself, and pay only for admissions we send you.',
+    'List your university’s online and distance programmes on Shiksha Sarthi. Reach lakhs of learners across India, submit programmes yourself, and pay only for admissions we send you.',
 }
 
 const BENEFITS = [
@@ -59,7 +59,7 @@ export default async function ForUniversitiesPage() {
                 List your programmes where <span className="holo-text-bright">India is choosing</span> to study
               </h1>
               <p className="mt-4 max-w-xl text-pretty text-[15px] text-white/85">
-                Academia Global connects recognised universities with learners restarting, continuing
+                Shiksha Sarthi connects recognised universities with learners restarting, continuing
                 and completing their education. Onboard once, manage your own catalogue, and pay only
                 for the admissions we send you.
               </p>

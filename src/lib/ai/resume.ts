@@ -10,7 +10,7 @@ import { runAi } from './index'
  * mention. A fabricated resume gets a real student rejected in an interview or
  * fired after one, so honesty is the whole product here.
  *
- * The student's Academia Global certificates are passed in and are real and
+ * The student's Shiksha Sarthi certificates are passed in and are real and
  * verifiable, so those the model is told to include as-is.
  */
 
@@ -127,7 +127,7 @@ export interface ResumeInput {
   projects?: string
   skills?: string
   achievements?: string
-  /** Real, verifiable Academia Global certificates — the model includes these. */
+  /** Real, verifiable Shiksha Sarthi certificates — the model includes these. */
   platformCertificates: { name: string; issuer: string; grade: string; date: string }[]
   courses: string[]
 }
@@ -149,7 +149,7 @@ Rules:
   bullet points that start with strong action verbs. Quantify ONLY with numbers
   the candidate actually provided — never invent metrics.
 - skills: a clean, de-duplicated list. You may group or tidy, not invent.
-- certifications: include every Academia Global certificate listed in the input
+- certifications: include every Shiksha Sarthi certificate listed in the input
   exactly (these are real and independently verifiable), plus any the candidate
   mentioned themselves.
 - Use Indian conventions (₹, Indian institutions). Keep it truthful, concise and
@@ -179,10 +179,10 @@ Projects: ${input.projects?.trim() || '(none)'}
 Skills the candidate listed: ${input.skills?.trim() || '(none)'}
 Achievements: ${input.achievements?.trim() || '(none)'}
 
-Academia Global certificates earned (REAL and verifiable — include under certifications):
+Shiksha Sarthi certificates earned (REAL and verifiable — include under certifications):
 ${certs}
 
-Programmes taken on Academia Global: ${input.courses.join(', ') || '(none)'}
+Programmes taken on Shiksha Sarthi: ${input.courses.join(', ') || '(none)'}
 
 Produce the polished resume as JSON matching the schema.`
 

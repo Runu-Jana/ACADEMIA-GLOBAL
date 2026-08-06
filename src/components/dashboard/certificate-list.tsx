@@ -75,7 +75,7 @@ function CertificateCard({
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0">
               <p className="font-display text-[13px] font-extrabold uppercase tracking-[.24em] text-primary-700 dark:text-primary-300">
-                Academia Global
+                Shiksha Sarthi
               </p>
               <p className="mt-0.5 text-[10px] font-semibold uppercase tracking-[.18em] text-muted-foreground">
                 Virtual Learning · India

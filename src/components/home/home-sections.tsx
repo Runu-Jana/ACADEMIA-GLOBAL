@@ -124,7 +124,7 @@ export function StoriesAndApp({
             aria-hidden
             className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-holo-sweep opacity-15 blur-2xl"
           />
-          <h3 className="relative text-base font-extrabold">Why Choose Academia Global?</h3>
+          <h3 className="relative text-base font-extrabold">Why Choose Shiksha Sarthi?</h3>
           <ul className="relative mt-4 space-y-2.5">
             {whyPoints.map((p) => (
               <li key={p} className="flex items-start gap-2.5 text-[13px] font-medium">
