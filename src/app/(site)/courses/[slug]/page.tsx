@@ -12,6 +12,8 @@ import { isCourseLive, isCourseListed, isDirectoryCourse, listedCourses } from '
 import { LeadForm } from '@/components/lead/lead-form'
 import { BrochureGate } from '@/components/course/brochure-gate'
 import { CourseCard } from '@/components/course/course-card'
+import { JsonLd } from '@/components/seo/json-ld'
+import { courseLd, breadcrumbLd } from '@/lib/seo'
 import { UniversityMark } from '@/components/course/course-thumb'
 import { Badge } from '@/components/ui/badge'
 import { Stars } from '@/components/ui/stars'
@@ -764,6 +766,16 @@ export default async function CourseDetailPage({
 
   return (
     <>
+      <JsonLd
+        data={[
+          courseLd(course),
+          breadcrumbLd([
+            { name: 'Home', path: '/' },
+            { name: 'Courses', path: '/courses' },
+            { name: course.title, path: `/courses/${course.slug}` },
+          ]),
+        ]}
+      />
       {preview && (
         <div className="border-b border-amber-300 bg-amber-100 px-4 py-2.5 text-center text-[12.5px] font-semibold text-amber-900 dark:border-amber-500/40 dark:bg-amber-500/15 dark:text-amber-200">
           Preview — this programme is <span className="uppercase">{course.reviewStatus.toLowerCase()}</span> and not visible to students yet.

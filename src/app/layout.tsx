@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from 'next'
 import { Inter, Outfit } from 'next/font/google'
 import { PwaRegister } from '@/components/pwa-register'
 import { InstallPrompt } from '@/components/install-prompt'
+import { JsonLd } from '@/components/seo/json-ld'
+import { SITE_URL, organizationLd, websiteLd } from '@/lib/seo'
 import './globals.css'
 
 const inter = Inter({
@@ -17,7 +19,7 @@ const outfit = Outfit({
 })
 
 export const metadata: Metadata = {
-  metadataBase: new URL('http://localhost:3000'),
+  metadataBase: new URL(SITE_URL),
   title: {
     default: 'Shiksha Sarthi — Learn Today, Lead Tomorrow',
     template: '%s · Shiksha Sarthi',
@@ -68,6 +70,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" suppressHydrationWarning className={`${inter.variable} ${outfit.variable}`}>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+        <JsonLd data={[organizationLd(), websiteLd()]} />
       </head>
       <body className="min-h-dvh bg-background font-sans">
         <a
