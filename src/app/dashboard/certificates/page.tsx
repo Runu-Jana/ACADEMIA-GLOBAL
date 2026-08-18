@@ -3,6 +3,7 @@ import QRCode from 'qrcode'
 import { Award } from 'lucide-react'
 import { prisma } from '@/lib/prisma'
 import { requireUser } from '@/lib/auth'
+import { SITE_URL_FROM_ENV } from '@/lib/site-url'
 import { EmptyState, PanelHeading } from '@/components/dashboard/primitives'
 import { CertificateList, type CertificateItem } from '@/components/dashboard/certificate-list'
 
@@ -41,11 +42,11 @@ export default async function CertificatesPage() {
   })
 
   // Absolute base URL so a QR scanned from a printed certificate resolves.
-  // NEXT_PUBLIC_SITE_URL wins in production; otherwise derive from the request.
+  // A configured site URL wins; otherwise derive from the request.
   const h = await headers()
   const host = h.get('x-forwarded-host') ?? h.get('host') ?? 'localhost:3000'
   const proto = h.get('x-forwarded-proto') ?? (host.includes('localhost') ? 'http' : 'https')
-  const base = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/+$/, '') ?? `${proto}://${host}`
+  const base = SITE_URL_FROM_ENV ?? `${proto}://${host}`
 
   const items: CertificateItem[] = await Promise.all(
     certificates.map(async (c) => {

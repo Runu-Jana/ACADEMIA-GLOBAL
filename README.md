@@ -15,12 +15,27 @@ app — and the same API layer would back a native React Native client later.
 ```bash
 cd academia-global
 npm install
-npm run setup     # prisma generate + db push + seed
-npm run dev       # http://localhost:3000
+cp .env.example .env   # then fill in AUTH_SECRET at minimum
+docker compose up -d   # local Postgres on 127.0.0.1:5544
+npm run setup          # prisma generate + db push + seed
+npm run dev            # http://localhost:3000
 ```
 
-`npm run setup` creates `prisma/dev.db` (SQLite), seeds the catalogue, and writes real,
-downloadable PDF study material into `public/uploads/seed/`.
+The app runs on **Postgres**. `docker compose up -d` starts one locally; in production
+point `DATABASE_URL` at a managed instance (Neon, Supabase, RDS…). `npm run setup` then
+pushes the schema, seeds the catalogue, and writes real, downloadable PDF study material
+into `public/uploads/seed/`.
+
+Both `npm run dev` and `npm run build` use **Turbopack**. That is deliberate — webpack
+cannot build this repo from a path containing an apostrophe (Next's metadata-route loader
+interpolates the file path into a single-quoted string unescaped, which breaks on
+`robots.ts` and `sitemap.ts`).
+
+To run the test suite you also need the test database, created once with:
+
+```bash
+docker exec shiksha-sarthi-db psql -U shiksha -d shiksha_sarthi -c "CREATE DATABASE shiksha_sarthi_test;"
+```
 
 ### Sign in
 
@@ -30,7 +45,9 @@ downloadable PDF study material into `public/uploads/seed/`.
 | Student | `rahul@student.in` | `Student@123` |
 | Student | `priya@student.in` | `Student@123` |
 
-The login screen has one-click buttons to fill these in.
+The login screen has one-click buttons to fill these in — **in development only**. A
+production build drops that panel, and the credentials with it, so the seeded admin is
+never advertised to real visitors.
 
 ---
 
@@ -54,8 +71,8 @@ role-based access, dark mode, PWA with offline fallback, and a 3D/holographic de
 
 ## Stack
 
-Next.js 15 (App Router) · React 19 · TypeScript · Tailwind 3.4 · Prisma 6 + SQLite ·
-`jose` · `bcryptjs` · `zod` · `lucide-react`
+Next.js 15 (App Router) · React 19 · TypeScript · Tailwind 3.4 · Prisma 6 + Postgres ·
+`jose` · `bcryptjs` · `zod` · `lucide-react` · Vitest
 
 ```
 src/
@@ -119,7 +136,9 @@ These are deliberate scope edges in the current build, not oversights:
    doesn't survive most serverless deploys. Move the bytes to S3/R2/UploadThing and keep
    the same authorization check in front (issue short-lived signed URLs rather than
    public ones).
-5. **Move off SQLite** to Postgres for anything multi-user (`datasource` change + migrate).
+5. **Set the real contact details.** `src/lib/contact.ts` holds the support email, the
+   partnerships email and the helpline that appear across the site, the dashboard, the
+   legal pages and the printed brochure. The committed values are placeholders.
 6. **Wire real email** for the contact form and admission notifications.
 7. **The counsellor is a rule-based recommender** over your own course table, not an LLM.
    It's labelled as such in the UI. Swap in a model API if you want open-ended answers.

@@ -1,4 +1,6 @@
 import { lookup } from 'node:dns/promises'
+import { SITE_URL } from '@/lib/site-url'
+import { SUPPORT_EMAIL } from '@/lib/contact'
 
 /**
  * Fetches a public web page and reduces it to plain text for AI extraction.
@@ -23,7 +25,9 @@ import { lookup } from 'node:dns/promises'
 const MAX_BYTES = 3_000_000
 const TIMEOUT_MS = 15_000
 const MAX_REDIRECTS = 4
-const UA = 'ShikshaSarthiBot/1.0 (+https://academiaglobal.in; directory listing; support@academiaglobal.in)'
+// Site owners read this in their logs, so it has to point at a URL and a mailbox
+// that actually reach us — both come from the app's own configuration.
+const UA = `ShikshaSarthiBot/1.0 (+${SITE_URL}; directory listing; ${SUPPORT_EMAIL})`
 const BLOCKED = 'That address is not allowed.'
 
 function ipv4IsPrivate(ip: string): boolean {

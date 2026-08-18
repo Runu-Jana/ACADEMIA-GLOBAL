@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUser } from '@/lib/auth'
+import { SITE_URL } from '@/lib/site-url'
 
 /**
  * The host's way into a live class.
@@ -20,10 +21,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   const user = await getCurrentUser()
   if (!user || user.role !== 'ADMIN') {
     return NextResponse.redirect(
-      new URL(
-        `/login?next=${encodeURIComponent('/admin/live')}`,
-        process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000',
-      ),
+      new URL(`/login?next=${encodeURIComponent('/admin/live')}`, SITE_URL),
     )
   }
 

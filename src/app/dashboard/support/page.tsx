@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { Mail, Phone, Bot, ChevronDown, LifeBuoy, BookOpen, Award, CreditCard } from 'lucide-react'
 import { requireUser } from '@/lib/auth'
+import { SUPPORT_EMAIL, SUPPORT_PHONE, SUPPORT_PHONE_HREF } from '@/lib/contact'
 import { buttonVariants } from '@/components/ui/button'
 import { Reveal } from '@/components/fx/reveal'
 import { TiltCard } from '@/components/fx/tilt-card'
@@ -21,16 +22,16 @@ const CHANNELS = [
     icon: Mail,
     title: 'Email us',
     body: 'Detailed queries about admissions, exams or documents.',
-    action: 'support@academiaglobal.in',
-    href: 'mailto:support@academiaglobal.in',
+    action: SUPPORT_EMAIL,
+    href: `mailto:${SUPPORT_EMAIL}`,
     tone: 'bg-primary-50 text-primary-600 dark:bg-primary-500/15 dark:text-primary-300',
   },
   {
     icon: Phone,
     title: 'Call the helpdesk',
     body: 'Monday to Saturday, 9:00 AM – 7:00 PM IST.',
-    action: '+91 1800 000 000',
-    href: 'tel:+911800000000',
+    action: SUPPORT_PHONE,
+    href: SUPPORT_PHONE_HREF,
     tone: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-300',
   },
 ]

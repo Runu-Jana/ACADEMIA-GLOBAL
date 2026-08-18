@@ -9,6 +9,8 @@ import { getCurrentUser } from '@/lib/auth'
 import { isCourseLive } from '@/lib/visibility'
 import { asList, formatINR } from '@/lib/utils'
 import { COURSE_LEVELS, COURSE_MODES, STREAMS } from '@/lib/constants'
+import { SUPPORT_EMAIL, SUPPORT_PHONE } from '@/lib/contact'
+import { abs } from '@/lib/site-url'
 import { BrochureActions } from '@/components/course/brochure-actions'
 
 export const dynamic = 'force-dynamic'
@@ -57,6 +59,9 @@ export default async function BrochurePage({ params }: { params: Promise<{ slug:
   const skills = asList(course.skills)
   const recruiters = asList(course.recruiters)
   const approvals = asList(course.university.approvals)
+
+  // Printed on paper, so it has to be the full absolute URL a reader can type.
+  const applyUrl = abs(`/apply/${course.slug}`).replace(/^https?:\/\//, '')
 
   const years = course.durationYears
   const durationLabel = `${years} ${years === 1 ? 'Year' : 'Years'}`
@@ -230,12 +235,12 @@ export default async function BrochurePage({ params }: { params: Promise<{ slug:
               Ready to apply?
             </p>
             <p className="text-[12px] text-slate-600">
-              Apply online at academiaglobal.in/apply/{course.slug} · No-cost EMI available
+              Apply online at {applyUrl} · No-cost EMI available
             </p>
           </div>
           <div className="text-right text-[11.5px] text-slate-500">
             <p className="font-semibold text-slate-700">Shiksha Sarthi</p>
-            <p>support@academiaglobal.in · 1800-123-4567</p>
+            <p>{SUPPORT_EMAIL} · {SUPPORT_PHONE}</p>
           </div>
         </footer>
       </div>

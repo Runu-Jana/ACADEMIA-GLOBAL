@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import { ShieldCheck } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Aurora } from '@/components/fx/aurora'
+import { SUPPORT_EMAIL } from '@/lib/contact'
 
 /**
  * Placeholder legal copy. These are plain-language summaries written for the
@@ -18,7 +19,7 @@ const DOCS = {
       { h: 'Why we collect it', p: 'To create and secure your account, process admission applications with the university you choose, deliver course material and track your progress, and respond to support requests.' },
       { h: 'Who we share it with', p: 'Only the university you apply to, and service providers who host or operate the platform on our behalf. We do not sell your personal data.' },
       { h: 'How long we keep it', p: 'For as long as your account is active, and afterwards only where a legal or academic-record obligation requires it.' },
-      { h: 'Your choices', p: 'You can view and correct your details from your profile, ask us to delete your account, or withdraw consent to marketing contact at any time by writing to support@academiaglobal.in.' },
+      { h: 'Your choices', p: `You can view and correct your details from your profile, ask us to delete your account, or withdraw consent to marketing contact at any time by writing to ${SUPPORT_EMAIL}.` },
       { h: 'Children', p: 'Accounts are intended for learners aged 16 and above. Where a learner is younger, a parent or guardian must create and supervise the account.' },
     ],
   },
@@ -38,9 +39,9 @@ const DOCS = {
     title: 'Refund Policy',
     intro: 'Refunds for tuition are governed by the awarding university’s policy. This page explains how the process works in practice.',
     sections: [
-      { h: 'Counselling is free', p: 'Shiksha Sarthi does not charge learners for counselling, shortlisting or admission support. If anyone asks you to pay us a fee, report it to support@academiaglobal.in.' },
+      { h: 'Counselling is free', p: `Shiksha Sarthi does not charge learners for counselling, shortlisting or admission support. If anyone asks you to pay us a fee, report it to ${SUPPORT_EMAIL}.` },
       { h: 'University fees', p: 'Tuition is paid to and refunded by the university. Their published refund schedule — typically tied to how many days have passed since enrolment — applies in full.' },
-      { h: 'How to request a refund', p: 'Raise the request from your dashboard or email support@academiaglobal.in with your enrolment number. We will forward it to the university and track it on your behalf.' },
+      { h: 'How to request a refund', p: `Raise the request from your dashboard or email ${SUPPORT_EMAIL} with your enrolment number. We will forward it to the university and track it on your behalf.` },
       { h: 'Timelines', p: 'Universities generally process approved refunds within 21–45 working days to the original payment method.' },
       { h: 'Non-refundable items', p: 'Registration and examination fees are usually non-refundable once the session has started. Check your offer letter for specifics.' },
     ],

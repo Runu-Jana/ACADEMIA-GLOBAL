@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma'
 import { sendAdminEmail } from '@/lib/email'
+import { SITE_URL } from '@/lib/site-url'
 
 /**
  * The "connect me with a live counsellor" handoff, shared by the explicit button
@@ -27,9 +28,8 @@ export type AgentRequestResult =
   | { ok: true; leadId: string; email: string; phone: string | null; alreadyRequested: boolean }
   | { ok: false; reason: 'no_contact' | 'not_found' }
 
-function siteUrl() {
-  return (process.env.NEXT_PUBLIC_SITE_URL || '').replace(/\/$/, '')
-}
+// Base URL for links in admin notification emails; see lib/site-url.ts.
+const siteUrl = () => SITE_URL
 
 async function notifyAdmin(lead: {
   name: string

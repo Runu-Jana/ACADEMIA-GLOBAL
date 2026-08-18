@@ -5,6 +5,7 @@ import { getCurrentUser } from '@/lib/auth'
 import { liveCourses } from '@/lib/visibility'
 import { enforceRateLimit, MINUTE } from '@/lib/rate-limit'
 import { sendAdminEmail } from '@/lib/email'
+import { abs } from '@/lib/site-url'
 
 export const dynamic = 'force-dynamic'
 
@@ -111,7 +112,7 @@ export async function POST(req: Request) {
   const interest = interestedCourseTitle
     ? `${interestedCourseTitle}${interestedUniversityName ? ` at ${interestedUniversityName}` : ''}`
     : interestedUniversityName ?? 'a listed programme'
-  const adminUrl = `${process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'}/admin/leads`
+  const adminUrl = abs('/admin/leads')
   await sendAdminEmail({
     subject: `New enquiry: ${data.name} — ${interest}`,
     text: [

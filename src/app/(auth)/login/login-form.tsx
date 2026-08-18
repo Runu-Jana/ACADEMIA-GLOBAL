@@ -7,6 +7,17 @@ import { AlertCircle, Eye, EyeOff, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Field, Input } from '@/components/ui/field'
 
+/**
+ * Seeded logins, offered as one-click fill so local work doesn't mean retyping
+ * three passwords a day.
+ *
+ * Development only. `process.env.NODE_ENV` is inlined at build time, so a
+ * production build folds this to `false` and drops both the panel below and
+ * these credentials from the client bundle entirely — they must never be
+ * served to real visitors, who would otherwise be handed the admin account.
+ */
+const SHOW_DEMO_ACCOUNTS = process.env.NODE_ENV !== 'production'
+
 const demoAccounts = [
   { label: 'Student', email: 'rahul@student.in', password: 'Student@123' },
   { label: 'Admin', email: 'admin@academiaglobal.in', password: 'Admin@123' },
@@ -120,30 +131,32 @@ export function LoginForm() {
         </Link>
       </p>
 
-      {/* Seeded demo logins — remove before going to production. */}
-      <div className="mt-7 rounded-2xl border border-dashed border-border bg-muted/40 p-4">
-        <p className="mb-2.5 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-          <Sparkles className="h-3.5 w-3.5" />
-          Demo accounts
-        </p>
-        <div className="grid gap-2 sm:grid-cols-2">
-          {demoAccounts.map((a) => (
-            <button
-              key={a.email}
-              type="button"
-              onClick={() => {
-                setEmail(a.email)
-                setPassword(a.password)
-                setError('')
-              }}
-              className="rounded-xl border border-border bg-surface px-3 py-2 text-left transition-all duration-200 hover:-translate-y-0.5 hover:border-primary-300 hover:shadow-soft"
-            >
-              <span className="block text-[13px] font-bold">{a.label}</span>
-              <span className="block truncate text-[11px] text-muted-foreground">{a.email}</span>
-            </button>
-          ))}
+      {/* Seeded demo logins — development only, see SHOW_DEMO_ACCOUNTS. */}
+      {SHOW_DEMO_ACCOUNTS && (
+        <div className="mt-7 rounded-2xl border border-dashed border-border bg-muted/40 p-4">
+          <p className="mb-2.5 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+            <Sparkles className="h-3.5 w-3.5" />
+            Demo accounts
+          </p>
+          <div className="grid gap-2 sm:grid-cols-2">
+            {demoAccounts.map((a) => (
+              <button
+                key={a.email}
+                type="button"
+                onClick={() => {
+                  setEmail(a.email)
+                  setPassword(a.password)
+                  setError('')
+                }}
+                className="rounded-xl border border-border bg-surface px-3 py-2 text-left transition-all duration-200 hover:-translate-y-0.5 hover:border-primary-300 hover:shadow-soft"
+              >
+                <span className="block text-[13px] font-bold">{a.label}</span>
+                <span className="block truncate text-[11px] text-muted-foreground">{a.email}</span>
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   )
 }

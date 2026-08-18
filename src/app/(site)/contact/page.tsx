@@ -3,6 +3,15 @@ import { Phone, Mail, MapPin, Clock, MessageSquare, Building2 } from 'lucide-rea
 import { Badge } from '@/components/ui/badge'
 import { Aurora } from '@/components/fx/aurora'
 import { Reveal } from '@/components/fx/reveal'
+import {
+  SUPPORT_EMAIL,
+  PARTNERSHIPS_EMAIL,
+  SUPPORT_PHONE,
+  SUPPORT_PHONE_HREF,
+  SUPPORT_HOURS,
+  HEAD_OFFICE_CITY,
+  HEAD_OFFICE_POSTCODE,
+} from '@/lib/contact'
 import { ContactForm } from './contact-form'
 
 export const metadata: Metadata = {
@@ -11,10 +20,10 @@ export const metadata: Metadata = {
 }
 
 const channels = [
-  { icon: Phone, title: 'Call us', lines: ['1800-123-4567', 'Mon – Sat, 9AM – 8PM'], href: 'tel:18001234567' },
-  { icon: Mail, title: 'Email us', lines: ['support@academiaglobal.in', 'We reply within one working day'], href: 'mailto:support@academiaglobal.in' },
-  { icon: MapPin, title: 'Head office', lines: ['Karnal, Haryana', 'India — 132001'] },
-  { icon: Building2, title: 'Partnerships', lines: ['partners@academiaglobal.in', 'For universities and institutions'], href: 'mailto:partners@academiaglobal.in' },
+  { icon: Phone, title: 'Call us', lines: [SUPPORT_PHONE, SUPPORT_HOURS], href: SUPPORT_PHONE_HREF },
+  { icon: Mail, title: 'Email us', lines: [SUPPORT_EMAIL, 'We reply within one working day'], href: `mailto:${SUPPORT_EMAIL}` },
+  { icon: MapPin, title: 'Head office', lines: [HEAD_OFFICE_CITY, HEAD_OFFICE_POSTCODE] },
+  { icon: Building2, title: 'Partnerships', lines: [PARTNERSHIPS_EMAIL, 'For universities and institutions'], href: `mailto:${PARTNERSHIPS_EMAIL}` },
 ]
 
 export default function ContactPage() {

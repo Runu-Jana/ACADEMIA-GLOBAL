@@ -1,15 +1,14 @@
 /**
- * SEO helpers: the canonical site URL plus JSON-LD (schema.org) builders used
- * for rich results. Everything keys off SITE_URL so switching domains is one
- * env var (NEXT_PUBLIC_APP_URL).
+ * SEO helpers: JSON-LD (schema.org) builders used for rich results. Everything
+ * keys off SITE_URL so switching domains is one env var — see lib/site-url.ts,
+ * which owns that value for the whole app.
  */
 
-export const SITE_URL = (process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000').replace(/\/+$/, '')
+import { SITE_URL, abs } from '@/lib/site-url'
+
+export { SITE_URL, abs }
 
 export const SITE_NAME = 'Shiksha Sarthi'
-
-/** Absolute URL for a site-relative path. */
-export const abs = (path = '/') => `${SITE_URL}${path.startsWith('/') ? path : `/${path}`}`
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Ld = Record<string, any>

@@ -5,9 +5,10 @@
  */
 
 import type { AdminMail } from '@/lib/email'
+import { SITE_URL } from '@/lib/site-url'
 
 const BRAND = 'Shiksha Sarthi'
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
+const APP_URL = SITE_URL
 
 const inr = (rupees: number) =>
   `₹${new Intl.NumberFormat('en-IN', { maximumFractionDigits: 0 }).format(Math.round(rupees))}`

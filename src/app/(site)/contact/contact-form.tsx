@@ -4,6 +4,7 @@ import * as React from 'react'
 import { CheckCircle2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Field, Input, Select, Textarea } from '@/components/ui/field'
+import { SUPPORT_PHONE } from '@/lib/contact'
 
 const topics = ['Admission enquiry', 'Fees & scholarships', 'Technical support', 'University partnership', 'Something else']
 
@@ -29,8 +30,8 @@ export function ContactForm() {
         </span>
         <p className="text-[15px] font-extrabold">Thanks — we&apos;ve got your message</p>
         <p className="max-w-sm text-[13px] text-muted-foreground">
-          A counsellor will reach out within one working day. For anything urgent, call
-          1800-123-4567.
+          A counsellor will reach out within one working day. For anything urgent, call{' '}
+          {SUPPORT_PHONE}.
         </p>
         <Button variant="outline" size="sm" onClick={() => setSent(false)} className="mt-2">
           Send another message

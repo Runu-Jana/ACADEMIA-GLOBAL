@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { Facebook, Instagram, Linkedin, Twitter, Youtube, Phone, Mail, MapPin } from 'lucide-react'
+import { SUPPORT_EMAIL, SUPPORT_PHONE, SUPPORT_PHONE_HREF, SUPPORT_HOURS, HEAD_OFFICE_CITY } from '@/lib/contact'
 import { Logo } from './logo'
 
 const columns = [
@@ -112,22 +113,22 @@ export function SiteFooter() {
               <li className="flex gap-2.5">
                 <Phone className="mt-0.5 h-4 w-4 shrink-0 text-holo-cyan" />
                 <span>
-                  <a href="tel:18001234567" className="font-semibold hover:underline">
-                    1800-123-4567
+                  <a href={SUPPORT_PHONE_HREF} className="font-semibold hover:underline">
+                    {SUPPORT_PHONE}
                   </a>
                   <br />
-                  <span className="text-white/55">(Mon – Sat 9AM – 8PM)</span>
+                  <span className="text-white/55">({SUPPORT_HOURS})</span>
                 </span>
               </li>
               <li className="flex gap-2.5">
                 <Mail className="mt-0.5 h-4 w-4 shrink-0 text-holo-cyan" />
-                <a href="mailto:support@academiaglobal.in" className="break-all hover:underline">
-                  support@academiaglobal.in
+                <a href={`mailto:${SUPPORT_EMAIL}`} className="break-all hover:underline">
+                  {SUPPORT_EMAIL}
                 </a>
               </li>
               <li className="flex gap-2.5">
                 <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-holo-cyan" />
-                <span className="text-white/70">Head Office: Karnal, Haryana, India</span>
+                <span className="text-white/70">Head Office: {HEAD_OFFICE_CITY}, India</span>
               </li>
             </ul>
           </div>
