@@ -7,6 +7,7 @@ import { requireAdmin } from '@/lib/auth'
 import { PageHeader } from '@/components/admin/admin-ui'
 import { TestSettings } from '@/components/admin/test-settings'
 import { QuestionEditor, type QuestionData } from '@/components/admin/question-editor'
+import { AssessmentGenerator } from '@/components/admin/assessment-generator'
 
 export const metadata: Metadata = { title: 'Edit Test' }
 export const dynamic = 'force-dynamic'
@@ -66,6 +67,7 @@ export default async function AdminTestDetailPage({ params }: { params: Promise<
           <h2 className="mb-2 text-[13px] font-bold uppercase tracking-wider text-muted-foreground">
             Questions ({questions.length})
           </h2>
+          <AssessmentGenerator testId={test.id} />
           <QuestionEditor testId={test.id} questions={questions} />
         </div>
       </div>

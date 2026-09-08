@@ -18,6 +18,7 @@ export type AiFeature =
   | 'notes'
   | 'roadmap'
   | 'purpose'
+  | 'assessment'
 
 export type AiEffort = 'low' | 'medium' | 'high'
 
@@ -138,6 +139,9 @@ const BALANCED: Record<AiFeature, Route> = {
   resume: { model: 'claude-sonnet-5', effort: 'medium', maxTokens: 900 },
   sop: { model: 'claude-sonnet-5', effort: 'high', maxTokens: 1000 },
   interview: { model: 'claude-sonnet-5', effort: 'high', maxTokens: 900 },
+  // A wrong answer key ships a broken exam, so this stays on the mid tier rather
+  // than the cheapest. maxTokens is set per-call from the requested count.
+  assessment: { model: 'claude-sonnet-5', effort: 'medium', maxTokens: 2200 },
 }
 
 /**
@@ -158,6 +162,7 @@ const ECONOMY: Record<AiFeature, Route> = {
   resume: { model: 'gpt-5.6-luna', effort: 'medium', maxTokens: 800 },
   sop: { model: 'gpt-5.6-terra', effort: 'high', maxTokens: 900 },
   interview: { model: 'gpt-5.6-terra', effort: 'high', maxTokens: 800 },
+  assessment: { model: 'gpt-5.6-luna', effort: 'medium', maxTokens: 2000 },
 }
 
 /** `balanced` (default) or `economy`. Switchable without a deploy. */

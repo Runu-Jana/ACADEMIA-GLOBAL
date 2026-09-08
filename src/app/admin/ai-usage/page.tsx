@@ -16,7 +16,7 @@ function rupees(paise: number) {
 const FEATURE_LABELS: Record<string, string> = {
   tutor: 'Course Tutor', chatbot: 'Chatbot', resume: 'Resume', sop: 'SOP',
   career: 'Career Paths', interview: 'Interview Prep', roadmap: 'Skill Roadmap',
-  notes: 'Ingest / Notes', embed: 'Embeddings',
+  notes: 'Ingest / Notes', embed: 'Embeddings', assessment: 'Assessment Generator',
 }
 
 export default async function AdminAiUsagePage() {
