@@ -45,9 +45,51 @@ model User {
   reviews          Review[]
   uploadedMaterial Material[]       @relation("UploadedBy")
   counsellorChats  ChatMessage[]
+  notifications    Notification[]
+  savedCourses     SavedCourse[]
 
   @@index([role])
   @@index([universityId])
+}
+
+/// A course a student has saved to come back to — the wishlist. Deliberately
+/// separate from Enrollment: saving is intent, enrolling is commitment, and a
+/// student saves many more than they buy.
+model SavedCourse {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  userId   String
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseId String
+  course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, courseId])
+  @@index([userId, createdAt])
+}
+
+/// A learner-facing notification — the nudge that pulls a student back:
+/// "your certificate is ready", "you scored 8/10", "a new live class is set".
+/// Written by lib/notifications.ts at real events; read by the dashboard bell.
+model Notification {
+  id String @id @default(cuid())
+
+  /// ENROLMENT | CERTIFICATE | TEST | MATERIAL | LIVE | GENERAL — drives the icon.
+  type  String
+  title String
+  body  String?
+  /// In-app deep link the card opens when clicked, e.g. /dashboard/certificates.
+  url   String?
+
+  /// Null while unread; set the moment the student reads or dismisses it.
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([userId, readAt])
 }
 
 // ------------------------------------------------------------ institutions
@@ -80,12 +122,12 @@ model University {
 
   // ---- partnership (the revenue relationship) ----
   /// PROSPECT -> IN_TALKS -> ACTIVE. Only ACTIVE partners' courses go live.
-  partnerStatus String @default("PROSPECT")
+  partnerStatus String  @default("PROSPECT")
   /// What this university pays us per paid enrolment, as a percentage of fee.
   /// Negotiated per partner, so it lives here rather than in config.
-  commissionPct Float  @default(0)
+  commissionPct Float   @default(0)
   /// Days after enrolment before commission is claimable (refund window).
-  cooloffDays   Int    @default(15)
+  cooloffDays   Int     @default(15)
   agreementUrl  String?
   contactName   String?
   contactEmail  String?
@@ -201,14 +243,14 @@ model Course {
   title    String
   subtitle String
 
-  level     String // UG | PG | DIPLOMA | CERTIFICATE | INTEGRATED
-  mode      String // ONLINE | DISTANCE | HYBRID | REGULAR | PART_TIME
-  stream    String // MANAGEMENT | ENGINEERING | MEDICAL | LAW | ARTS | SCIENCE | COMMERCE | IT
+  level  String // UG | PG | DIPLOMA | CERTIFICATE | INTEGRATED
+  mode   String // ONLINE | DISTANCE | HYBRID | REGULAR | PART_TIME
+  stream String // MANAGEMENT | ENGINEERING | MEDICAL | LAW | ARTS | SCIENCE | COMMERCE | IT
 
   durationYears Float
   feePerYear    Int
   originalFee   Int?
-  discountPct   Int    @default(0)
+  discountPct   Int   @default(0)
 
   about       String
   eligibility String
@@ -237,9 +279,9 @@ model Course {
   /// students only when PUBLISHED *and* its university is an ACTIVE partner
   /// (or it is a PLATFORM course). See src/lib/visibility.ts.
   reviewStatus  String    @default("PUBLISHED")
-  reviewNote    String?   // operator feedback shown to the partner on rejection
+  reviewNote    String? // operator feedback shown to the partner on rejection
   submittedAt   DateTime?
-  submittedById String?   // soft ref to the partner user who submitted it
+  submittedById String? // soft ref to the partner user who submitted it
 
   rating  Float @default(4.4)
   reviews Int   @default(0)
@@ -263,6 +305,7 @@ model Course {
   subjects    Subject[]
   batches     Batch[]
   liveClasses LiveClass[]
+  savedBy     SavedCourse[]
 
   gradingSchemeId String?
   gradingScheme   GradingScheme? @relation(fields: [gradingSchemeId], references: [id], onDelete: SetNull)
@@ -308,6 +351,9 @@ model Lesson {
   durationMin Int     @default(15)
   contentUrl  String?
   body        String? // inline reading content
+  /// Plain-text transcript / captions for a video lesson. Powers the transcript
+  /// panel in the player (accessibility + read-along) and, later, AI summaries.
+  transcript  String?
 
   moduleId String
   module   Module @relation(fields: [moduleId], references: [id], onDelete: Cascade)
@@ -527,9 +573,9 @@ model Order {
   gatewayPaymentId String?
   method           String?
 
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @default(now()) @updatedAt
-  paidAt    DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @default(now()) @updatedAt
+  paidAt     DateTime?
   refundedAt DateTime?
 
   userId   String
@@ -629,9 +675,9 @@ model ContentChunk {
 /// Per-call AI metering. Written on every model call so spend is attributable
 /// per feature and per student, and can be capped before it surprises anyone.
 model AiUsageLog {
-  id      String @id @default(cuid())
-  feature String // tutor | chatbot | resume | sop | career | interview | notes | roadmap
-  model   String
+  id       String @id @default(cuid())
+  feature  String // tutor | chatbot | resume | sop | career | interview | notes | roadmap | assessment
+  model    String
   provider String @default("anthropic")
 
   inputTokens      Int @default(0)
@@ -666,10 +712,10 @@ model AiUsageLog {
 
 /// A semester / year within a programme.
 model Term {
-  id     String @id @default(cuid())
-  number Int // 1..n, ordered
-  title  String // "Semester 1"
-  creditsRequired Int @default(0)
+  id              String @id @default(cuid())
+  number          Int // 1..n, ordered
+  title           String // "Semester 1"
+  creditsRequired Int    @default(0)
 
   courseId String
   course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
@@ -713,13 +759,13 @@ model Subject {
 /// An intake cohort — "BBA DM, Aug 2026 intake".
 /// Students are admitted into a batch, which is what drives the calendar.
 model Batch {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   name        String // "2026-29"
   intakeMonth String // "AUGUST"
   startDate   DateTime
   endDate     DateTime?
-  seats       Int      @default(0)
-  status      String   @default("OPEN") // OPEN | CLOSED | RUNNING | COMPLETED
+  seats       Int       @default(0)
+  status      String    @default("OPEN") // OPEN | CLOSED | RUNNING | COMPLETED
 
   courseId String
   course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
@@ -732,12 +778,12 @@ model Batch {
 
 /// Term starts, exam windows, result dates — per batch.
 model AcademicEvent {
-  id      String   @id @default(cuid())
-  type    String // TERM_START | TERM_END | EXAM | RESULT | HOLIDAY | FEE_DUE
-  title   String
+  id       String    @id @default(cuid())
+  type     String // TERM_START | TERM_END | EXAM | RESULT | HOLIDAY | FEE_DUE
+  title    String
   startsAt DateTime
   endsAt   DateTime?
-  notes   String?
+  notes    String?
 
   batchId String
   batch   Batch  @relation(fields: [batchId], references: [id], onDelete: Cascade)
@@ -747,24 +793,24 @@ model AcademicEvent {
 
 /// Marks -> grade -> grade points. Varies by university, so it's data.
 model GradingScheme {
-  id   String @id @default(cuid())
-  name String
+  id        String @id @default(cuid())
+  name      String
   /// [{ "min": 90, "grade": "A+", "points": 10 }, ...] evaluated high to low.
-  bands Json
-  maxPoints Float @default(10)
+  bands     Json
+  maxPoints Float  @default(10)
 
   courses Course[]
 }
 
 /// A student's result for one subject. Feeds SGPA/CGPA.
 model SubjectResult {
-  id            String @id @default(cuid())
-  internalScore Int    @default(0)
-  externalScore Int    @default(0)
-  totalScore    Int    @default(0)
+  id            String  @id @default(cuid())
+  internalScore Int     @default(0)
+  externalScore Int     @default(0)
+  totalScore    Int     @default(0)
   grade         String?
   gradePoints   Float?
-  status        String @default("PENDING") // PENDING | PASS | FAIL | WITHHELD
+  status        String  @default("PENDING") // PENDING | PASS | FAIL | WITHHELD
 
   publishedAt DateTime?
   createdAt   DateTime  @default(now())
@@ -791,8 +837,8 @@ model LiveClass {
   title       String
   description String?
 
-  provider String @default("JITSI") // JITSI | ZOOM | MEET
-  roomName String @unique
+  provider    String  @default("JITSI") // JITSI | ZOOM | MEET
+  roomName    String  @unique
   /// Only set for externally-hosted classes (a tutor's own Zoom link).
   externalUrl String?
 
@@ -820,12 +866,12 @@ model LiveClass {
 
 /// One row per student per class — the attendance register.
 model LiveAttendance {
-  id          String    @id @default(cuid())
-  joinedAt    DateTime  @default(now())
-  lastSeenAt  DateTime  @default(now())
+  id         String   @id @default(cuid())
+  joinedAt   DateTime @default(now())
+  lastSeenAt DateTime @default(now())
   /// Minutes present, updated by heartbeats. Drives the attendance percentage
   /// universities actually care about — "clicked join" is not attendance.
-  minutes     Int       @default(0)
+  minutes    Int      @default(0)
 
   userId      String
   liveClassId String
@@ -833,4 +879,163 @@ model LiveAttendance {
 
   @@unique([userId, liveClassId])
   @@index([liveClassId])
+}
+
+// ------------------------------------------------------------------- shop
+
+/// A sellable item in the student shop — a competitive-exam book or a piece of
+/// stationery.
+///
+/// One table covers both because 90% of the fields are shared (price, stock,
+/// images, SEO copy) and only the bibliographic block differs. `kind` says which
+/// shape a row is, and the book-only columns are nullable and simply left unset
+/// for stationery. Splitting these into two tables would double every query,
+/// every admin screen and the cart join for very little gain.
+///
+/// Money is stored in PAISE everywhere in this section, matching Order.amount,
+/// so cart arithmetic never round-trips through floating point rupees.
+model Product {
+  id       String @id @default(cuid())
+  slug     String @unique
+  title    String
+  /// One-line shelf description shown under the title and in meta tags.
+  subtitle String
+
+  /// BOOK | STATIONERY
+  kind String
+
+  /// Broad shelf, e.g. ENGINEERING_ENTRANCE, MEDICAL_ENTRANCE, NOTEBOOKS,
+  /// WRITING, GEOMETRY. See SHOP_CATEGORIES in src/lib/shop.ts.
+  category String
+
+  /// Long-form description, rendered as paragraphs on the product page.
+  description String
+  /// string[] — the bulleted selling points beside the price.
+  highlights  Json
+
+  /// Selling price in paise.
+  price Int
+  /// Printed MRP in paise, when it differs — drives the strike-through and the
+  /// discount badge. Never below `price`; the admin form enforces that.
+  mrp   Int?
+
+  /// Units on hand. 0 renders as "Out of stock" and blocks add-to-cart.
+  stock Int     @default(0)
+  sku   String? @unique
+
+  imageUrl String?
+  /// string[] — additional gallery images.
+  images   Json
+
+  /// DRAFT | PUBLISHED | ARCHIVED. Only PUBLISHED reaches the storefront;
+  /// see shopVisibility in src/lib/visibility.ts.
+  status   String  @default("DRAFT")
+  featured Boolean @default(false)
+
+  // ---- book-only; null for stationery ----
+  author        String?
+  publisher     String?
+  isbn          String?
+  edition       String?
+  language      String?
+  pages         Int?
+  binding       String? // Paperback | Hardcover | Spiral
+  publishedYear Int?
+  /// string[] — exams this title targets, e.g. ["JEE Main", "NEET"]. Powers the
+  /// exam filter and the "recommended for" strip.
+  examTags      Json
+
+  // ---- stationery-only; null for books ----
+  brand String?
+  /// string[] of "Label: value" rows for the spec table (size, ruling, GSM…).
+  specs Json
+
+  rating  Float @default(0)
+  reviews Int   @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  orderItems ShopOrderItem[]
+
+  @@index([status, kind])
+  @@index([status, category])
+  @@index([featured])
+  @@index([kind])
+}
+
+/// A shop purchase. Deliberately separate from `Order`, which is welded to a
+/// single courseId and carries the university commission relation — a basket of
+/// physical goods shares none of that lifecycle.
+model ShopOrder {
+  /// Human-quotable reference shown to the student and used in support email.
+  orderNumber String @unique
+  id          String @id @default(cuid())
+
+  /// PENDING -> PAID -> PACKED -> SHIPPED -> DELIVERED
+  /// CANCELLED (before dispatch) | REFUNDED (after payment).
+  status String @default("PENDING")
+
+  /// All paise. `total` = subtotal + shipping, stored rather than recomputed so
+  /// a later change to the shipping rule can't rewrite historical orders.
+  subtotal Int
+  shipping Int
+  total    Int
+
+  gatewayOrderId   String? @unique
+  gatewayPaymentId String?
+
+  /// Null for a guest checkout; set when the buyer was signed in.
+  userId String?
+
+  // ---- delivery address, snapshotted at checkout ----
+  name    String
+  email   String
+  phone   String
+  line1   String
+  line2   String?
+  city    String
+  state   String
+  pincode String
+
+  courier        String?
+  trackingNumber String?
+  /// Operator-only note — never shown to the buyer.
+  adminNote      String?
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  paidAt      DateTime?
+  shippedAt   DateTime?
+  deliveredAt DateTime?
+  refundedAt  DateTime?
+  cancelledAt DateTime?
+
+  items ShopOrderItem[]
+
+  @@index([status, createdAt])
+  @@index([userId])
+  @@index([email])
+}
+
+/// One line of a shop order.
+///
+/// Title and price are SNAPSHOTS. A product renamed or repriced next month must
+/// not retroactively change what an invoice says was bought, and the product may
+/// be archived entirely — hence onDelete: SetNull rather than Cascade.
+model ShopOrderItem {
+  id    String @id @default(cuid())
+  title String
+  /// Unit price in paise at the moment of purchase.
+  price Int
+  qty   Int
+
+  orderId String
+  order   ShopOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  productId String?
+  product   Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+
+  @@index([orderId])
+  @@index([productId])
 }

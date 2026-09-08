@@ -140,3 +140,134 @@ export function enrolmentEmail(opts: {
     ),
   }
 }
+
+/** Order confirmation sent to the buyer once payment clears. */
+export function shopOrderEmail(order: {
+  orderNumber: string
+  name: string
+  subtotal: number
+  shipping: number
+  total: number
+  line1: string
+  line2: string | null
+  city: string
+  state: string
+  pincode: string
+  items: { title: string; price: number; qty: number }[]
+}): AdminMail {
+  const hi = firstName(order.name)
+  // Money is stored in paise in the shop; emails talk rupees.
+  const rs = (paise: number) => inr(Math.round(paise / 100))
+  const track = `${APP_URL}/shop/order/${encodeURIComponent(order.orderNumber)}`
+
+  const address = [order.line1, order.line2, `${order.city}, ${order.state} ${order.pincode}`]
+    .filter(Boolean)
+    .join('\n  ')
+
+  const rows = order.items
+    .map(
+      (i) =>
+        `<tr><td style="padding:8px 0;color:#334155;">${i.title} <span style="color:#94a3b8;">× ${i.qty}</span></td>
+             <td style="padding:8px 0;text-align:right;font-weight:700;color:#0f172a;">${rs(i.price * i.qty)}</td></tr>`,
+    )
+    .join('')
+
+  return {
+    subject: `Order confirmed — ${order.orderNumber}`,
+    text: [
+      `Hi ${hi},`,
+      ``,
+      `Thanks for your order. We've received your payment and are getting it ready to ship.`,
+      ``,
+      `Order ${order.orderNumber}`,
+      ...order.items.map((i) => `  ${i.title} × ${i.qty} — ${rs(i.price * i.qty)}`),
+      ``,
+      `  Subtotal: ${rs(order.subtotal)}`,
+      `  Delivery: ${order.shipping === 0 ? 'Free' : rs(order.shipping)}`,
+      `  Total paid: ${rs(order.total)}`,
+      ``,
+      `Delivering to:`,
+      `  ${address}`,
+      ``,
+      `Track your order: ${track}`,
+      ``,
+      `— The ${BRAND} team`,
+    ].join('\n'),
+    html: shell(
+      `Order ${order.orderNumber} confirmed.`,
+      `<div style="text-align:center;margin:0 0 14px;">
+         <span style="display:inline-block;width:44px;height:44px;line-height:44px;border-radius:50%;background:#dcfce7;color:#16a34a;font-size:22px;">✓</span>
+       </div>
+       <h1 style="margin:0 0 6px;font-size:20px;font-weight:800;text-align:center;">Order confirmed</h1>
+       <p style="margin:0 0 18px;font-size:14px;line-height:1.6;color:#334155;text-align:center;">
+         Thanks ${hi} — we're getting order
+         <strong style="font-family:monospace;">${order.orderNumber}</strong> ready to ship.
+       </p>
+       <table style="width:100%;border-collapse:collapse;margin:0 0 8px;font-size:13px;">
+         ${rows}
+       </table>
+       <table style="width:100%;border-collapse:collapse;margin:0 0 20px;font-size:13px;border-top:1px solid #eef2f7;">
+         <tr><td style="padding:8px 0;color:#64748b;">Subtotal</td>
+             <td style="padding:8px 0;text-align:right;color:#334155;">${rs(order.subtotal)}</td></tr>
+         <tr><td style="padding:4px 0;color:#64748b;">Delivery</td>
+             <td style="padding:4px 0;text-align:right;color:#334155;">${order.shipping === 0 ? 'Free' : rs(order.shipping)}</td></tr>
+         <tr><td style="padding:8px 0;color:#0f172a;font-weight:800;border-top:1px solid #eef2f7;">Total paid</td>
+             <td style="padding:8px 0;text-align:right;font-weight:800;color:#0f172a;border-top:1px solid #eef2f7;">${rs(order.total)}</td></tr>
+       </table>
+       <p style="margin:0 0 6px;font-size:12px;font-weight:700;color:#64748b;">DELIVERING TO</p>
+       <p style="margin:0 0 20px;font-size:13px;line-height:1.6;color:#334155;">
+         ${[order.line1, order.line2, `${order.city}, ${order.state} ${order.pincode}`].filter(Boolean).join('<br>')}
+       </p>
+       <p style="margin:0 0 20px;text-align:center;">${button(track, 'Track my order')}</p>`,
+    ),
+  }
+}
+
+/** Operator ping so someone actually packs the parcel. */
+export function shopOrderAdminEmail(order: {
+  orderNumber: string
+  name: string
+  phone: string
+  city: string
+  state: string
+  total: number
+  items: { title: string; qty: number }[]
+}): AdminMail {
+  const rs = (paise: number) => inr(Math.round(paise / 100))
+  const link = `${APP_URL}/admin/shop/orders`
+
+  return {
+    subject: `New shop order ${order.orderNumber} — ${rs(order.total)}`,
+    text: [
+      `A shop order has been paid and needs packing.`,
+      ``,
+      `Order:  ${order.orderNumber}`,
+      `Buyer:  ${order.name} (${order.phone})`,
+      `Ship to: ${order.city}, ${order.state}`,
+      `Total:  ${rs(order.total)}`,
+      ``,
+      ...order.items.map((i) => `  ${i.title} × ${i.qty}`),
+      ``,
+      `Fulfil it: ${link}`,
+    ].join('\n'),
+    html: shell(
+      `New shop order ${order.orderNumber}.`,
+      `<h1 style="margin:0 0 12px;font-size:18px;font-weight:800;">New shop order</h1>
+       <table style="width:100%;border-collapse:collapse;margin:0 0 16px;font-size:13px;">
+         <tr><td style="padding:6px 0;color:#64748b;">Order</td>
+             <td style="padding:6px 0;text-align:right;font-family:monospace;font-weight:700;">${order.orderNumber}</td></tr>
+         <tr><td style="padding:6px 0;color:#64748b;">Buyer</td>
+             <td style="padding:6px 0;text-align:right;">${order.name} · ${order.phone}</td></tr>
+         <tr><td style="padding:6px 0;color:#64748b;">Ship to</td>
+             <td style="padding:6px 0;text-align:right;">${order.city}, ${order.state}</td></tr>
+         <tr><td style="padding:6px 0;color:#64748b;">Total</td>
+             <td style="padding:6px 0;text-align:right;font-weight:800;">${rs(order.total)}</td></tr>
+       </table>
+       <p style="margin:0 0 8px;font-size:12px;font-weight:700;color:#64748b;">ITEMS</p>
+       <p style="margin:0 0 20px;font-size:13px;line-height:1.7;color:#334155;">
+         ${order.items.map((i) => `${i.title} × ${i.qty}`).join('<br>')}
+       </p>
+       <p style="margin:0;text-align:center;">${button(link, 'Fulfil this order')}</p>`,
+    ),
+  }
+}

@@ -12,6 +12,7 @@ const columns = [
       { label: 'Universities', href: '/universities' },
       { label: 'Scholarships', href: '/scholarships' },
       { label: 'Exams', href: '/exams' },
+      { label: 'Student Shop', href: '/shop' },
       { label: 'Blogs', href: '/blog' },
       { label: 'Contact Us', href: '/contact' },
     ],
@@ -19,7 +20,7 @@ const columns = [
   {
     title: 'For Students',
     links: [
-      { label: 'Ask Saarthi', href: '/counsellor' },
+      { label: 'Ask Sarthi', href: '/counsellor' },
       { label: 'Admission Process', href: '/courses' },
       { label: 'EMI Options', href: '/scholarships' },
       { label: 'Study Material', href: '/dashboard/materials' },
@@ -59,7 +60,10 @@ const socials = [
 
 export function SiteFooter() {
   return (
-    <footer className="relative mt-20 overflow-hidden bg-primary-900 text-white">
+    // pb-20 clears the fixed mobile tab bar. <main> already reserves that space,
+    // but the footer is its sibling, so without this the bar sat on top of the
+    // last row — the legal links were visible but not tappable.
+    <footer className="relative mt-20 overflow-hidden bg-primary-900 pb-20 text-white lg:pb-0">
       {/* Ambient colour wash + grain so the flat navy doesn't band. */}
       <div aria-hidden className="pointer-events-none absolute inset-0">
         <div className="absolute -left-20 top-0 h-80 w-80 rounded-full bg-primary-500/25 blur-3xl" />

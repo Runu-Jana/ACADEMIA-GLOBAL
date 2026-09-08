@@ -111,3 +111,35 @@ export function listedUniversities(
 export function isPartnerUniversity(university: { partnerStatus: string }): boolean {
   return university.partnerStatus === 'ACTIVE'
 }
+
+/* -------------------------------------------------------------------- shop */
+
+/**
+ * The one rule for whether a shop product may be shown to a buyer.
+ *
+ * Same discipline as courses: every public and student-facing product query
+ * routes through here. An unguarded query leaks a DRAFT listing — a half-written
+ * description with a placeholder price — straight onto the storefront, and worse,
+ * into the sitemap where a crawler will remember it.
+ *
+ * Out-of-stock items deliberately stay VISIBLE. Hiding them would break the
+ * product URL a student has bookmarked or a search engine has indexed; the page
+ * says "Out of stock" and refuses add-to-cart instead.
+ *
+ * /admin bypasses this so operators can preview and edit unpublished rows.
+ */
+export const liveProductWhere: Prisma.ProductWhereInput = { status: 'PUBLISHED' }
+
+export function liveProducts(where?: Prisma.ProductWhereInput): Prisma.ProductWhereInput {
+  return where ? { AND: [liveProductWhere, where] } : liveProductWhere
+}
+
+/** Whether an already-loaded product is live — for detail-page 404 guards. */
+export function isProductLive(product: { status: string }): boolean {
+  return product.status === 'PUBLISHED'
+}
+
+/** Sellable = publicly visible AND actually in stock. Gates add-to-cart and checkout. */
+export function isProductSellable(product: { status: string; stock: number }): boolean {
+  return isProductLive(product) && product.stock > 0
+}

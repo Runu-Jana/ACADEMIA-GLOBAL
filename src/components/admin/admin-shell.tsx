@@ -22,6 +22,8 @@ import {
   PhoneCall,
   Sparkles,
   Import,
+  ShoppingBag,
+  PackageCheck,
   Menu,
   X,
   ExternalLink,
@@ -32,6 +34,7 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { ThemeToggle } from '@/components/layout/theme-toggle'
 import { cn, initials } from '@/lib/utils'
+import { useMountTransition } from '@/lib/use-mount-transition'
 
 export type AdminShellUser = { name: string; email: string }
 export type AdminNotification = { title: string; body: string; href: string }
@@ -63,6 +66,8 @@ const NAV: {
   { href: '/admin/partners', label: 'Partner Requests', icon: Inbox },
   { href: '/admin/universities', label: 'Universities', icon: Building2 },
   { href: '/admin/directory', label: 'Directory Import', icon: Import },
+  { href: '/admin/shop', label: 'Shop Products', icon: ShoppingBag, exact: true },
+  { href: '/admin/shop/orders', label: 'Shop Orders', icon: PackageCheck },
   { href: '/admin/finance', label: 'Finance', icon: Wallet },
   { href: '/admin/ai-usage', label: 'AI Usage', icon: Sparkles },
 ]
@@ -82,6 +87,8 @@ export function AdminShell({
 }) {
   const pathname = usePathname()
   const [drawer, setDrawer] = React.useState(false)
+  // Keeps the panel mounted while it slides back out.
+  const { mounted: drawerMounted, visible: drawerVisible } = useMountTransition(drawer)
   const [bell, setBell] = React.useState(false)
   const bellPanelRef = React.useRef<HTMLDivElement>(null)
   const bellWrapRef = React.useRef<HTMLDivElement>(null)
@@ -145,18 +152,29 @@ export function AdminShell({
       </aside>
 
       {/* ---------------------------------------------------- mobile drawer */}
-      {drawer && (
+      {drawerMounted && (
         <div className="fixed inset-0 z-[70] lg:hidden">
-          <div
-            className="absolute inset-0 bg-slate-950/60 backdrop-blur-sm animate-in fade-in"
+          {/* A real button, not a div: iOS Safari does not reliably fire click
+              on a plain non-interactive element, which breaks tap-to-close. */}
+          <button
+            type="button"
+            aria-label="Close navigation"
             onClick={() => setDrawer(false)}
-            aria-hidden
+            className={cn(
+              'absolute inset-0 h-full w-full cursor-pointer bg-slate-950/60 backdrop-blur-sm',
+              'transition-opacity duration-300 ease-spring will-change-[opacity]',
+              drawerVisible ? 'opacity-100' : 'opacity-0',
+            )}
           />
           <div
             role="dialog"
             aria-modal="true"
             aria-label="Admin navigation"
-            className="absolute inset-y-0 left-0 flex w-[84%] max-w-[17rem] flex-col bg-primary-950 shadow-2xl animate-in slide-in-from-left duration-300"
+            className={cn(
+              'absolute inset-y-0 left-0 flex w-[84%] max-w-[17rem] flex-col bg-primary-950 shadow-2xl',
+              'transition-transform duration-300 ease-spring will-change-transform',
+              drawerVisible ? 'translate-x-0' : '-translate-x-full',
+            )}
           >
             <button
               type="button"

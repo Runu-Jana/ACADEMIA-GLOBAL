@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { markOrderPaid, refundOrder } from '@/lib/commission'
 import { verifyWebhookSignature } from '@/lib/payments/razorpay'
+import { markShopOrderPaid, refundShopOrder } from '@/lib/shop-orders'
 import { captureError } from '@/lib/observability'
 
 export const dynamic = 'force-dynamic'
@@ -43,12 +44,20 @@ export async function POST(req: Request) {
     event.payload?.payment?.entity?.order_id ?? event.payload?.order?.entity?.id ?? null
 
   try {
+    // Course enrolments and shop purchases both open Razorpay orders, so an
+    // event could belong to either. Look in both tables rather than assuming.
     if ((type === 'payment.captured' || type === 'order.paid') && gatewayOrderId) {
       const order = await prisma.order.findUnique({ where: { gatewayOrderId } })
       if (order) await markOrderPaid(order.id, event.payload?.payment?.entity?.id)
+
+      const shopOrder = await prisma.shopOrder.findUnique({ where: { gatewayOrderId } })
+      if (shopOrder) await markShopOrderPaid(shopOrder.id, event.payload?.payment?.entity?.id)
     } else if (type === 'refund.processed' && gatewayOrderId) {
       const order = await prisma.order.findUnique({ where: { gatewayOrderId } })
       if (order) await refundOrder(order.id)
+
+      const shopOrder = await prisma.shopOrder.findUnique({ where: { gatewayOrderId } })
+      if (shopOrder) await refundShopOrder(shopOrder.id)
     }
   } catch (err) {
     // Capture, then 500 so Razorpay retries — the handlers are idempotent, so a
