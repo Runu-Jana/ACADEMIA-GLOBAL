@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { prisma } from '@/lib/prisma'
 import { getSession } from '@/lib/auth'
+import { notify } from '@/lib/notifications'
 import { pct } from '@/lib/utils'
 
 const schema = z.object({
@@ -180,6 +181,12 @@ export async function POST(req: Request) {
             enrollmentId: enrollment.id,
           },
           select: { serial: true, grade: true },
+        })
+        await notify(userId, {
+          type: 'CERTIFICATE',
+          title: 'Your certificate is ready',
+          body: `You've completed ${lesson.module.course.title}. Download or share it any time.`,
+          url: '/dashboard/certificates',
         })
       } catch {
         // Two tabs finishing the last lesson at once — one insert wins, reuse it.

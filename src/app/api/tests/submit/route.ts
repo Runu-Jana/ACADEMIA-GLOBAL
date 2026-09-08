@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { prisma } from '@/lib/prisma'
 import { getSession } from '@/lib/auth'
+import { notify } from '@/lib/notifications'
 
 const schema = z.object({
   testId: z.string().trim().min(1, 'Test is required'),
@@ -87,6 +88,13 @@ export async function POST(req: Request) {
       answers,
     },
     select: { id: true, submittedAt: true },
+  })
+
+  await notify(userId, {
+    type: 'TEST',
+    title: passed ? `Passed: ${test.title}` : `Test graded: ${test.title}`,
+    body: `You scored ${score}/${totalMarks}${passed ? '.' : ` — ${test.passMarks} needed to pass.`}`,
+    url: `/dashboard/tests/${test.id}`,
   })
 
   return NextResponse.json({

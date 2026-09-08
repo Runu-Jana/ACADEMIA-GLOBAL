@@ -1,6 +1,7 @@
 import { prisma } from './prisma'
 import { sendEmail } from './email'
 import { enrolmentEmail } from './emails'
+import { notify } from './notifications'
 
 /**
  * Marketplace money.
@@ -97,6 +98,13 @@ export async function markOrderPaid(orderId: string, gatewayPaymentId?: string) 
     where: { userId_courseId: { userId: order.userId, courseId: order.courseId } },
     update: {},
     create: { userId: order.userId, courseId: order.courseId, status: 'ACTIVE' },
+  })
+
+  await notify(order.userId, {
+    type: 'ENROLMENT',
+    title: `You're enrolled in ${course.title}`,
+    body: `${course.university.name} — pick up from your dashboard whenever you're ready.`,
+    url: '/dashboard/learn',
   })
 
   // Confirmation + receipt to the student. This runs once (the already-PAID

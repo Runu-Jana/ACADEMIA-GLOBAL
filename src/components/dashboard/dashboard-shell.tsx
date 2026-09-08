@@ -6,25 +6,21 @@ import { usePathname, useRouter } from 'next/navigation'
 import {
   Video,
   LayoutDashboard, BookOpen, GraduationCap, FolderOpen, PenSquare, ClipboardList,
-  Award, FileText, User as UserIcon, LifeBuoy, Menu, X, Search, Bell, ChevronDown, LogOut,
-  PanelLeftClose, PanelLeft, Home, Compass, Rocket,
+  Award, FileText, User as UserIcon, LifeBuoy, Menu, X, Search, ChevronDown, LogOut,
+  PanelLeftClose, PanelLeft, Home, Compass, Rocket, Heart,
 } from 'lucide-react'
 import { Logo } from '@/components/layout/logo'
 import { ThemeToggle } from '@/components/layout/theme-toggle'
 import { MobileTabBar } from '@/components/layout/mobile-tabbar'
+import { NotificationBell } from './notification-bell'
 import { cn, initials } from '@/lib/utils'
+import { useMountTransition } from '@/lib/use-mount-transition'
 
 export type ShellUser = {
   id: string
   name: string
   email: string
   role: string
-}
-
-export type ShellNotification = {
-  title: string
-  body: string
-  href: string
 }
 
 type NavItem = {
@@ -47,6 +43,7 @@ const NAV: NavItem[] = [
   { label: 'Assignments', href: '/dashboard/assignments', icon: PenSquare },
   { label: 'Tests & Exams', href: '/dashboard/tests', icon: ClipboardList },
   { label: 'Certificates', href: '/dashboard/certificates', icon: Award },
+  { label: 'Saved', href: '/dashboard/saved', icon: Heart },
   { label: 'AI Resume', href: '/dashboard/resume', icon: FileText },
   { label: 'AI Career Kit', href: '/dashboard/career', icon: Rocket },
   { label: 'Profile', href: '/dashboard/profile', icon: UserIcon },
@@ -63,6 +60,7 @@ const TITLES: { prefix: string; title: string; exact?: boolean }[] = [
   { prefix: '/dashboard/assignments', title: 'Assignments' },
   { prefix: '/dashboard/tests', title: 'Tests & Exams' },
   { prefix: '/dashboard/certificates', title: 'Certificates' },
+  { prefix: '/dashboard/saved', title: 'Saved Courses' },
   { prefix: '/dashboard/resume', title: 'AI Resume' },
   { prefix: '/dashboard/career', title: 'AI Career Kit' },
   { prefix: '/dashboard/profile', title: 'Profile' },
@@ -85,11 +83,11 @@ function isActive(item: NavItem, pathname: string) {
 
 export function DashboardShell({
   user,
-  notifications,
+  initialUnread,
   children,
 }: {
   user: ShellUser
-  notifications: ShellNotification[]
+  initialUnread: number
   children: React.ReactNode
 }) {
   const pathname = usePathname()
@@ -97,8 +95,10 @@ export function DashboardShell({
 
   const [collapsed, setCollapsed] = React.useState(false)
   const [drawer, setDrawer] = React.useState(false)
-  const [bell, setBell] = React.useState(false)
+  // Keeps the panel mounted while it slides back out.
+  const { mounted: drawerMounted, visible: drawerVisible } = useMountTransition(drawer)
   const [menu, setMenu] = React.useState(false)
+  const menuRef = React.useRef<HTMLDivElement>(null)
   const [q, setQ] = React.useState('')
 
   React.useEffect(() => {
@@ -124,7 +124,6 @@ export function DashboardShell({
   // Any navigation closes every transient surface.
   React.useEffect(() => {
     setDrawer(false)
-    setBell(false)
     setMenu(false)
   }, [pathname])
 
@@ -139,12 +138,23 @@ export function DashboardShell({
     function onKey(e: KeyboardEvent) {
       if (e.key !== 'Escape') return
       setDrawer(false)
-      setBell(false)
       setMenu(false)
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [])
+
+  // Dismiss the account menu on an outside pointer-down. A rendered backdrop
+  // can't do this reliably here: the blurred header is a containing block for
+  // fixed children, so a "full-screen" overlay only covers the header strip.
+  React.useEffect(() => {
+    if (!menu) return
+    const onDown = (e: PointerEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenu(false)
+    }
+    document.addEventListener('pointerdown', onDown)
+    return () => document.removeEventListener('pointerdown', onDown)
+  }, [menu])
 
   function submitSearch(e: React.FormEvent) {
     e.preventDefault()
@@ -217,18 +227,29 @@ export function DashboardShell({
       </aside>
 
       {/* -------------------------------------------------- mobile drawer */}
-      {drawer && (
+      {drawerMounted && (
         <div className="fixed inset-0 z-[60] lg:hidden">
-          <div
-            className="absolute inset-0 bg-slate-950/55 backdrop-blur-sm animate-in fade-in"
+          {/* A real button, not a div: iOS Safari does not reliably fire click
+              on a plain non-interactive element, which breaks tap-to-close. */}
+          <button
+            type="button"
+            aria-label="Close menu"
             onClick={() => setDrawer(false)}
-            aria-hidden
+            className={cn(
+              'absolute inset-0 h-full w-full cursor-pointer bg-slate-950/55 backdrop-blur-sm',
+              'transition-opacity duration-300 ease-spring will-change-[opacity]',
+              drawerVisible ? 'opacity-100' : 'opacity-0',
+            )}
           />
           <div
             role="dialog"
             aria-modal="true"
             aria-label="Dashboard menu"
-            className="absolute inset-y-0 left-0 flex w-[84%] max-w-[300px] flex-col bg-background shadow-2xl animate-in slide-in-from-left duration-300"
+            className={cn(
+              'absolute inset-y-0 left-0 flex w-[84%] max-w-[300px] flex-col bg-background shadow-2xl',
+              'transition-transform duration-300 ease-spring will-change-transform',
+              drawerVisible ? 'translate-x-0' : '-translate-x-full',
+            )}
           >
             <div className="flex h-16 items-center justify-between border-b border-border px-4">
               <Logo />
@@ -325,58 +346,13 @@ export function DashboardShell({
               <ThemeToggle className="hidden h-10 w-10 sm:grid" />
 
               {/* ------------------------------------------ notifications */}
-              <div className="relative">
-                <button
-                  type="button"
-                  onClick={() => { setBell((v) => !v); setMenu(false) }}
-                  aria-expanded={bell}
-                  aria-haspopup="dialog"
-                  aria-label={`Notifications${notifications.length ? ` (${notifications.length} new)` : ''}`}
-                  className="relative grid h-10 w-10 place-items-center rounded-xl border border-border text-muted-foreground transition-colors hover:border-primary-300 hover:text-primary-600"
-                >
-                  <Bell className="h-4.5 w-4.5" />
-                  {notifications.length > 0 && (
-                    <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-accent-orange ring-2 ring-background" />
-                  )}
-                </button>
-
-                {bell && (
-                  <>
-                    <div className="fixed inset-0 z-10" onClick={() => setBell(false)} aria-hidden />
-                    <div
-                      role="dialog"
-                      aria-label="Notifications"
-                      className="absolute right-0 top-[calc(100%+8px)] z-20 w-[min(20rem,calc(100vw-2rem))] animate-scale-in origin-top-right overflow-hidden rounded-2xl border border-border bg-card shadow-lift"
-                    >
-                      <div className="border-b border-border bg-muted/50 px-4 py-3">
-                        <p className="text-sm font-bold">Notifications</p>
-                      </div>
-                      {notifications.length ? (
-                        <ul className="max-h-80 divide-y divide-border overflow-y-auto">
-                          {notifications.map((n) => (
-                            <li key={n.title}>
-                              <Link href={n.href} className="block px-4 py-3 transition-colors hover:bg-muted/60">
-                                <p className="text-[13px] font-bold">{n.title}</p>
-                                <p className="mt-0.5 text-xs text-muted-foreground">{n.body}</p>
-                              </Link>
-                            </li>
-                          ))}
-                        </ul>
-                      ) : (
-                        <p className="px-4 py-6 text-center text-sm text-muted-foreground">
-                          You&rsquo;re all caught up.
-                        </p>
-                      )}
-                    </div>
-                  </>
-                )}
-              </div>
+              <NotificationBell initialUnread={initialUnread} />
 
               {/* ------------------------------------------------- account */}
-              <div className="relative">
+              <div className="relative" ref={menuRef}>
                 <button
                   type="button"
-                  onClick={() => { setMenu((v) => !v); setBell(false) }}
+                  onClick={() => setMenu((v) => !v)}
                   aria-expanded={menu}
                   aria-haspopup="menu"
                   className="flex items-center gap-2 rounded-xl border border-border py-1 pl-1 pr-2 transition-colors hover:border-primary-300"
@@ -390,12 +366,10 @@ export function DashboardShell({
                 </button>
 
                 {menu && (
-                  <>
-                    <div className="fixed inset-0 z-10" onClick={() => setMenu(false)} aria-hidden />
-                    <div
-                      role="menu"
-                      className="absolute right-0 top-[calc(100%+8px)] z-20 w-60 animate-scale-in origin-top-right overflow-hidden rounded-2xl border border-border bg-card shadow-lift"
-                    >
+                  <div
+                    role="menu"
+                    className="absolute right-0 top-[calc(100%+8px)] z-20 w-60 animate-scale-in origin-top-right overflow-hidden rounded-2xl border border-border bg-card shadow-lift"
+                  >
                       <div className="border-b border-border bg-muted/50 p-3.5">
                         <p className="truncate text-sm font-bold">{user.name}</p>
                         <p className="truncate text-xs text-muted-foreground">{user.email}</p>
@@ -414,8 +388,7 @@ export function DashboardShell({
                           Sign out
                         </button>
                       </form>
-                    </div>
-                  </>
+                  </div>
                 )}
               </div>
             </div>
