@@ -36,7 +36,7 @@ type SearchParams = Promise<Record<string, string | string[] | undefined>>
 const SOURCE_META: Record<string, { label: string; hint: string; icon: typeof FolderTree }> = {
   directory: { label: 'Directory listing', hint: 'Enquired from a university in the directory', icon: FolderTree },
   callback: { label: 'Callback request', hint: 'Asked us to call back', icon: PhoneCall },
-  counsellor: { label: 'Saarthi live chat', hint: 'Requested a human counsellor in chat', icon: MessageCircle },
+  counsellor: { label: 'Sarthi live chat', hint: 'Requested a human counsellor in chat', icon: MessageCircle },
   brochure: { label: 'Brochure download', hint: 'Downloaded a course brochure', icon: FileDown },
 }
 const sourceMeta = (s: string) =>
@@ -70,7 +70,7 @@ export default async function AdminLeadsPage({ searchParams }: { searchParams: S
       {wantsAgentCount > 0 && (
         <div className="mb-3 flex items-center gap-2 rounded-xl border border-amber-300 bg-amber-50 px-3 py-2 text-[12.5px] font-semibold text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200">
           <PhoneCall className="h-4 w-4 shrink-0" />
-          {wantsAgentCount} prospect{wantsAgentCount === 1 ? '' : 's'} asked Saarthi for a live counsellor — call them back.
+          {wantsAgentCount} prospect{wantsAgentCount === 1 ? '' : 's'} asked Sarthi for a live counsellor — call them back.
         </div>
       )}
 

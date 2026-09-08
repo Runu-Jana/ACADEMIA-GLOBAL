@@ -44,7 +44,7 @@ async function notifyAdmin(lead: {
   await sendAdminEmail({
     subject: `Live counsellor requested — ${lead.name}`,
     text: [
-      `${lead.name} has asked to speak with a counsellor through Saarthi.`,
+      `${lead.name} has asked to speak with a counsellor through Sarthi.`,
       '',
       `Phone:        ${lead.phone ?? '—'}`,
       `Email:        ${lead.email}`,
@@ -80,7 +80,7 @@ async function flagAndNotify(leadId: string): Promise<AgentRequestResult> {
       data: { wantsAgent: true, agentRequestedAt: new Date() },
     }),
     prisma.leadNote.create({
-      data: { leadId: lead.id, body: 'Requested a live counsellor from the Saarthi chat.', authorName: 'Saarthi' },
+      data: { leadId: lead.id, body: 'Requested a live counsellor from the Sarthi chat.', authorName: 'Sarthi' },
     }),
   ])
 

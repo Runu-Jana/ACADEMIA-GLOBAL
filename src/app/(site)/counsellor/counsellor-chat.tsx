@@ -54,7 +54,7 @@ const WELCOME: ChatTurn = {
   id: 'welcome',
   role: 'assistant',
   content:
-    "Hi! I'm Saarthi, your Shiksha Sarthi study guide. I match what you tell me against our real course catalogue — subject, level, study mode and budget — and suggest programmes that fit. Ask me anything below, or start with one of these.",
+    "Hi! I'm Sarthi, your Shiksha Sarthi study guide. I match what you tell me against our real course catalogue — subject, level, study mode and budget — and suggest programmes that fit. Ask me anything below, or start with one of these.",
 }
 
 export function CounsellorChat({
@@ -173,7 +173,7 @@ export function CounsellorChat({
         </span>
         <div className="min-w-0 flex-1">
           <h2 className="flex items-center gap-2 text-[15px] font-bold leading-tight">
-            Saarthi
+            Sarthi
             <Badge tone="cyan" className="shrink-0">
               Guided recommender
             </Badge>
@@ -310,7 +310,7 @@ export function CounsellorChat({
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 placeholder="e.g. I finished 12th commerce and can spend ₹40,000 a year"
-                aria-label="Ask Saarthi"
+                aria-label="Ask Sarthi"
                 maxLength={500}
                 className="h-12 min-w-0 flex-1 rounded-xl border border-input bg-surface px-4 text-sm outline-none transition-all duration-200 placeholder:text-muted-foreground/70 focus:border-primary-400 focus:ring-4 focus:ring-primary-500/10"
               />
@@ -386,7 +386,7 @@ function IntroForm({
   return (
     <div className="p-5 sm:p-6">
       <p className="text-[13.5px] leading-relaxed text-muted-foreground">
-        Hi! I&rsquo;m <span className="font-bold text-foreground">Saarthi</span>, your Shiksha Sarthi
+        Hi! I&rsquo;m <span className="font-bold text-foreground">Sarthi</span>, your Shiksha Sarthi
         study guide. Leave your details so a counsellor can follow up if you&rsquo;d like — then ask me
         anything about our courses.
       </p>
@@ -413,11 +413,11 @@ function IntroForm({
 
         <Button type="submit" variant="holo" size="lg" loading={busy} disabled={busy || !ready} className="w-full">
           {!busy && <Sparkles className="h-4 w-4" />}
-          Start chatting with Saarthi
+          Start chatting with Sarthi
         </Button>
         <p className="flex items-start gap-1.5 text-[11px] leading-relaxed text-muted-foreground">
           <Info className="mt-0.5 h-3 w-3 shrink-0" aria-hidden />
-          We use these only to help you with admissions — no spam. Saarthi answers from our real course
+          We use these only to help you with admissions — no spam. Sarthi answers from our real course
           catalogue and can connect you with a human counsellor whenever you want.
         </p>
       </form>

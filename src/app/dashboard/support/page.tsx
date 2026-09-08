@@ -12,7 +12,7 @@ export const metadata = { title: 'Support' }
 const CHANNELS = [
   {
     icon: Bot,
-    title: 'Ask Saarthi',
+    title: 'Ask Sarthi',
     body: 'Instant answers on courses, eligibility and fees — any time of day.',
     action: 'Start a chat',
     href: '/counsellor',

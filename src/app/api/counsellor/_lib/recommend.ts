@@ -256,7 +256,7 @@ export function describeIntent(intent: Intent): string[] {
 }
 
 export const INTRO_REPLY =
-  "Hi! I'm Saarthi, Shiksha Sarthi's course finder — a guided tool that searches our real course catalogue, not a general-purpose AI. " +
+  "Hi! I'm Sarthi, Shiksha Sarthi's course finder — a guided tool that searches our real course catalogue, not a general-purpose AI. " +
   'Tell me what you have studied so far, the subject you enjoy, how much time you have, or a budget, and I will suggest programmes that fit.'
 
 export const CLARIFY_REPLY =

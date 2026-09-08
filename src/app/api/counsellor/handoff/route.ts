@@ -17,7 +17,7 @@ const schema = z.object({
 })
 
 /**
- * Explicit "Connect with a live agent" action from the Saarthi chat. Flags the
+ * Explicit "Connect with a live agent" action from the Sarthi chat. Flags the
  * prospect's lead, logs a note and emails the admin so a counsellor can call
  * back. Idempotent — a second click won't re-notify.
  */

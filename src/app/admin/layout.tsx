@@ -16,7 +16,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const user = await requireAdmin()
 
   // The admin bell surfaces prospects a counsellor needs to call back:
-  //  1) anyone who asked Saarthi for a live counsellor, and
+  //  1) anyone who asked Sarthi for a live counsellor, and
   //  2) new enquiries from non-partner (directory/brochure) listings — a student
   //     applying to a university we don't partner with becomes a callback lead.
   const [agentLeads, enquiryLeads] = await Promise.all([
@@ -41,7 +41,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         ? `Interested in ${l.interestedCourseTitle}`
         : l.phone
           ? `Call ${l.phone}`
-          : 'Requested a live counsellor via Saarthi',
+          : 'Requested a live counsellor via Sarthi',
       href: '/admin/leads',
     })),
     ...enquiryLeads.map((l) => ({
