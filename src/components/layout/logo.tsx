@@ -32,7 +32,7 @@ export function Logo({
       </span>
 
       {!compact && (
-        <span className="flex flex-col leading-none">
+        <span className="flex flex-col gap-1 leading-none">
           <span
             className={cn(
               'whitespace-nowrap font-display text-[17px] font-extrabold tracking-tight',
