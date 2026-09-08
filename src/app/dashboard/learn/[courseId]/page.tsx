@@ -62,6 +62,8 @@ export default async function LearnCoursePage({ params, searchParams }: PageProp
                 type: true,
                 durationMin: true,
                 body: true,
+                contentUrl: true,
+                transcript: true,
               },
             },
             tests: {

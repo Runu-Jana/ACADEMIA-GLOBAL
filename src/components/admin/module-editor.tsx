@@ -16,10 +16,11 @@ import {
   BookOpen,
   Radio,
   GripVertical,
+  FileText,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Input, Select } from '@/components/ui/field'
+import { Input, Select, Textarea } from '@/components/ui/field'
 import { LESSON_TYPES } from '@/lib/constants'
 import { cn } from '@/lib/utils'
 
@@ -28,6 +29,9 @@ export type LessonNode = {
   title: string
   type: string
   durationMin: number
+  description: string | null
+  contentUrl: string | null
+  transcript: string | null
 }
 
 export type ModuleNode = {
@@ -197,6 +201,16 @@ export function ModuleEditor({
     router.refresh()
   }
 
+  async function updateLesson(id: string, patch: Record<string, string>) {
+    const data = await call(`/api/admin/lessons/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(patch),
+    })
+    if (!data) return false
+    router.refresh()
+    return true
+  }
+
   return (
     <section className="card-base p-4 sm:p-5" aria-labelledby="modules-heading">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
@@ -242,6 +256,7 @@ export function ModuleEditor({
             onAddLesson={addLesson}
             onDeleteLesson={deleteLesson}
             onMoveLesson={moveLesson}
+            onEditLesson={updateLesson}
           />
         ))}
       </ol>
@@ -282,6 +297,7 @@ function ModuleRow({
   onAddLesson,
   onDeleteLesson,
   onMoveLesson,
+  onEditLesson,
 }: {
   module: ModuleNode
   index: number
@@ -293,10 +309,12 @@ function ModuleRow({
   onAddLesson: (moduleId: string, title: string, type: string, durationMin: string) => Promise<boolean>
   onDeleteLesson: (moduleId: string, lesson: LessonNode) => void
   onMoveLesson: (moduleId: string, index: number, direction: -1 | 1) => void
+  onEditLesson: (id: string, patch: Record<string, string>) => Promise<boolean>
 }) {
   const [open, setOpen] = React.useState(false)
   const [editing, setEditing] = React.useState(false)
   const [draft, setDraft] = React.useState(m.title)
+  const [editLessonId, setEditLessonId] = React.useState<string | null>(null)
 
   const [lessonTitle, setLessonTitle] = React.useState('')
   const [lessonType, setLessonType] = React.useState<string>(LESSON_TYPES[0])
@@ -409,42 +427,62 @@ function ModuleRow({
             {m.lessons.map((l, li) => {
               const Icon = LESSON_ICON[l.type] ?? Video
               return (
-                <li
-                  key={l.id}
-                  className="flex items-center gap-2 rounded-lg border border-border bg-surface px-2.5 py-2"
-                >
-                  <Icon className="h-3.5 w-3.5 shrink-0 text-primary-500" aria-hidden />
-                  <span className="min-w-0 flex-1 truncate text-[13px] font-medium">{l.title}</span>
-                  <Badge tone="default" className="hidden shrink-0 sm:inline-flex">
-                    {l.type.toLowerCase()}
-                  </Badge>
-                  <span className="shrink-0 text-[11px] tabular-nums text-muted-foreground">
-                    {l.durationMin}m
-                  </span>
-                  <span className="flex shrink-0 items-center gap-1">
-                    <IconBtn
-                      label={`Move “${l.title}” up`}
-                      disabled={busy || li === 0}
-                      onClick={() => onMoveLesson(m.id, li, -1)}
-                    >
-                      <ChevronUp className="h-3 w-3" />
-                    </IconBtn>
-                    <IconBtn
-                      label={`Move “${l.title}” down`}
-                      disabled={busy || li === m.lessons.length - 1}
-                      onClick={() => onMoveLesson(m.id, li, 1)}
-                    >
-                      <ChevronDown className="h-3 w-3" />
-                    </IconBtn>
-                    <IconBtn
-                      label={`Delete “${l.title}”`}
-                      onClick={() => onDeleteLesson(m.id, l)}
-                      disabled={busy}
-                      danger
-                    >
-                      <Trash2 className="h-3 w-3" />
-                    </IconBtn>
-                  </span>
+                <li key={l.id} className="overflow-hidden rounded-lg border border-border bg-surface">
+                  <div className="flex items-center gap-2 px-2.5 py-2">
+                    <Icon className="h-3.5 w-3.5 shrink-0 text-primary-500" aria-hidden />
+                    <span className="min-w-0 flex-1 truncate text-[13px] font-medium">{l.title}</span>
+                    {(l.contentUrl || l.transcript) && (
+                      <span className="hidden shrink-0 items-center gap-1 sm:flex" title="Content attached">
+                        {l.contentUrl && <Video className="h-3 w-3 text-emerald-500" aria-label="Video attached" />}
+                        {l.transcript && <FileText className="h-3 w-3 text-emerald-500" aria-label="Transcript attached" />}
+                      </span>
+                    )}
+                    <Badge tone="default" className="hidden shrink-0 sm:inline-flex">
+                      {l.type.toLowerCase()}
+                    </Badge>
+                    <span className="shrink-0 text-[11px] tabular-nums text-muted-foreground">
+                      {l.durationMin}m
+                    </span>
+                    <span className="flex shrink-0 items-center gap-1">
+                      <IconBtn
+                        label={`Edit content of “${l.title}”`}
+                        onClick={() => setEditLessonId((cur) => (cur === l.id ? null : l.id))}
+                        disabled={busy}
+                      >
+                        <Pencil className="h-3 w-3" />
+                      </IconBtn>
+                      <IconBtn
+                        label={`Move “${l.title}” up`}
+                        disabled={busy || li === 0}
+                        onClick={() => onMoveLesson(m.id, li, -1)}
+                      >
+                        <ChevronUp className="h-3 w-3" />
+                      </IconBtn>
+                      <IconBtn
+                        label={`Move “${l.title}” down`}
+                        disabled={busy || li === m.lessons.length - 1}
+                        onClick={() => onMoveLesson(m.id, li, 1)}
+                      >
+                        <ChevronDown className="h-3 w-3" />
+                      </IconBtn>
+                      <IconBtn
+                        label={`Delete “${l.title}”`}
+                        onClick={() => onDeleteLesson(m.id, l)}
+                        disabled={busy}
+                        danger
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </IconBtn>
+                    </span>
+                  </div>
+                  {editLessonId === l.id && (
+                    <LessonEditForm
+                      lesson={l}
+                      busy={busy}
+                      onSave={onEditLesson}
+                      onClose={() => setEditLessonId(null)}
+                    />
+                  )}
                 </li>
               )
             })}
@@ -526,5 +564,97 @@ function IconBtn({
     >
       {children}
     </button>
+  )
+}
+
+/* --------------------------------------------------------------- lesson content */
+
+function LessonEditForm({
+  lesson,
+  busy,
+  onSave,
+  onClose,
+}: {
+  lesson: LessonNode
+  busy: boolean
+  onSave: (id: string, patch: Record<string, string>) => Promise<boolean>
+  onClose: () => void
+}) {
+  const [contentUrl, setContentUrl] = React.useState(lesson.contentUrl ?? '')
+  const [description, setDescription] = React.useState(lesson.description ?? '')
+  const [transcript, setTranscript] = React.useState(lesson.transcript ?? '')
+  const [saving, setSaving] = React.useState(false)
+
+  const isVideo = lesson.type === 'VIDEO'
+
+  async function save() {
+    if (saving) return
+    setSaving(true)
+    const ok = await onSave(lesson.id, {
+      contentUrl: contentUrl.trim(),
+      description: description.trim(),
+      ...(isVideo ? { transcript: transcript.trim() } : {}),
+    })
+    setSaving(false)
+    if (ok) onClose()
+  }
+
+  return (
+    <div className="space-y-3 border-t border-border bg-muted/30 p-3">
+      <label className="block">
+        <span className="mb-1 block text-[11.5px] font-bold text-muted-foreground">Video URL</span>
+        <Input
+          value={contentUrl}
+          onChange={(e) => setContentUrl(e.target.value)}
+          placeholder="YouTube, Vimeo, or a direct .mp4 / .webm link"
+          maxLength={500}
+          className="h-9"
+        />
+      </label>
+
+      <label className="block">
+        <span className="mb-1 block text-[11.5px] font-bold text-muted-foreground">Short description</span>
+        <Input
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          placeholder="One line shown under the lesson"
+          maxLength={500}
+          className="h-9"
+        />
+      </label>
+
+      {isVideo && (
+        <label className="block">
+          <span className="mb-1 block text-[11.5px] font-bold text-muted-foreground">
+            Transcript <span className="font-normal">— shown to learners as a searchable read-along</span>
+          </span>
+          <Textarea
+            value={transcript}
+            onChange={(e) => setTranscript(e.target.value)}
+            placeholder="Paste the lesson transcript or captions here…"
+            maxLength={50000}
+            className="min-h-[120px] text-[13px]"
+          />
+        </label>
+      )}
+
+      <div className="flex justify-end gap-2">
+        <Button type="button" variant="ghost" size="sm" onClick={onClose} disabled={saving}>
+          <X className="h-3.5 w-3.5" />
+          Cancel
+        </Button>
+        <Button
+          type="button"
+          variant="secondary"
+          size="sm"
+          onClick={save}
+          loading={saving}
+          disabled={busy || saving}
+        >
+          <Check className="h-3.5 w-3.5" />
+          Save
+        </Button>
+      </div>
+    </div>
   )
 }

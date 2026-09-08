@@ -4,13 +4,14 @@ import * as React from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import {
-  Check, ChevronDown, ChevronLeft, ChevronRight, Clock, Play, Download,
-  ClipboardList, Award, AlertCircle, Radio, BookOpen, MonitorPlay, Trophy, FolderOpen,
+  Check, ChevronDown, ChevronLeft, ChevronRight, Clock, Download,
+  ClipboardList, Award, AlertCircle, BookOpen, Trophy, FolderOpen,
 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { MaterialIcon, LessonTypeIcon, lessonTypeLabel } from './primitives'
+import { LessonVideo, LessonTranscript } from './lesson-media'
 import { TutorPanel } from './tutor-panel'
 import { MATERIAL_TYPES } from '@/lib/constants'
 import { cn, formatBytes, formatDate } from '@/lib/utils'
@@ -22,6 +23,8 @@ export type PlayerLesson = {
   type: string
   durationMin: number
   body: string | null
+  contentUrl: string | null
+  transcript: string | null
 }
 
 export type PlayerModule = {
@@ -550,7 +553,7 @@ export function CoursePlayer({
               {active.lesson.type === 'READING' ? (
                 <ReadingHeader lesson={active.lesson} moduleTitle={active.moduleTitle} />
               ) : (
-                <PlayerPanel lesson={active.lesson} />
+                <LessonVideo lesson={active.lesson} />
               )}
 
               <div className="p-4 sm:p-5">
@@ -572,6 +575,10 @@ export function CoursePlayer({
                       {active.lesson.description}
                     </p>
                   )
+                )}
+
+                {active.lesson.type !== 'READING' && active.lesson.transcript && (
+                  <LessonTranscript transcript={active.lesson.transcript} />
                 )}
 
                 {/* ------------------------------------ complete + nav */}
@@ -663,52 +670,4 @@ function ReadingHeader({ lesson, moduleTitle }: { lesson: PlayerLesson; moduleTi
   )
 }
 
-/** Styled stand-in for the video/live player — no third-party embeds. */
-function PlayerPanel({ lesson }: { lesson: PlayerLesson }) {
-  const live = lesson.type === 'LIVE'
-  const Icon = live ? Radio : MonitorPlay
-
-  return (
-    <div
-      className={cn(
-        'relative grid aspect-video w-full place-items-center overflow-hidden bg-gradient-to-br',
-        live
-          ? 'from-cyan-600 via-primary-700 to-holo-indigo'
-          : 'from-primary-900 via-primary-700 to-holo-violet',
-      )}
-    >
-      <div
-        aria-hidden
-        className="absolute inset-0 opacity-25 [background-image:repeating-radial-gradient(circle_at_15%_120%,rgba(255,255,255,.45)_0,rgba(255,255,255,.45)_1px,transparent_1px,transparent_26px)]"
-      />
-      <div aria-hidden className="absolute -right-10 -top-12 h-48 w-48 rounded-full bg-white/20 blur-3xl" />
-      <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent" />
-
-      <div className="relative flex flex-col items-center px-6 text-center">
-        <span
-          aria-hidden
-          className="grid h-16 w-16 place-items-center rounded-full bg-white/90 text-primary-700 shadow-lift transition-transform duration-500 ease-spring hover:scale-105"
-        >
-          <Play className="ml-1 h-7 w-7 fill-current" />
-        </span>
-        <p className="mt-4 text-sm font-bold text-white drop-shadow-sm">
-          {live ? 'Live classroom session' : 'Lesson video'}
-        </p>
-        <p className="mt-1 text-[11.5px] text-white/75">
-          {live
-            ? 'The classroom link and recording appear here at class time.'
-            : 'Video streaming is not attached in this environment.'}
-        </p>
-      </div>
-
-      <span className="absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-full bg-black/35 px-2.5 py-1 text-[11px] font-semibold text-white backdrop-blur-sm">
-        <Icon className="h-3 w-3" />
-        {lessonTypeLabel(lesson.type)}
-      </span>
-      <span className="absolute bottom-3 right-3 inline-flex items-center gap-1.5 rounded-full bg-black/35 px-2.5 py-1 text-[11px] font-semibold text-white backdrop-blur-sm">
-        <Clock className="h-3 w-3" />
-        {lesson.durationMin} min
-      </span>
-    </div>
-  )
-}
+/* The video / live player and the transcript panel now live in ./lesson-media. */

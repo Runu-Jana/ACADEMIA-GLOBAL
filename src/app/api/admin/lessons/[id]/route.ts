@@ -12,6 +12,7 @@ const updateSchema = z.object({
   durationMin: z.coerce.number().int().min(1).max(600).optional(),
   description: z.string().trim().max(500).optional(),
   contentUrl: z.string().trim().max(500).optional(),
+  transcript: z.string().trim().max(50000).optional(),
 })
 
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -25,7 +26,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   const existing = await prisma.lesson.findUnique({ where: { id }, select: { id: true } })
   if (!existing) return notFound('That lesson no longer exists.')
 
-  const { title, type, durationMin, description, contentUrl } = parsed.data
+  const { title, type, durationMin, description, contentUrl, transcript } = parsed.data
 
   const lesson = await prisma.lesson.update({
     where: { id },
@@ -35,6 +36,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
       ...(durationMin !== undefined && { durationMin }),
       ...(description !== undefined && { description: description || null }),
       ...(contentUrl !== undefined && { contentUrl: contentUrl || null }),
+      ...(transcript !== undefined && { transcript: transcript || null }),
     },
     select: { id: true, title: true, type: true, durationMin: true, order: true },
   })

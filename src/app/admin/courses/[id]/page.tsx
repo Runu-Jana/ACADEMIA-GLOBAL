@@ -54,7 +54,15 @@ export default async function EditCoursePage({ params }: { params: Promise<{ id:
             description: true,
             lessons: {
               orderBy: [{ order: 'asc' }, { title: 'asc' }],
-              select: { id: true, title: true, type: true, durationMin: true },
+              select: {
+                id: true,
+                title: true,
+                type: true,
+                durationMin: true,
+                description: true,
+                contentUrl: true,
+                transcript: true,
+              },
             },
           },
         },
