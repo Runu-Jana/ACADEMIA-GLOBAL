@@ -4,13 +4,15 @@ import * as React from 'react'
 import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
 import {
-  Search, Bot, GitCompare, Menu, X, ChevronDown, LogOut,
+  Search, Bot, GitCompare, ShoppingCart, Menu, X, ChevronDown, LogOut,
   LayoutDashboard, GraduationCap, User as UserIcon, Shield,
 } from 'lucide-react'
 import { Logo } from './logo'
 import { ThemeToggle } from './theme-toggle'
 import { buttonVariants } from '@/components/ui/button'
 import { useCompare } from '@/lib/use-compare'
+import { useCart } from '@/lib/use-cart'
+import { useMountTransition } from '@/lib/use-mount-transition'
 import { cn, initials } from '@/lib/utils'
 
 export type HeaderUser = { id: string; name: string; email: string; role: string } | null
@@ -92,16 +94,25 @@ const NAV: {
   { label: 'Universities', href: '/universities' },
   { label: 'Exams', href: '/exams' },
   { label: 'Scholarships', href: '/scholarships' },
+  { label: 'Shop', href: '/shop' },
 ]
 
 export function HeaderClient({ user }: { user: HeaderUser }) {
   const router = useRouter()
   const pathname = usePathname()
   const { count } = useCompare()
+  const { count: cartCount, ready: cartReady } = useCart()
 
   const [scrolled, setScrolled] = React.useState(false)
   const [drawer, setDrawer] = React.useState(false)
+  // Keeps the panel mounted while it slides back out.
+  const { mounted: drawerMounted, visible: drawerVisible } = useMountTransition(drawer)
   const [menu, setMenu] = React.useState(false)
+  // The account dropdown is dismissed via a document listener bound to this ref,
+  // not a rendered backdrop: a scrolled header gains backdrop-blur, and
+  // backdrop-filter makes the header the containing block for fixed children, so
+  // a "full-screen" fixed catcher only ever covered the header strip.
+  const userMenuRef = React.useRef<HTMLDivElement>(null)
   const [q, setQ] = React.useState('')
   // The mega-nav dropdown is JS-controlled, not CSS :hover — it opens only on a
   // fresh pointer-enter/focus and is set to null on click or navigation. That way
@@ -130,10 +141,80 @@ export function HeaderClient({ user }: { user: HeaderUser }) {
     }
   }, [drawer])
 
+  // Escape closes the drawer. Without it the only ways out were the X and the
+  // backdrop, which leaves a keyboard user stuck behind a full-screen overlay.
+  React.useEffect(() => {
+    if (!drawer) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setDrawer(false)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [drawer])
+
+  // Dismiss the account dropdown on an outside pointer-down or Escape. Bound to
+  // the document rather than a rendered backdrop so a scrolled, blurred header
+  // can't shrink the click target to its own height (see userMenuRef).
+  React.useEffect(() => {
+    if (!menu) return
+    const onPointerDown = (e: PointerEvent) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
+        setMenu(false)
+      }
+    }
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setMenu(false)
+    }
+    document.addEventListener('pointerdown', onPointerDown)
+    document.addEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('pointerdown', onPointerDown)
+      document.removeEventListener('keydown', onKey)
+    }
+  }, [menu])
+
   function submitSearch(e: React.FormEvent) {
     e.preventDefault()
     router.push(q.trim() ? `/courses?q=${encodeURIComponent(q.trim())}` : '/courses')
   }
+
+  // ----------------------------------------------------------- active nav
+  // A destination is "active" when the current path is it, or nested under it,
+  // so the header reflects where the visitor actually is. The four course
+  // mega-menus differ only by query string (?mode=…), which a layout-level
+  // client header can't read without opting the whole app into client
+  // rendering — so they keep their dropdown affordance rather than a path
+  // match that would light all four at once.
+  const isActive = React.useCallback(
+    (href: string) => {
+      const path = href.split('?')[0]
+      if (path === '/shop') {
+        // The listing and product pages light up Shop; the cart and checkout
+        // pages belong to the Cart button, so Shop yields to it there.
+        if (pathname === '/shop') return true
+        return (
+          pathname.startsWith('/shop/') &&
+          !pathname.startsWith('/shop/cart') &&
+          !pathname.startsWith('/shop/checkout')
+        )
+      }
+      return pathname === path || pathname.startsWith(`${path}/`)
+    },
+    [pathname],
+  )
+  // The Cart button owns the whole basket → checkout flow.
+  const cartActive = pathname.startsWith('/shop/cart') || pathname.startsWith('/shop/checkout')
+
+  // Persistent "you are here" styling, shaped to each element it lands on.
+  // Buttons take a solid fill in the brand blue (primary-600, the same shade as
+  // the Sign Up and search buttons); the tab-style mega-nav keeps that blue as
+  // text + an underline, the right idiom for a horizontal bar. hover:bg-primary-700
+  // is set so an already-active button stays blue on hover instead of falling
+  // back to the neutral hover the base class carries.
+  const navPillActive = 'bg-primary-600 text-white hover:bg-primary-700'
+  const navBarActive =
+    "text-primary-600 dark:text-primary-300 after:absolute after:inset-x-3 after:bottom-0 after:h-0.5 after:rounded-full after:bg-primary-600 after:content-[''] dark:after:bg-primary-300"
+  const drawerLinkActive = 'bg-primary-600 text-white'
 
   return (
     <>
@@ -181,19 +262,27 @@ export function HeaderClient({ user }: { user: HeaderUser }) {
           <div className="ml-auto flex items-center gap-1.5 md:ml-3">
             <Link
               href="/counsellor"
-              className="hidden items-center gap-2 rounded-xl px-3 py-2 text-[13px] font-semibold text-foreground transition-colors hover:bg-muted xl:inline-flex"
+              aria-current={isActive('/counsellor') ? 'page' : undefined}
+              className={cn(
+                'hidden items-center gap-2 rounded-xl px-3 py-2 text-[13px] font-semibold text-foreground transition-colors hover:bg-muted xl:inline-flex',
+                isActive('/counsellor') && navPillActive,
+              )}
             >
               <span className="relative grid h-7 w-7 place-items-center rounded-lg bg-holo-sweep">
                 <Bot className="h-4 w-4 text-white" />
               </span>
-              Ask Saarthi
+              Ask Sarthi
             </Link>
 
             <Link
               href="/compare"
-              className="relative hidden items-center gap-2 rounded-xl px-3 py-2 text-[13px] font-semibold text-foreground transition-colors hover:bg-muted lg:inline-flex"
+              aria-current={isActive('/compare') ? 'page' : undefined}
+              className={cn(
+                'relative hidden items-center gap-2 rounded-xl px-3 py-2 text-[13px] font-semibold text-foreground transition-colors hover:bg-muted lg:inline-flex',
+                isActive('/compare') && navPillActive,
+              )}
             >
-              <GitCompare className="h-4 w-4 text-primary-600" />
+              <GitCompare className={cn('h-4 w-4', isActive('/compare') ? 'text-white' : 'text-primary-600')} />
               Compare
               {count > 0 && (
                 <span className="grid h-4.5 min-w-4.5 place-items-center rounded-full bg-accent-orange px-1 text-[10px] font-bold text-white">
@@ -202,10 +291,29 @@ export function HeaderClient({ user }: { user: HeaderUser }) {
               )}
             </Link>
 
+            {/* Cart stays visible at every breakpoint — a shopper who can't
+                find their basket abandons it. */}
+            <Link
+              href="/shop/cart"
+              aria-label={cartCount > 0 ? `Cart, ${cartCount} items` : 'Cart'}
+              aria-current={cartActive ? 'page' : undefined}
+              className={cn(
+                'relative grid h-10 w-10 place-items-center rounded-xl text-foreground transition-colors hover:bg-muted',
+                cartActive && navPillActive,
+              )}
+            >
+              <ShoppingCart className="h-4.5 w-4.5" />
+              {cartReady && cartCount > 0 && (
+                <span className="absolute right-1 top-1 grid h-4 min-w-4 place-items-center rounded-full bg-accent-orange px-1 text-[10px] font-bold leading-none text-white">
+                  {cartCount > 99 ? '99+' : cartCount}
+                </span>
+              )}
+            </Link>
+
             <ThemeToggle className="hidden sm:grid" />
 
             {user ? (
-              <div className="relative">
+              <div className="relative" ref={userMenuRef}>
                 <button
                   type="button"
                   onClick={() => setMenu((v) => !v)}
@@ -222,12 +330,10 @@ export function HeaderClient({ user }: { user: HeaderUser }) {
                 </button>
 
                 {menu && (
-                  <>
-                    <div className="fixed inset-0 z-10" onClick={() => setMenu(false)} aria-hidden />
-                    <div
-                      role="menu"
-                      className="absolute right-0 top-[calc(100%+8px)] z-20 w-60 animate-scale-in origin-top-right overflow-hidden rounded-2xl border border-border bg-card shadow-lift"
-                    >
+                  <div
+                    role="menu"
+                    className="absolute right-0 top-[calc(100%+8px)] z-20 w-60 animate-scale-in origin-top-right overflow-hidden rounded-2xl border border-border bg-card shadow-lift"
+                  >
                       <div className="border-b border-border bg-muted/50 p-3.5">
                         <p className="truncate text-sm font-bold">{user.name}</p>
                         <p className="truncate text-xs text-muted-foreground">{user.email}</p>
@@ -249,8 +355,7 @@ export function HeaderClient({ user }: { user: HeaderUser }) {
                           Sign out
                         </button>
                       </form>
-                    </div>
-                  </>
+                  </div>
                 )}
               </div>
             ) : (
@@ -271,6 +376,8 @@ export function HeaderClient({ user }: { user: HeaderUser }) {
           <ul className="container flex items-center gap-1">
             {NAV.map((item) => {
               const open = openMenu === item.label
+              // Course items differ only by ?mode=…; leave those to the dropdown.
+              const active = !item.columns && isActive(item.href)
               return (
                 <li
                   key={item.label}
@@ -292,9 +399,11 @@ export function HeaderClient({ user }: { user: HeaderUser }) {
                       e.currentTarget.blur()
                     }}
                     aria-expanded={item.columns ? open : undefined}
+                    aria-current={active ? 'page' : undefined}
                     className={cn(
-                      'flex items-center gap-1 px-3 py-3 text-[13px] font-semibold text-foreground/85 transition-colors hover:text-primary-600',
+                      'relative flex items-center gap-1 px-3 py-3 text-[13px] font-semibold text-foreground/85 transition-colors hover:text-primary-600',
                       open && 'text-primary-600',
+                      active && navBarActive,
                     )}
                   >
                     {item.label}
@@ -342,10 +451,14 @@ export function HeaderClient({ user }: { user: HeaderUser }) {
                 </li>
               )
             })}
-            <li className="ml-auto">
+            <li className="relative ml-auto">
               <Link
                 href="/verify"
-                className="px-3 py-3 text-[13px] font-semibold text-muted-foreground transition-colors hover:text-primary-600"
+                aria-current={isActive('/verify') ? 'page' : undefined}
+                className={cn(
+                  'relative px-3 py-3 text-[13px] font-semibold text-muted-foreground transition-colors hover:text-primary-600',
+                  isActive('/verify') && navBarActive,
+                )}
               >
                 Verify Certificate
               </Link>
@@ -355,14 +468,38 @@ export function HeaderClient({ user }: { user: HeaderUser }) {
       </header>
 
       {/* ------------------------------------------------------ mobile drawer */}
-      {drawer && (
+      {drawerMounted && (
         <div className="fixed inset-0 z-[60] lg:hidden">
-          <div
-            className="absolute inset-0 bg-slate-950/55 backdrop-blur-sm animate-in fade-in"
+          {/* A real <button>, not a div with onClick: iOS Safari does not
+              reliably fire click on a plain non-interactive element, which is the
+              classic reason a tap-outside-to-close backdrop works everywhere
+              except on an iPhone. Also gives it keyboard and AT semantics. */}
+          <button
+            type="button"
+            aria-label="Close menu"
             onClick={() => setDrawer(false)}
-            aria-hidden
+            className={cn(
+              'absolute inset-0 h-full w-full cursor-pointer bg-slate-950/55 backdrop-blur-sm',
+              'transition-opacity duration-300 ease-spring will-change-[opacity]',
+              drawerVisible ? 'opacity-100' : 'opacity-0',
+            )}
           />
-          <div className="absolute inset-y-0 left-0 flex w-[86%] max-w-sm flex-col bg-background shadow-2xl animate-in slide-in-from-left duration-300">
+          {/* Close on any link tap, immediately.
+              The pathname effect below is a backstop, not the mechanism: it only
+              fires once the new route has committed, and in dev that wait is a
+              full on-demand compile — so the drawer sat open over the page the
+              user had already navigated to. It also never fired at all when the
+              link pointed at the current route. */}
+          <div
+            onClick={(e) => {
+              if ((e.target as HTMLElement).closest('a')) setDrawer(false)
+            }}
+            className={cn(
+              'absolute inset-y-0 left-0 flex w-[86%] max-w-sm flex-col bg-background shadow-2xl',
+              'transition-transform duration-300 ease-spring will-change-transform',
+              drawerVisible ? 'translate-x-0' : '-translate-x-full',
+            )}
+          >
             <div className="flex items-center justify-between border-b border-border p-4">
               <Logo />
               <button
@@ -389,16 +526,26 @@ export function HeaderClient({ user }: { user: HeaderUser }) {
             </div>
 
             <nav className="flex-1 overflow-y-auto p-3">
-              {NAV.map((item) => (
-                <details key={item.label} className="group border-b border-border/70 last:border-0">
-                  <summary className="flex cursor-pointer list-none items-center justify-between px-2 py-3 text-sm font-semibold marker:hidden">
-                    {item.label}
-                    {item.columns ? (
+              {NAV.map((item) =>
+                // A top-level entry with no sub-columns (Universities, Exams,
+                // Scholarships, Shop) is a destination, not a disclosure. It used
+                // to render as a <summary> regardless, so `item.href` was never
+                // used and tapping it silently toggled an empty <details>.
+                item.columns ? (
+                  <details key={item.label} className="group border-b border-border/70 last:border-0">
+                    <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between px-2 py-3 text-sm font-semibold marker:hidden">
+                      {item.label}
                       <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform group-open:rotate-180" />
-                    ) : null}
-                  </summary>
-                  {item.columns ? (
+                    </summary>
                     <div className="pb-2">
+                      {/* The section itself is still reachable — expanding it
+                          shouldn't hide the way to the full listing. */}
+                      <Link
+                        href={item.href}
+                        className="block rounded-lg px-4 py-2 text-[13px] font-bold text-primary-600 transition-colors hover:bg-muted dark:text-primary-300"
+                      >
+                        All {item.label}
+                      </Link>
                       {item.columns.flatMap((c) => c.links).map((l) => (
                         <Link
                           key={l.href}
@@ -409,14 +556,28 @@ export function HeaderClient({ user }: { user: HeaderUser }) {
                         </Link>
                       ))}
                     </div>
-                  ) : null}
-                </details>
-              ))}
+                  </details>
+                ) : (
+                  <Link
+                    key={item.label}
+                    href={item.href}
+                    aria-current={isActive(item.href) ? 'page' : undefined}
+                    className={cn(
+                      'flex min-h-11 items-center border-b border-border/70 px-2 py-3 text-sm font-semibold last:border-0',
+                      isActive(item.href) && 'text-primary-600 dark:text-primary-300',
+                    )}
+                  >
+                    {item.label}
+                  </Link>
+                ),
+              )}
 
               <div className="mt-3 space-y-1 border-t border-border pt-3">
-                <Link href="/counsellor" className="block rounded-lg px-2 py-2.5 text-sm font-semibold">Ask Saarthi</Link>
-                <Link href="/compare" className="block rounded-lg px-2 py-2.5 text-sm font-semibold">Compare Courses {count > 0 && `(${count})`}</Link>
-                <Link href="/verify" className="block rounded-lg px-2 py-2.5 text-sm font-semibold">Verify Certificate</Link>
+                <Link href="/counsellor" aria-current={isActive('/counsellor') ? 'page' : undefined} className={cn('block rounded-lg px-2 py-2.5 text-sm font-semibold', isActive('/counsellor') && drawerLinkActive)}>Ask Sarthi</Link>
+                <Link href="/compare" aria-current={isActive('/compare') ? 'page' : undefined} className={cn('block rounded-lg px-2 py-2.5 text-sm font-semibold', isActive('/compare') && drawerLinkActive)}>Compare Courses {count > 0 && `(${count})`}</Link>
+                <Link href="/shop" aria-current={isActive('/shop') ? 'page' : undefined} className={cn('block rounded-lg px-2 py-2.5 text-sm font-semibold', isActive('/shop') && drawerLinkActive)}>Student Shop</Link>
+                <Link href="/shop/cart" aria-current={cartActive ? 'page' : undefined} className={cn('block rounded-lg px-2 py-2.5 text-sm font-semibold', cartActive && drawerLinkActive)}>Cart {cartReady && cartCount > 0 && `(${cartCount})`}</Link>
+                <Link href="/verify" aria-current={isActive('/verify') ? 'page' : undefined} className={cn('block rounded-lg px-2 py-2.5 text-sm font-semibold', isActive('/verify') && drawerLinkActive)}>Verify Certificate</Link>
               </div>
             </nav>
 
