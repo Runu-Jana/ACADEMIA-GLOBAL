@@ -86,7 +86,7 @@ export default async function HomePage() {
       {/* ---------------------------------------- universities + popular exams */}
       <section className="container py-10">
         <div className="grid gap-5 lg:grid-cols-[2.2fr_1fr]">
-          <div>
+          <div className="min-w-0">
             <SectionTitle
               eyebrow="Institutions"
               title="Top Universities &amp; Institutions"
