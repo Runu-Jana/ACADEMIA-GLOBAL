@@ -1,13 +1,14 @@
 'use client'
 
 import Link from 'next/link'
-import { Clock, Monitor, ShieldCheck, GitCompare, Check, Sparkles, Briefcase } from 'lucide-react'
+import { Clock, Monitor, ShieldCheck, GitCompare, Check, Sparkles, Briefcase, Heart } from 'lucide-react'
 import { CourseThumb, UniversityMark } from './course-thumb'
 import { Badge } from '@/components/ui/badge'
 import { Stars } from '@/components/ui/stars'
 import { buttonVariants } from '@/components/ui/button'
 import { TiltCard } from '@/components/fx/tilt-card'
 import { useCompare } from '@/lib/use-compare'
+import { useSaved } from '@/lib/use-saved'
 import { cn, formatINR } from '@/lib/utils'
 import { COURSE_MODES } from '@/lib/constants'
 
@@ -41,6 +42,8 @@ export function CourseCard({
 }) {
   const { has, toggle } = useCompare()
   const inCompare = has(course.id)
+  const { isSaved, toggle: toggleSave } = useSaved()
+  const saved = isSaved(course.id)
   const modeLabel = COURSE_MODES.find((m) => m.value === course.mode)?.label ?? course.mode
 
   const features = [
@@ -67,26 +70,46 @@ export function CourseCard({
           </Badge>
         )}
 
-        <button
-          type="button"
-          onClick={(e) => {
-            e.preventDefault()
-            const r = toggle(course.id)
-            if (r.full) alert('You can compare up to 4 courses at a time.')
-          }}
-          aria-pressed={inCompare}
-          aria-label={inCompare ? 'Remove from comparison' : 'Add to comparison'}
-          title={inCompare ? 'Remove from comparison' : 'Add to comparison'}
-          className={cn(
-            'absolute right-3 top-3 grid h-8 w-8 place-items-center rounded-lg backdrop-blur-md transition-all duration-300 active:scale-90',
-            inCompare
-              ? 'bg-accent-orange text-white shadow-sm'
-              : 'bg-white/85 text-slate-600 hover:bg-white hover:text-primary-600',
-          )}
-        >
-          {inCompare ? <Check className="h-4 w-4" /> : <GitCompare className="h-4 w-4" />}
-        </button>
+        <div className="absolute right-3 top-3 flex items-center gap-1.5">
+          <button
+            type="button"
+            onClick={(e) => {
+              e.preventDefault()
+              toggleSave(course.id)
+            }}
+            aria-pressed={saved}
+            aria-label={saved ? 'Remove from saved' : 'Save course'}
+            title={saved ? 'Saved' : 'Save course'}
+            className={cn(
+              'grid h-8 w-8 place-items-center rounded-lg backdrop-blur-md transition-all duration-300 active:scale-90',
+              saved
+                ? 'bg-rose-500 text-white shadow-sm'
+                : 'bg-white/85 text-slate-600 hover:bg-white hover:text-rose-500',
+            )}
+          >
+            <Heart className={cn('h-4 w-4', saved && 'fill-current')} />
+          </button>
 
+          <button
+            type="button"
+            onClick={(e) => {
+              e.preventDefault()
+              const r = toggle(course.id)
+              if (r.full) alert('You can compare up to 4 courses at a time.')
+            }}
+            aria-pressed={inCompare}
+            aria-label={inCompare ? 'Remove from comparison' : 'Add to comparison'}
+            title={inCompare ? 'Remove from comparison' : 'Add to comparison'}
+            className={cn(
+              'grid h-8 w-8 place-items-center rounded-lg backdrop-blur-md transition-all duration-300 active:scale-90',
+              inCompare
+                ? 'bg-accent-orange text-white shadow-sm'
+                : 'bg-white/85 text-slate-600 hover:bg-white hover:text-primary-600',
+            )}
+          >
+            {inCompare ? <Check className="h-4 w-4" /> : <GitCompare className="h-4 w-4" />}
+          </button>
+        </div>
       </div>
 
       <div className="flex flex-1 flex-col p-4">

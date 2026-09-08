@@ -25,6 +25,7 @@ import { asList, cn, formatCount, formatDate, formatINR, initials } from '@/lib/
 import { COURSE_LEVELS, COURSE_MODES, STREAMS } from '@/lib/constants'
 import { CourseTabs, type TabItem } from './course-tabs'
 import { CompareButton } from './compare-button'
+import { SaveButton } from '@/components/course/save-button'
 
 const courseSelect = {
   id: true, slug: true, title: true, mode: true, stream: true, level: true,
@@ -930,6 +931,7 @@ export default async function CourseDetailPage({
                   </a>
                 )}
 
+                <SaveButton courseId={course.id} variant="chip" className="w-full justify-center" />
                 <CompareButton courseId={course.id} />
               </div>
 
