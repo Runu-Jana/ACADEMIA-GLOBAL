@@ -1,13 +1,14 @@
 'use client'
 
 import Link from 'next/link'
-import { ShoppingCart, Check, BookOpen, Package } from 'lucide-react'
+import { ShoppingCart, Check, BookOpen, Package, Heart } from 'lucide-react'
 import { ProductCover } from './product-cover'
 import { Badge } from '@/components/ui/badge'
 import { Stars } from '@/components/ui/stars'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { TiltCard } from '@/components/fx/tilt-card'
 import { useCart } from '@/lib/use-cart'
+import { useSavedProducts } from '@/lib/use-saved'
 import { cn } from '@/lib/utils'
 import { formatPaise, discountPct, stockState, categoryLabel } from '@/lib/shop'
 
@@ -39,6 +40,8 @@ export function ProductCard({
 }) {
   const { add, has, ready } = useCart()
   const inCart = ready && has(product.id)
+  const { isSaved, toggle: toggleSave } = useSavedProducts()
+  const saved = isSaved(product.id)
   const off = discountPct(product.price, product.mrp)
   const stock = stockState(product.stock)
   const isBook = product.kind === 'BOOK'
@@ -62,6 +65,25 @@ export function ProductCard({
             className="h-44"
           />
         </Link>
+
+        <button
+          type="button"
+          onClick={(e) => {
+            e.preventDefault()
+            toggleSave(product.id)
+          }}
+          aria-pressed={saved}
+          aria-label={saved ? 'Remove from saved' : 'Save item'}
+          title={saved ? 'Saved' : 'Save item'}
+          className={cn(
+            'absolute right-3 top-3 z-10 grid h-8 w-8 place-items-center rounded-lg backdrop-blur-md transition-all duration-300 active:scale-90',
+            saved
+              ? 'bg-rose-500 text-white shadow-sm'
+              : 'bg-white/85 text-slate-600 hover:bg-white hover:text-rose-500',
+          )}
+        >
+          <Heart className={cn('h-4 w-4', saved && 'fill-current')} />
+        </button>
 
         {off > 0 && (
           <Badge tone="holo" className="absolute left-3 top-3 shadow-sm">

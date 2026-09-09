@@ -47,6 +47,7 @@ model User {
   counsellorChats  ChatMessage[]
   notifications    Notification[]
   savedCourses     SavedCourse[]
+  savedProducts    SavedProduct[]
 
   @@index([role])
   @@index([universityId])
@@ -65,6 +66,23 @@ model SavedCourse {
   course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
 
   @@unique([userId, courseId])
+  @@index([userId, createdAt])
+}
+
+/// A shop product a student has saved for later — the store's answer to the
+/// course wishlist. Distinct from the cart (which lives in localStorage and
+/// means "buy now"): saving is "come back to this", and because it's in the DB
+/// it follows the student across devices.
+model SavedProduct {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  userId    String
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
   @@index([userId, createdAt])
 }
 
@@ -957,6 +975,7 @@ model Product {
   updatedAt DateTime @updatedAt
 
   orderItems ShopOrderItem[]
+  savedBy    SavedProduct[]
 
   @@index([status, kind])
   @@index([status, category])

@@ -60,7 +60,7 @@ const TITLES: { prefix: string; title: string; exact?: boolean }[] = [
   { prefix: '/dashboard/assignments', title: 'Assignments' },
   { prefix: '/dashboard/tests', title: 'Tests & Exams' },
   { prefix: '/dashboard/certificates', title: 'Certificates' },
-  { prefix: '/dashboard/saved', title: 'Saved Courses' },
+  { prefix: '/dashboard/saved', title: 'Saved' },
   { prefix: '/dashboard/resume', title: 'AI Resume' },
   { prefix: '/dashboard/career', title: 'AI Career Kit' },
   { prefix: '/dashboard/profile', title: 'Profile' },

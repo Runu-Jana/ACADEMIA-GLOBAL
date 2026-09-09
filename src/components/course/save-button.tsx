@@ -2,32 +2,37 @@
 
 import * as React from 'react'
 import { Heart } from 'lucide-react'
-import { useSaved } from '@/lib/use-saved'
+import { useSaved, useSavedProducts } from '@/lib/use-saved'
 import { cn } from '@/lib/utils'
 
 /**
- * A heart that toggles a course in the student's saved list.
+ * A heart that toggles a course or product in the student's saved list.
  *
  * `icon` is the overlay used on a card (it sits on top of a Link, so it stops
  * the click from navigating); `chip` is the labelled button for a detail page.
  * A signed-out visitor who taps it is sent to sign in and returned here.
+ *
+ * The presentational `HeartButton` is shared; `SaveButton` (courses) and
+ * `ProductSaveButton` (shop) bind it to their respective stores so each mounts
+ * exactly one wishlist hook.
  */
-export function SaveButton({
-  courseId,
-  variant = 'icon',
+function HeartButton({
+  saved,
+  onToggle,
+  noun,
+  variant,
   className,
 }: {
-  courseId: string
-  variant?: 'icon' | 'chip'
+  saved: boolean
+  onToggle: () => void
+  noun: string
+  variant: 'icon' | 'chip'
   className?: string
 }) {
-  const { isSaved, toggle } = useSaved()
-  const saved = isSaved(courseId)
-
   function onClick(e: React.MouseEvent) {
     e.preventDefault()
     e.stopPropagation()
-    toggle(courseId)
+    onToggle()
   }
 
   if (variant === 'chip') {
@@ -55,8 +60,8 @@ export function SaveButton({
       type="button"
       onClick={onClick}
       aria-pressed={saved}
-      aria-label={saved ? 'Remove from saved' : 'Save course'}
-      title={saved ? 'Saved' : 'Save course'}
+      aria-label={saved ? 'Remove from saved' : `Save ${noun}`}
+      title={saved ? 'Saved' : `Save ${noun}`}
       className={cn(
         'grid h-9 w-9 place-items-center rounded-full backdrop-blur-sm transition-all duration-200',
         saved
@@ -67,5 +72,47 @@ export function SaveButton({
     >
       <Heart className={cn('h-4 w-4 transition-transform', saved && 'scale-110 fill-current')} />
     </button>
+  )
+}
+
+export function SaveButton({
+  courseId,
+  variant = 'icon',
+  className,
+}: {
+  courseId: string
+  variant?: 'icon' | 'chip'
+  className?: string
+}) {
+  const { isSaved, toggle } = useSaved()
+  return (
+    <HeartButton
+      saved={isSaved(courseId)}
+      onToggle={() => toggle(courseId)}
+      noun="course"
+      variant={variant}
+      className={className}
+    />
+  )
+}
+
+export function ProductSaveButton({
+  productId,
+  variant = 'icon',
+  className,
+}: {
+  productId: string
+  variant?: 'icon' | 'chip'
+  className?: string
+}) {
+  const { isSaved, toggle } = useSavedProducts()
+  return (
+    <HeartButton
+      saved={isSaved(productId)}
+      onToggle={() => toggle(productId)}
+      noun="item"
+      variant={variant}
+      className={className}
+    />
   )
 }
