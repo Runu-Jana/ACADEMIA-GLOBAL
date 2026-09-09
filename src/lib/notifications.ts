@@ -15,6 +15,7 @@ export type NotificationType =
   | 'TEST'
   | 'MATERIAL'
   | 'LIVE'
+  | 'ACHIEVEMENT'
   | 'GENERAL'
 
 export interface NotifyInput {

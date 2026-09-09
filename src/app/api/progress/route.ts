@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { prisma } from '@/lib/prisma'
 import { getSession } from '@/lib/auth'
 import { notify } from '@/lib/notifications'
+import { getStreakSnapshot, hadActivityToday, STREAK_MILESTONES } from '@/lib/gamification'
 import { pct } from '@/lib/utils'
 
 const schema = z.object({
@@ -130,12 +131,24 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'You are not enrolled in this course' }, { status: 403 })
   }
 
+  // Track whether this is the student's first recorded activity today, so a
+  // streak/goal celebration fires at most once per day (and only on a genuinely
+  // new completion, not a re-check of an already-done lesson).
+  let firstActivityToday = false
   if (completed) {
-    await prisma.lessonProgress.upsert({
+    const existing = await prisma.lessonProgress.findUnique({
       where: { userId_lessonId: { userId, lessonId } },
-      create: { userId, lessonId },
-      update: {},
+      select: { id: true },
     })
+    if (!existing) {
+      firstActivityToday = !(await hadActivityToday(userId))
+      try {
+        await prisma.lessonProgress.create({ data: { userId, lessonId } })
+      } catch {
+        // Raced with another tab that created it first — not a fresh completion.
+        firstActivityToday = false
+      }
+    }
   } else {
     await prisma.lessonProgress.deleteMany({ where: { userId, lessonId } })
   }
@@ -195,6 +208,32 @@ export async function POST(req: Request) {
           select: { serial: true, grade: true },
         })
       }
+    }
+  }
+
+  // Best-effort engagement celebration. Gated on the day's first activity so it
+  // can fire only once per day, and wrapped so a notification hiccup can never
+  // break progress-saving. A streak milestone wins over the weekly-goal nudge.
+  if (firstActivityToday) {
+    try {
+      const snap = await getStreakSnapshot(userId)
+      if (STREAK_MILESTONES.includes(snap.current)) {
+        await notify(userId, {
+          type: 'ACHIEVEMENT',
+          title: `${snap.current}-day learning streak! 🔥`,
+          body: `You've studied ${snap.current} days in a row. Keep the momentum going.`,
+          url: '/dashboard/goals',
+        })
+      } else if (snap.weeklyGoalMet && snap.weeklyActiveDays === snap.weeklyTarget) {
+        await notify(userId, {
+          type: 'ACHIEVEMENT',
+          title: 'Weekly goal reached! 🎯',
+          body: `You hit your goal of ${snap.weeklyTarget} learning days this week. Well done.`,
+          url: '/dashboard/goals',
+        })
+      }
+    } catch {
+      // A missed celebration is never worth failing the request over.
     }
   }
 

@@ -14,6 +14,8 @@ import { CourseThumb } from '@/components/course/course-thumb'
 import {
   StatTile, EmptyState, PanelHeading, MaterialIcon, materialLabel,
 } from '@/components/dashboard/primitives'
+import { EngagementSummary } from '@/components/dashboard/engagement'
+import { getEngagement } from '@/lib/gamification'
 import { cn, formatBytes, formatDate } from '@/lib/utils'
 
 export const metadata = { title: 'Dashboard' }
@@ -84,7 +86,7 @@ export default async function DashboardPage() {
 
   const courseIds = enrollments.map((e) => e.course.id)
 
-  const [progressRows, attempts, recentMaterial, assignments] = await Promise.all([
+  const [progressRows, attempts, recentMaterial, assignments, engagement] = await Promise.all([
     prisma.lessonProgress.findMany({
       where: { userId: user.id, lesson: { module: { courseId: { in: courseIds } } } },
       select: { lessonId: true },
@@ -109,6 +111,7 @@ export default async function DashboardPage() {
       take: 3,
       select: { id: true, title: true, course: { select: { title: true } } },
     }),
+    getEngagement(user.id),
   ])
 
   const assignmentCount = await prisma.material.count({
@@ -214,6 +217,11 @@ export default async function DashboardPage() {
           enrollments.filter((e) => e.status === 'ACTIVE').length === 1 ? '' : 's'
         }. Keep going — consistency beats intensity.`}
       />
+
+      {/* ------------------------------------------------ momentum strip */}
+      <Reveal>
+        <EngagementSummary engagement={engagement} />
+      </Reveal>
 
       {/* --------------------------------------------------- stat tiles */}
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">

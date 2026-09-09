@@ -7,7 +7,7 @@ import {
   Video,
   LayoutDashboard, BookOpen, GraduationCap, FolderOpen, PenSquare, ClipboardList,
   Award, FileText, User as UserIcon, LifeBuoy, Menu, X, Search, ChevronDown, LogOut,
-  PanelLeftClose, PanelLeft, Home, Compass, Rocket, Heart,
+  PanelLeftClose, PanelLeft, Home, Compass, Rocket, Heart, Target,
 } from 'lucide-react'
 import { Logo } from '@/components/layout/logo'
 import { ThemeToggle } from '@/components/layout/theme-toggle'
@@ -43,6 +43,7 @@ const NAV: NavItem[] = [
   { label: 'Assignments', href: '/dashboard/assignments', icon: PenSquare },
   { label: 'Tests & Exams', href: '/dashboard/tests', icon: ClipboardList },
   { label: 'Certificates', href: '/dashboard/certificates', icon: Award },
+  { label: 'Goals', href: '/dashboard/goals', icon: Target },
   { label: 'Saved', href: '/dashboard/saved', icon: Heart },
   { label: 'AI Resume', href: '/dashboard/resume', icon: FileText },
   { label: 'AI Career Kit', href: '/dashboard/career', icon: Rocket },
@@ -60,6 +61,7 @@ const TITLES: { prefix: string; title: string; exact?: boolean }[] = [
   { prefix: '/dashboard/assignments', title: 'Assignments' },
   { prefix: '/dashboard/tests', title: 'Tests & Exams' },
   { prefix: '/dashboard/certificates', title: 'Certificates' },
+  { prefix: '/dashboard/goals', title: 'Goals & Streaks' },
   { prefix: '/dashboard/saved', title: 'Saved' },
   { prefix: '/dashboard/resume', title: 'AI Resume' },
   { prefix: '/dashboard/career', title: 'AI Career Kit' },
