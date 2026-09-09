@@ -5,6 +5,10 @@ build/
 .DS_Store
 *.pem
 
+# claude code — share the dev-server launch config, keep personal/local settings out
+.claude/*
+!.claude/launch.json
+
 # env
 .env
 .env*.local
