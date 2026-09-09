@@ -2,13 +2,14 @@
 
 import * as React from 'react'
 import Link from 'next/link'
-import { useRouter, usePathname } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 import {
-  Search, Bot, GitCompare, ShoppingCart, Menu, X, ChevronDown, LogOut,
+  Bot, GitCompare, ShoppingCart, Menu, X, ChevronDown, LogOut,
   LayoutDashboard, GraduationCap, User as UserIcon, Shield,
 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { Logo } from './logo'
+import { SearchBox } from './search-box'
 import { ThemeToggle } from './theme-toggle'
 import { LocaleSwitcher } from './locale-switcher'
 import { buttonVariants } from '@/components/ui/button'
@@ -113,7 +114,6 @@ const NAV_KEYS: Record<string, string> = {
 }
 
 export function HeaderClient({ user }: { user: HeaderUser }) {
-  const router = useRouter()
   const pathname = usePathname()
   const tn = useTranslations('nav')
   const th = useTranslations('header')
@@ -130,7 +130,6 @@ export function HeaderClient({ user }: { user: HeaderUser }) {
   // backdrop-filter makes the header the containing block for fixed children, so
   // a "full-screen" fixed catcher only ever covered the header strip.
   const userMenuRef = React.useRef<HTMLDivElement>(null)
-  const [q, setQ] = React.useState('')
   // The mega-nav dropdown is JS-controlled, not CSS :hover — it opens only on a
   // fresh pointer-enter/focus and is set to null on click or navigation. That way
   // clicking a category closes it immediately, and a cursor left sitting over the
@@ -189,11 +188,6 @@ export function HeaderClient({ user }: { user: HeaderUser }) {
       document.removeEventListener('keydown', onKey)
     }
   }, [menu])
-
-  function submitSearch(e: React.FormEvent) {
-    e.preventDefault()
-    router.push(q.trim() ? `/courses?q=${encodeURIComponent(q.trim())}` : '/courses')
-  }
 
   // ----------------------------------------------------------- active nav
   // A destination is "active" when the current path is it, or nested under it,
@@ -256,25 +250,7 @@ export function HeaderClient({ user }: { user: HeaderUser }) {
 
           <Logo />
 
-          <form onSubmit={submitSearch} className="ml-auto hidden max-w-md flex-1 md:block lg:ml-6">
-            <div className="group relative">
-              <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground transition-colors group-focus-within:text-primary-500" />
-              <input
-                value={q}
-                onChange={(e) => setQ(e.target.value)}
-                placeholder={th('searchPlaceholder')}
-                aria-label="Search courses"
-                className="h-10 w-full rounded-xl border border-border bg-muted/60 pl-10 pr-24 text-sm outline-none transition-all duration-300 placeholder:text-muted-foreground/80 focus:border-primary-300 focus:bg-surface focus:ring-4 focus:ring-primary-500/10"
-              />
-              <button
-                type="submit"
-                className="absolute right-1.5 top-1/2 grid h-7 w-9 -translate-y-1/2 place-items-center rounded-lg bg-primary-600 text-white transition-colors hover:bg-primary-700"
-                aria-label="Search"
-              >
-                <Search className="h-3.5 w-3.5" />
-              </button>
-            </div>
-          </form>
+          <SearchBox variant="bar" className="ml-auto hidden max-w-md flex-1 md:block lg:ml-6" />
 
           <div className="ml-auto flex items-center gap-1.5 md:ml-3">
             <Link
@@ -531,16 +507,7 @@ export function HeaderClient({ user }: { user: HeaderUser }) {
             </div>
 
             <div className="border-b border-border p-4">
-              <form onSubmit={submitSearch} className="relative">
-                <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <input
-                  value={q}
-                  onChange={(e) => setQ(e.target.value)}
-                  placeholder="Search courses…"
-                  aria-label="Search courses"
-                  className="h-11 w-full rounded-xl border border-border bg-muted/60 pl-10 pr-3 text-sm outline-none focus:border-primary-300"
-                />
-              </form>
+              <SearchBox variant="drawer" onNavigate={() => setDrawer(false)} />
             </div>
 
             <nav className="flex-1 overflow-y-auto p-3">

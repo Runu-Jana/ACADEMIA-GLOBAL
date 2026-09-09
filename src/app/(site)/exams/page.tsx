@@ -6,24 +6,12 @@ import { Badge } from '@/components/ui/badge'
 import { Reveal } from '@/components/fx/reveal'
 import { TiltCard } from '@/components/fx/tilt-card'
 import { Aurora } from '@/components/fx/aurora'
+import { EXAMS } from '@/lib/exams'
 
 export const metadata: Metadata = {
   title: 'Entrance & Competitive Exams',
   description: 'Explore popular entrance and competitive exams in India with eligibility, pattern and preparation guidance.',
 }
-
-const exams = [
-  { name: 'UPSC Civil Services', category: 'Government', level: 'Graduation', window: 'Feb – Sep', tone: 'primary' as const, blurb: 'India’s premier civil services examination for IAS, IPS and allied services.' },
-  { name: 'NEET UG', category: 'Medical', level: 'After 12th', window: 'May', tone: 'danger' as const, blurb: 'Single entrance test for MBBS, BDS and AYUSH admissions across India.' },
-  { name: 'JEE Main', category: 'Engineering', level: 'After 12th', window: 'Jan & Apr', tone: 'violet' as const, blurb: 'Gateway to NITs, IIITs and the JEE Advanced qualifier for the IITs.' },
-  { name: 'CAT', category: 'Management', level: 'Graduation', window: 'Nov', tone: 'cyan' as const, blurb: 'The common admission test for IIMs and top B-schools nationwide.' },
-  { name: 'CLAT', category: 'Law', level: 'After 12th', window: 'Dec', tone: 'warning' as const, blurb: 'Common law admission test for the National Law Universities.' },
-  { name: 'CUET UG', category: 'Central Universities', level: 'After 12th', window: 'May – Jun', tone: 'success' as const, blurb: 'Common entrance for undergraduate admissions to central universities.' },
-  { name: 'SSC CGL', category: 'Government', level: 'Graduation', window: 'Jun – Sep', tone: 'primary' as const, blurb: 'Combined graduate level exam for Group B and C posts in central ministries.' },
-  { name: 'IBPS PO (Banking)', category: 'Banking', level: 'Graduation', window: 'Aug – Nov', tone: 'orange' as const, blurb: 'Probationary officer recruitment across public sector banks.' },
-  { name: 'RRB NTPC (Railway)', category: 'Government', level: '12th / Graduation', window: 'Varies', tone: 'default' as const, blurb: 'Non-technical popular categories recruitment for Indian Railways.' },
-  { name: 'Haryana CET', category: 'State', level: '12th / Graduation', window: 'Varies', tone: 'success' as const, blurb: 'Common eligibility test for Group C and D posts in Haryana.' },
-]
 
 export default function ExamsPage() {
   return (
@@ -50,10 +38,12 @@ export default function ExamsPage() {
         />
 
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {exams.map((e, i) => (
+          {EXAMS.map((e, i) => (
             <Reveal key={e.name} delay={i * 50}>
               <TiltCard className="group h-full" intensity={7}>
-                <article className="card-base holo-ring holo-ring-hover flex h-full flex-col p-5 hover:shadow-lift">
+                {/* scroll-mt clears the sticky header when arriving via the
+                    /exams#exam-<slug> anchor a search result links to. */}
+                <article id={`exam-${e.slug}`} className="card-base holo-ring holo-ring-hover flex h-full scroll-mt-24 flex-col p-5 hover:shadow-lift">
                   <div className="flex items-start justify-between gap-3">
                     <h2 className="text-[15px] font-extrabold leading-snug">{e.name}</h2>
                     <Badge tone={e.tone}>{e.category}</Badge>

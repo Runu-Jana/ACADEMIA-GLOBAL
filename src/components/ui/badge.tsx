@@ -1,9 +1,10 @@
 import * as React from 'react'
 import { cn } from '@/lib/utils'
 
-type Tone =
+export type BadgeTone =
   | 'default' | 'primary' | 'success' | 'warning' | 'danger'
   | 'violet' | 'cyan' | 'orange' | 'holo'
+type Tone = BadgeTone
 
 const tones: Record<Tone, string> = {
   default: 'bg-muted text-muted-foreground border-border',
