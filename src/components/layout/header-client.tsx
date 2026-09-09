@@ -7,8 +7,10 @@ import {
   Search, Bot, GitCompare, ShoppingCart, Menu, X, ChevronDown, LogOut,
   LayoutDashboard, GraduationCap, User as UserIcon, Shield,
 } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { Logo } from './logo'
 import { ThemeToggle } from './theme-toggle'
+import { LocaleSwitcher } from './locale-switcher'
 import { buttonVariants } from '@/components/ui/button'
 import { useCompare } from '@/lib/use-compare'
 import { useCart } from '@/lib/use-cart'
@@ -97,9 +99,24 @@ const NAV: {
   { label: 'Shop', href: '/shop' },
 ]
 
+/** Maps each top-level nav item to its `nav.*` message key. Kept beside NAV so
+ *  the item's `label` stays the stable identifier for open/active state. */
+const NAV_KEYS: Record<string, string> = {
+  'Online Degrees': 'onlineDegrees',
+  'Distance Degrees': 'distanceDegrees',
+  'Regular Degrees': 'regularDegrees',
+  'Part-Time Courses': 'partTimeCourses',
+  Universities: 'universities',
+  Exams: 'exams',
+  Scholarships: 'scholarships',
+  Shop: 'shop',
+}
+
 export function HeaderClient({ user }: { user: HeaderUser }) {
   const router = useRouter()
   const pathname = usePathname()
+  const tn = useTranslations('nav')
+  const th = useTranslations('header')
   const { count } = useCompare()
   const { count: cartCount, ready: cartReady } = useCart()
 
@@ -245,7 +262,7 @@ export function HeaderClient({ user }: { user: HeaderUser }) {
               <input
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
-                placeholder="Search for Courses, Universities, Exams…"
+                placeholder={th('searchPlaceholder')}
                 aria-label="Search courses"
                 className="h-10 w-full rounded-xl border border-border bg-muted/60 pl-10 pr-24 text-sm outline-none transition-all duration-300 placeholder:text-muted-foreground/80 focus:border-primary-300 focus:bg-surface focus:ring-4 focus:ring-primary-500/10"
               />
@@ -271,7 +288,7 @@ export function HeaderClient({ user }: { user: HeaderUser }) {
               <span className="relative grid h-7 w-7 place-items-center rounded-lg bg-holo-sweep">
                 <Bot className="h-4 w-4 text-white" />
               </span>
-              Ask Sarthi
+              {th('askSarthi')}
             </Link>
 
             <Link
@@ -283,7 +300,7 @@ export function HeaderClient({ user }: { user: HeaderUser }) {
               )}
             >
               <GitCompare className={cn('h-4 w-4', isActive('/compare') ? 'text-white' : 'text-primary-600')} />
-              Compare
+              {th('compare')}
               {count > 0 && (
                 <span className="grid h-4.5 min-w-4.5 place-items-center rounded-full bg-accent-orange px-1 text-[10px] font-bold text-white">
                   {count}
@@ -310,6 +327,7 @@ export function HeaderClient({ user }: { user: HeaderUser }) {
               )}
             </Link>
 
+            <LocaleSwitcher className="hidden sm:block" />
             <ThemeToggle className="hidden sm:grid" />
 
             {user ? (
@@ -361,10 +379,10 @@ export function HeaderClient({ user }: { user: HeaderUser }) {
             ) : (
               <>
                 <Link href="/login" className={buttonVariants({ variant: 'outline', size: 'sm', className: 'hidden sm:inline-flex' })}>
-                  Login
+                  {th('login')}
                 </Link>
                 <Link href="/signup" className={buttonVariants({ variant: 'primary', size: 'sm' })}>
-                  Sign Up
+                  {th('signUp')}
                 </Link>
               </>
             )}
@@ -406,7 +424,7 @@ export function HeaderClient({ user }: { user: HeaderUser }) {
                       active && navBarActive,
                     )}
                   >
-                    {item.label}
+                    {tn(NAV_KEYS[item.label])}
                     {item.columns && (
                       <ChevronDown className={cn('h-3.5 w-3.5 transition-transform duration-300', open && 'rotate-180')} />
                     )}
@@ -460,7 +478,7 @@ export function HeaderClient({ user }: { user: HeaderUser }) {
                   isActive('/verify') && navBarActive,
                 )}
               >
-                Verify Certificate
+                {tn('verifyCertificate')}
               </Link>
             </li>
           </ul>
@@ -534,7 +552,7 @@ export function HeaderClient({ user }: { user: HeaderUser }) {
                 item.columns ? (
                   <details key={item.label} className="group border-b border-border/70 last:border-0">
                     <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between px-2 py-3 text-sm font-semibold marker:hidden">
-                      {item.label}
+                      {tn(NAV_KEYS[item.label])}
                       <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform group-open:rotate-180" />
                     </summary>
                     <div className="pb-2">
@@ -544,7 +562,7 @@ export function HeaderClient({ user }: { user: HeaderUser }) {
                         href={item.href}
                         className="block rounded-lg px-4 py-2 text-[13px] font-bold text-primary-600 transition-colors hover:bg-muted dark:text-primary-300"
                       >
-                        All {item.label}
+                        All {tn(NAV_KEYS[item.label])}
                       </Link>
                       {item.columns.flatMap((c) => c.links).map((l) => (
                         <Link
@@ -567,17 +585,17 @@ export function HeaderClient({ user }: { user: HeaderUser }) {
                       isActive(item.href) && 'text-primary-600 dark:text-primary-300',
                     )}
                   >
-                    {item.label}
+                    {tn(NAV_KEYS[item.label])}
                   </Link>
                 ),
               )}
 
               <div className="mt-3 space-y-1 border-t border-border pt-3">
-                <Link href="/counsellor" aria-current={isActive('/counsellor') ? 'page' : undefined} className={cn('block rounded-lg px-2 py-2.5 text-sm font-semibold', isActive('/counsellor') && drawerLinkActive)}>Ask Sarthi</Link>
+                <Link href="/counsellor" aria-current={isActive('/counsellor') ? 'page' : undefined} className={cn('block rounded-lg px-2 py-2.5 text-sm font-semibold', isActive('/counsellor') && drawerLinkActive)}>{th('askSarthi')}</Link>
                 <Link href="/compare" aria-current={isActive('/compare') ? 'page' : undefined} className={cn('block rounded-lg px-2 py-2.5 text-sm font-semibold', isActive('/compare') && drawerLinkActive)}>Compare Courses {count > 0 && `(${count})`}</Link>
                 <Link href="/shop" aria-current={isActive('/shop') ? 'page' : undefined} className={cn('block rounded-lg px-2 py-2.5 text-sm font-semibold', isActive('/shop') && drawerLinkActive)}>Student Shop</Link>
                 <Link href="/shop/cart" aria-current={cartActive ? 'page' : undefined} className={cn('block rounded-lg px-2 py-2.5 text-sm font-semibold', cartActive && drawerLinkActive)}>Cart {cartReady && cartCount > 0 && `(${cartCount})`}</Link>
-                <Link href="/verify" aria-current={isActive('/verify') ? 'page' : undefined} className={cn('block rounded-lg px-2 py-2.5 text-sm font-semibold', isActive('/verify') && drawerLinkActive)}>Verify Certificate</Link>
+                <Link href="/verify" aria-current={isActive('/verify') ? 'page' : undefined} className={cn('block rounded-lg px-2 py-2.5 text-sm font-semibold', isActive('/verify') && drawerLinkActive)}>{tn('verifyCertificate')}</Link>
               </div>
             </nav>
 

@@ -1,0 +1,26 @@
+{
+  "nav": {
+    "onlineDegrees": "Online Degrees",
+    "distanceDegrees": "Distance Degrees",
+    "regularDegrees": "Regular Degrees",
+    "partTimeCourses": "Part-Time Courses",
+    "universities": "Universities",
+    "exams": "Exams",
+    "scholarships": "Scholarships",
+    "shop": "Shop",
+    "verifyCertificate": "Verify Certificate"
+  },
+  "header": {
+    "askSarthi": "Ask Sarthi",
+    "compare": "Compare",
+    "login": "Login",
+    "signUp": "Sign Up",
+    "cart": "Cart",
+    "search": "Search",
+    "searchPlaceholder": "Search for Courses, Universities, Exams…"
+  },
+  "language": {
+    "label": "Language",
+    "switchTo": "Switch language"
+  }
+}

@@ -1,3 +1,9 @@
+import createNextIntlPlugin from 'next-intl/plugin'
+
+// Locale is resolved from a cookie (no /[locale]/ URL segment yet), so the
+// request config lives here rather than behind i18n routing middleware.
+const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts')
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
@@ -13,4 +19,4 @@ const nextConfig = {
   },
 }
 
-export default nextConfig
+export default withNextIntl(nextConfig)

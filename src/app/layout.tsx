@@ -4,6 +4,8 @@ import { PwaRegister } from '@/components/pwa-register'
 import { InstallPrompt } from '@/components/install-prompt'
 import { JsonLd } from '@/components/seo/json-ld'
 import { SITE_URL, organizationLd, websiteLd } from '@/lib/seo'
+import { NextIntlClientProvider } from 'next-intl'
+import { getLocale, getMessages } from 'next-intl/server'
 import './globals.css'
 
 const inter = Inter({
@@ -65,9 +67,12 @@ const themeScript = `
 })();
 `
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const locale = await getLocale()
+  const messages = await getMessages()
+
   return (
-    <html lang="en" suppressHydrationWarning className={`${inter.variable} ${outfit.variable}`}>
+    <html lang={locale} suppressHydrationWarning className={`${inter.variable} ${outfit.variable}`}>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
         <JsonLd data={[organizationLd(), websiteLd()]} />
@@ -79,7 +84,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         >
           Skip to content
         </a>
-        {children}
+        <NextIntlClientProvider locale={locale} messages={messages}>
+          {children}
+        </NextIntlClientProvider>
         <PwaRegister />
         <InstallPrompt />
       </body>

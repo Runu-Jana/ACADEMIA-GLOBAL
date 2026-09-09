@@ -1,0 +1,26 @@
+{
+  "nav": {
+    "onlineDegrees": "ऑनलाइन डिग्री",
+    "distanceDegrees": "दूरस्थ डिग्री",
+    "regularDegrees": "नियमित डिग्री",
+    "partTimeCourses": "अंशकालिक पाठ्यक्रम",
+    "universities": "विश्वविद्यालय",
+    "exams": "परीक्षाएँ",
+    "scholarships": "छात्रवृत्ति",
+    "shop": "स्टोर",
+    "verifyCertificate": "प्रमाणपत्र सत्यापित करें"
+  },
+  "header": {
+    "askSarthi": "सार्थी से पूछें",
+    "compare": "तुलना करें",
+    "login": "लॉग इन",
+    "signUp": "साइन अप",
+    "cart": "कार्ट",
+    "search": "खोजें",
+    "searchPlaceholder": "कोर्स, विश्वविद्यालय, परीक्षाएँ खोजें…"
+  },
+  "language": {
+    "label": "भाषा",
+    "switchTo": "भाषा बदलें"
+  }
+}
