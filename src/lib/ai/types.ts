@@ -20,6 +20,7 @@ export type AiFeature =
   | 'purpose'
   | 'assessment'
   | 'translate'
+  | 'promotion'
 
 export type AiEffort = 'low' | 'medium' | 'high'
 
@@ -146,6 +147,9 @@ const BALANCED: Record<AiFeature, Route> = {
   // UI-string localisation. Runs once per string per language at build time, so
   // quality (a credible Hindi/Tamil rendering) matters more than the token cost.
   translate: { model: 'claude-sonnet-5', effort: 'low', maxTokens: 2000 },
+  // Marketing copy for a promotion, from an operator's brief. Short output an
+  // operator always reviews before publishing, so the mid tier is plenty.
+  promotion: { model: 'claude-sonnet-5', effort: 'low', maxTokens: 800 },
 }
 
 /**
@@ -168,6 +172,7 @@ const ECONOMY: Record<AiFeature, Route> = {
   interview: { model: 'gpt-5.6-terra', effort: 'high', maxTokens: 800 },
   assessment: { model: 'gpt-5.6-luna', effort: 'medium', maxTokens: 2000 },
   translate: { model: 'gpt-5.6-luna', effort: 'low', maxTokens: 2000 },
+  promotion: { model: 'gpt-5.6-luna', effort: 'low', maxTokens: 800 },
 }
 
 /** `balanced` (default) or `economy`. Switchable without a deploy. */
