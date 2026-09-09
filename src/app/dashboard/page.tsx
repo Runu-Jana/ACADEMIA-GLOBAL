@@ -15,7 +15,9 @@ import {
   StatTile, EmptyState, PanelHeading, MaterialIcon, materialLabel,
 } from '@/components/dashboard/primitives'
 import { EngagementSummary } from '@/components/dashboard/engagement'
+import { RecommendedCourses } from '@/components/dashboard/recommended-courses'
 import { getEngagement } from '@/lib/gamification'
+import { recommendCourses } from '@/lib/recommendations'
 import { cn, formatBytes, formatDate } from '@/lib/utils'
 
 export const metadata = { title: 'Dashboard' }
@@ -86,7 +88,7 @@ export default async function DashboardPage() {
 
   const courseIds = enrollments.map((e) => e.course.id)
 
-  const [progressRows, attempts, recentMaterial, assignments, engagement] = await Promise.all([
+  const [progressRows, attempts, recentMaterial, assignments, engagement, recommended] = await Promise.all([
     prisma.lessonProgress.findMany({
       where: { userId: user.id, lesson: { module: { courseId: { in: courseIds } } } },
       select: { lessonId: true },
@@ -112,6 +114,7 @@ export default async function DashboardPage() {
       select: { id: true, title: true, course: { select: { title: true } } },
     }),
     getEngagement(user.id),
+    recommendCourses(user.id),
   ])
 
   const assignmentCount = await prisma.material.count({
@@ -205,6 +208,7 @@ export default async function DashboardPage() {
             actionLabel="Explore Courses"
           />
         </Reveal>
+        <RecommendedCourses recommendation={recommended} />
       </div>
     )
   }
@@ -391,6 +395,9 @@ export default async function DashboardPage() {
           )}
         </aside>
       </div>
+
+      {/* ------------------------------------------- recommended for you */}
+      <RecommendedCourses recommendation={recommended} />
 
       {/* ------------------------------------------- recent study material */}
       <section aria-labelledby="material-heading">
