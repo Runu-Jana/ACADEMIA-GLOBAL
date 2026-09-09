@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma'
 import { sendEmail, sendAdminEmail } from '@/lib/email'
 import { shopOrderEmail, shopOrderAdminEmail } from '@/lib/emails'
+import { recordRedemption } from '@/lib/promotions'
 import { captureError } from '@/lib/observability'
 
 /**
@@ -51,6 +52,18 @@ export async function markShopOrderPaid(
       },
       include: { items: true },
     })
+
+    // Burn the coupon now that money has actually moved — one redemption per
+    // order, gated by the PENDING→PAID transition above so a webhook retry can't
+    // double-count it.
+    if (order.promotionId && order.discount > 0) {
+      await recordRedemption(tx, {
+        promotionId: order.promotionId,
+        userId: order.userId,
+        shopOrderId: order.id,
+        amount: order.discount,
+      })
+    }
 
     return { alreadyPaid: false, order: updated }
   })

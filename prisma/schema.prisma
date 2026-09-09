@@ -1008,11 +1008,18 @@ model ShopOrder {
   /// CANCELLED (before dispatch) | REFUNDED (after payment).
   status String @default("PENDING")
 
-  /// All paise. `total` = subtotal + shipping, stored rather than recomputed so
-  /// a later change to the shipping rule can't rewrite historical orders.
+  /// All paise. `total` = subtotal − discount + shipping, stored rather than
+  /// recomputed so a later change to a rule can't rewrite historical orders.
   subtotal Int
+  /// Coupon discount in paise (0 = none).
+  discount Int    @default(0)
   shipping Int
   total    Int
+
+  /// Applied coupon, snapshotted. `promotionId` is a soft link for analytics;
+  /// the authoritative per-code usage record is PromotionRedemption.
+  couponCode  String?
+  promotionId String?
 
   gatewayOrderId   String? @unique
   gatewayPaymentId String?
@@ -1070,4 +1077,69 @@ model ShopOrderItem {
 
   @@index([orderId])
   @@index([productId])
+}
+
+// --------------------------------------------------------------- promotions
+
+/// A marketing promotion / coupon code. The rules here are DETERMINISTIC — the
+/// engine in lib/promotions.ts decides eligibility and the discount amount; an
+/// AI assistant may draft the copy and suggest values, but never grants money at
+/// redemption time. Discounts apply to the goods subtotal, never to shipping.
+model Promotion {
+  id          String  @id @default(cuid())
+  /// Stored upper-cased; entered case-insensitively at checkout.
+  code        String  @unique
+  title       String
+  description String?
+
+  /// PERCENT | FLAT
+  type  String
+  /// PERCENT: 1–100. FLAT: discount in paise.
+  value Int
+  /// SHOP | COURSE | ALL — which storefront the code works on.
+  scope String @default("SHOP")
+
+  /// Eligibility. Null = no limit. All paise/counts.
+  minSubtotal  Int? // minimum goods subtotal to qualify
+  maxDiscount  Int? // caps a PERCENT discount
+  usageLimit   Int? // total redemptions allowed across everyone
+  perUserLimit Int? // redemptions allowed per signed-in user
+
+  /// Denormalised redemption counter, kept in step with PromotionRedemption for
+  /// cheap limit checks and admin display.
+  usedCount Int @default(0)
+
+  startsAt DateTime?
+  endsAt   DateTime?
+  /// DRAFT | ACTIVE | PAUSED. Only ACTIVE (within its window) redeems.
+  status String @default("DRAFT")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  redemptions PromotionRedemption[]
+
+  @@index([status])
+}
+
+/// One confirmed redemption of a promotion. Written when an order is actually
+/// PAID (never at checkout creation), so an abandoned cart can't burn a code.
+/// Powers per-user limits and campaign analytics.
+model PromotionRedemption {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  promotionId String
+  promotion   Promotion @relation(fields: [promotionId], references: [id], onDelete: Cascade)
+
+  /// Null for a guest redemption.
+  userId String?
+  /// The shop order this redemption belongs to — one redemption per order.
+  shopOrderId String? @unique
+
+  /// Discount granted, in paise (snapshot).
+  amount Int
+
+  @@index([promotionId, createdAt])
+  @@index([userId])
 }

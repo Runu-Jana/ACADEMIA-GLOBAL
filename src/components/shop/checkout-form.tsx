@@ -3,7 +3,7 @@
 import * as React from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { AlertCircle, Loader2, Lock, ShoppingBag } from 'lucide-react'
+import { AlertCircle, Loader2, Lock, ShoppingBag, Ticket, X } from 'lucide-react'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Field, Input, Select } from '@/components/ui/field'
 import { useCart, clearStoredCart } from '@/lib/use-cart'
@@ -48,6 +48,12 @@ export function CheckoutForm({ signedInAs }: { signedInAs?: { name: string; emai
   const [busy, setBusy] = React.useState(false)
   const [error, setError] = React.useState('')
 
+  // Applied coupon (server-validated for display; re-checked at pay time).
+  const [coupon, setCoupon] = React.useState<{ code: string; title: string; discount: number } | null>(null)
+  const [codeInput, setCodeInput] = React.useState('')
+  const [couponBusy, setCouponBusy] = React.useState(false)
+  const [couponMsg, setCouponMsg] = React.useState('')
+
   const set = (key: keyof Address) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
     setAddress((a) => ({ ...a, [key]: e.target.value }))
 
@@ -79,6 +85,37 @@ export function CheckoutForm({ signedInAs }: { signedInAs?: { name: string; emai
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [signature, ready])
 
+  async function applyCoupon() {
+    const code = codeInput.trim()
+    if (!code || couponBusy) return
+    setCouponBusy(true)
+    setCouponMsg('')
+    try {
+      const res = await fetch('/api/shop/coupon', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code, lines: lines.map((l) => ({ productId: l.productId, qty: l.qty })) }),
+      })
+      const data = await res.json()
+      if (data.ok) {
+        setCoupon({ code: data.code, title: data.title, discount: data.discount })
+        setCodeInput('')
+      } else {
+        setCoupon(null)
+        setCouponMsg(data.message ?? "That code isn't valid.")
+      }
+    } catch {
+      setCouponMsg('Could not check that code. Please try again.')
+    } finally {
+      setCouponBusy(false)
+    }
+  }
+
+  function removeCoupon() {
+    setCoupon(null)
+    setCouponMsg('')
+  }
+
   function validate(): string | null {
     if (address.name.trim().length < 2) return 'Please enter your full name.'
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(address.email.trim())) return 'Please enter a valid email address.'
@@ -107,6 +144,7 @@ export function CheckoutForm({ signedInAs }: { signedInAs?: { name: string; emai
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           lines: lines.map((l) => ({ productId: l.productId, qty: l.qty })),
+          couponCode: coupon?.code,
           address: { ...address, line2: address.line2 || undefined },
         }),
       })
@@ -115,6 +153,11 @@ export function CheckoutForm({ signedInAs }: { signedInAs?: { name: string; emai
       if (!res.ok) {
         // 409 means the cart moved under us — show the corrected totals.
         if (data.cart) setPriced(data.cart)
+        // The coupon lapsed between applying and paying — drop it and say why.
+        if (data.couponInvalid) {
+          setCoupon(null)
+          setCouponMsg(data.error ?? 'That code is no longer valid.')
+        }
         setError(data.error ?? 'Something went wrong. Please try again.')
         setBusy(false)
         return
@@ -199,6 +242,9 @@ export function CheckoutForm({ signedInAs }: { signedInAs?: { name: string; emai
     )
   }
 
+  const discount = coupon?.discount ?? 0
+  const payable = Math.max(0, priced.total - discount)
+
   return (
     <form onSubmit={onSubmit} className="grid gap-6 lg:grid-cols-[1fr_20rem] lg:items-start">
       <div className="card-base p-5">
@@ -272,11 +318,74 @@ export function CheckoutForm({ signedInAs }: { signedInAs?: { name: string; emai
           ))}
         </ul>
 
+        {/* -------------------------------------------------------- coupon */}
+        <div className="mt-3 border-t border-border pt-3">
+          {coupon ? (
+            <div className="flex items-center justify-between gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 dark:border-emerald-500/25 dark:bg-emerald-500/10">
+              <span className="min-w-0">
+                <span className="flex items-center gap-1.5 text-[12.5px] font-bold text-emerald-700 dark:text-emerald-300">
+                  <Ticket aria-hidden className="h-3.5 w-3.5" />
+                  {coupon.code}
+                </span>
+                <span className="block truncate text-[11px] text-emerald-700/80 dark:text-emerald-300/80">
+                  {coupon.title}
+                </span>
+              </span>
+              <button
+                type="button"
+                onClick={removeCoupon}
+                aria-label="Remove coupon"
+                className="shrink-0 text-emerald-700 transition-colors hover:text-emerald-900 dark:text-emerald-300 dark:hover:text-emerald-100"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+          ) : (
+            <div className="flex gap-2">
+              <input
+                value={codeInput}
+                onChange={(e) => setCodeInput(e.target.value.toUpperCase())}
+                onKeyDown={(e) => {
+                  // Enter applies the code rather than submitting the checkout form.
+                  if (e.key === 'Enter') {
+                    e.preventDefault()
+                    applyCoupon()
+                  }
+                }}
+                placeholder="Promo code"
+                aria-label="Promo code"
+                maxLength={40}
+                className="h-9 min-w-0 flex-1 rounded-lg border border-border bg-muted/50 px-3 text-[13px] font-semibold uppercase tracking-wide outline-none transition-colors placeholder:font-normal placeholder:normal-case placeholder:tracking-normal focus:border-primary-300 focus:bg-surface"
+              />
+              <button
+                type="button"
+                onClick={applyCoupon}
+                disabled={couponBusy || !codeInput.trim()}
+                className="grid h-9 w-16 shrink-0 place-items-center rounded-lg border border-border text-[12.5px] font-bold text-primary-600 transition-colors hover:border-primary-300 disabled:opacity-50"
+              >
+                {couponBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Apply'}
+              </button>
+            </div>
+          )}
+          {couponMsg && (
+            <p className="mt-1.5 text-[11.5px] font-semibold text-red-600 dark:text-red-400">{couponMsg}</p>
+          )}
+        </div>
+
         <dl className="mt-3 space-y-2 text-[13.5px]">
           <div className="flex items-center justify-between">
             <dt className="text-muted-foreground">Subtotal</dt>
             <dd className="font-bold tabular-nums">{formatPaise(priced.subtotal)}</dd>
           </div>
+          {discount > 0 && (
+            <div className="flex items-center justify-between text-emerald-600 dark:text-emerald-400">
+              <dt className="flex items-center gap-1 font-semibold">
+                <Ticket aria-hidden className="h-3.5 w-3.5" />
+                Discount
+              </dt>
+              <dd className="font-bold tabular-nums">−{formatPaise(discount)}</dd>
+            </div>
+          )}
           <div className="flex items-center justify-between">
             <dt className="text-muted-foreground">Delivery</dt>
             <dd className={cn('font-bold tabular-nums', priced.shipping === 0 && 'text-emerald-600 dark:text-emerald-400')}>
@@ -286,14 +395,14 @@ export function CheckoutForm({ signedInAs }: { signedInAs?: { name: string; emai
           <div className="flex items-center justify-between border-t border-border pt-2.5">
             <dt className="font-extrabold">Total</dt>
             <dd className="text-lg font-extrabold tabular-nums text-primary-700 dark:text-primary-300">
-              {formatPaise(priced.total)}
+              {formatPaise(payable)}
             </dd>
           </div>
         </dl>
 
         <Button type="submit" variant="holo" size="md" className="mt-4 w-full" loading={busy} disabled={busy}>
           <Lock className="h-4 w-4" />
-          Pay {formatPaise(priced.total)}
+          Pay {formatPaise(payable)}
         </Button>
 
         <Link href="/shop/cart" className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'mt-2 w-full')}>

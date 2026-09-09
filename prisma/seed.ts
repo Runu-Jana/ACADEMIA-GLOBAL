@@ -1321,6 +1321,16 @@ async function main() {
     })
   }
 
+  console.log('Creating promotions...')
+  const promos = [
+    { code: 'SAVE10', title: '10% off your order', description: 'Flat 10% off, no minimum.', type: 'PERCENT', value: 10, scope: 'SHOP', status: 'ACTIVE' },
+    { code: 'WELCOME50', title: '₹50 off orders over ₹300', description: 'A welcome offer for new shoppers.', type: 'FLAT', value: 5000, scope: 'SHOP', status: 'ACTIVE', minSubtotal: 30000 },
+    { code: 'BOOKS20', title: '20% off, up to ₹200', description: 'Capped percentage promo for the shop.', type: 'PERCENT', value: 20, scope: 'SHOP', status: 'ACTIVE', maxDiscount: 20000 },
+  ]
+  for (const p of promos) {
+    await prisma.promotion.upsert({ where: { code: p.code }, update: p, create: p })
+  }
+
   const counts = {
     universities: await prisma.university.count(),
     courses: await prisma.course.count(),
@@ -1331,6 +1341,7 @@ async function main() {
     questions: await prisma.question.count(),
     enrollments: await prisma.enrollment.count(),
     products: await prisma.product.count(),
+    promotions: await prisma.promotion.count(),
   }
 
   console.log('\nSeed complete:')

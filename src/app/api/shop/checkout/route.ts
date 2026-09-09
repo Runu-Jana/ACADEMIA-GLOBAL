@@ -5,6 +5,7 @@ import { getCurrentUser } from '@/lib/auth'
 import { enforceRateLimit, MINUTE } from '@/lib/rate-limit'
 import { createRazorpayOrder, paymentsConfigured, razorpayKeyId } from '@/lib/payments/razorpay'
 import { priceCart } from '@/lib/shop-pricing'
+import { validateCoupon } from '@/lib/promotions'
 import { makeOrderNumber, PINCODE_RE, PHONE_RE, INDIAN_STATES } from '@/lib/shop'
 import { captureError } from '@/lib/observability'
 
@@ -15,6 +16,7 @@ const schema = z.object({
     .array(z.object({ productId: z.string().trim().min(1), qty: z.number().int().positive() }))
     .min(1)
     .max(50),
+  couponCode: z.string().trim().min(1).max(40).optional(),
   address: z.object({
     name: z.string().trim().min(2).max(80),
     email: z.string().trim().email().max(120),
@@ -79,13 +81,42 @@ export async function POST(req: Request) {
     )
   }
 
+  // Coupon (optional). Re-validated here against our own subtotal — the client's
+  // idea of the discount is never trusted. An invalid code stops checkout with a
+  // 409 so the buyer sees why, rather than being silently charged full price.
+  let discount = 0
+  let couponCode: string | null = null
+  let promotionId: string | null = null
+  if (parsed.data.couponCode) {
+    const result = await validateCoupon({
+      code: parsed.data.couponCode,
+      subtotal: priced.subtotal,
+      scope: 'SHOP',
+      userId: user?.id ?? null,
+    })
+    if (!result.ok) {
+      return NextResponse.json(
+        { error: result.message, cart: priced, couponInvalid: true },
+        { status: 409 },
+      )
+    }
+    discount = result.discount
+    couponCode = result.code
+    promotionId = result.promotionId
+  }
+
+  const total = priced.subtotal - discount + priced.shipping
+
   const order = await prisma.shopOrder.create({
     data: {
       orderNumber: makeOrderNumber(),
       status: 'PENDING',
       subtotal: priced.subtotal,
+      discount,
       shipping: priced.shipping,
-      total: priced.total,
+      total,
+      couponCode,
+      promotionId,
       userId: user?.id ?? null,
       name: address.name,
       email: address.email,
