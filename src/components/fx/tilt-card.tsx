@@ -15,13 +15,18 @@ export function TiltCard({
   className,
   innerClassName,
   intensity = 9,
-  scale = 1.02,
   glare = true,
 }: {
   children: React.ReactNode
   className?: string
   innerClassName?: string
   intensity?: number
+  /**
+   * Accepted for backward compatibility but intentionally NOT applied. A hover
+   * `scale()` magnifies the card's already-rasterised contents, so small text
+   * gets resampled and reads slightly blurry the whole time it's hovered. The
+   * tilt keeps its depth from the 3D rotation alone, which leaves text crisp.
+   */
   scale?: number
   glare?: boolean
 }) {
@@ -41,17 +46,17 @@ export function TiltCard({
       const rect = el.getBoundingClientRect()
       const px = (e.clientX - rect.left) / rect.width
       const py = (e.clientY - rect.top) / rect.height
-      el.style.transform = `rotateX(${(0.5 - py) * intensity}deg) rotateY(${(px - 0.5) * intensity}deg) scale(${scale})`
+      el.style.transform = `rotateX(${(0.5 - py) * intensity}deg) rotateY(${(px - 0.5) * intensity}deg)`
       el.style.setProperty('--mx', `${px * 100}%`)
       el.style.setProperty('--my', `${py * 100}%`)
     },
-    [enabled, intensity, scale],
+    [enabled, intensity],
   )
 
   const handleLeave = React.useCallback(() => {
     const el = ref.current
     if (!el) return
-    el.style.transform = 'rotateX(0deg) rotateY(0deg) scale(1)'
+    el.style.transform = 'rotateX(0deg) rotateY(0deg)'
   }, [])
 
   return (

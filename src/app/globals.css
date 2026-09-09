@@ -230,7 +230,13 @@
   .tilt-card {
     transform-style: preserve-3d;
     transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
-    will-change: transform;
+    /* Deliberately NOT `will-change: transform`. That hint pins the layer's
+       raster scale to 1×, so the hover scale/tilt magnifies a 1× text bitmap and
+       small text reads blurry the whole time the card is hovered. Leaving it off
+       lets the browser re-rasterise the settled transformed state at full
+       resolution, so text stays crisp. `backface-visibility: hidden` reinforces
+       clean text under the 3D transform. Do not re-add will-change here. */
+    backface-visibility: hidden;
   }
   .tilt-layer {
     transform: translateZ(38px);
