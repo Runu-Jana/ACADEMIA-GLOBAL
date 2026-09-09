@@ -25,7 +25,7 @@ export function StreakCard({ streak }: { streak: Streak }) {
       : 'Complete a lesson to start a streak.'
 
   return (
-    <div className="card-base relative flex h-full flex-col justify-between overflow-hidden p-5">
+    <div className="card-base relative flex flex-col overflow-hidden p-5">
       <div
         aria-hidden
         className={cn(

@@ -22,7 +22,7 @@ export default async function GoalsPage() {
         </p>
       </div>
 
-      <div className="grid gap-5 md:grid-cols-2">
+      <div className="grid gap-5 md:grid-cols-2 md:items-start">
         <StreakCard streak={engagement.streak} />
         <WeeklyGoalCard goal={engagement.goal} />
       </div>
