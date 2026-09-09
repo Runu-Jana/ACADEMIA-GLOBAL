@@ -24,6 +24,7 @@ import {
   Import,
   ShoppingBag,
   PackageCheck,
+  Ticket,
   Menu,
   X,
   ExternalLink,
@@ -68,6 +69,7 @@ const NAV: {
   { href: '/admin/directory', label: 'Directory Import', icon: Import },
   { href: '/admin/shop', label: 'Shop Products', icon: ShoppingBag, exact: true },
   { href: '/admin/shop/orders', label: 'Shop Orders', icon: PackageCheck },
+  { href: '/admin/promotions', label: 'Promotions', icon: Ticket },
   { href: '/admin/finance', label: 'Finance', icon: Wallet },
   { href: '/admin/ai-usage', label: 'AI Usage', icon: Sparkles },
 ]
