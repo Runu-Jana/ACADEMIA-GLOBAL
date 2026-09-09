@@ -676,7 +676,7 @@ model ContentChunk {
 /// per feature and per student, and can be capped before it surprises anyone.
 model AiUsageLog {
   id       String @id @default(cuid())
-  feature  String // tutor | chatbot | resume | sop | career | interview | notes | roadmap | assessment
+  feature  String // tutor | chatbot | resume | sop | career | interview | notes | roadmap | assessment | translate
   model    String
   provider String @default("anthropic")
 

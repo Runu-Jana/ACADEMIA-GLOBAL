@@ -19,6 +19,7 @@ export type AiFeature =
   | 'roadmap'
   | 'purpose'
   | 'assessment'
+  | 'translate'
 
 export type AiEffort = 'low' | 'medium' | 'high'
 
@@ -142,6 +143,9 @@ const BALANCED: Record<AiFeature, Route> = {
   // A wrong answer key ships a broken exam, so this stays on the mid tier rather
   // than the cheapest. maxTokens is set per-call from the requested count.
   assessment: { model: 'claude-sonnet-5', effort: 'medium', maxTokens: 2200 },
+  // UI-string localisation. Runs once per string per language at build time, so
+  // quality (a credible Hindi/Tamil rendering) matters more than the token cost.
+  translate: { model: 'claude-sonnet-5', effort: 'low', maxTokens: 2000 },
 }
 
 /**
@@ -163,6 +167,7 @@ const ECONOMY: Record<AiFeature, Route> = {
   sop: { model: 'gpt-5.6-terra', effort: 'high', maxTokens: 900 },
   interview: { model: 'gpt-5.6-terra', effort: 'high', maxTokens: 800 },
   assessment: { model: 'gpt-5.6-luna', effort: 'medium', maxTokens: 2000 },
+  translate: { model: 'gpt-5.6-luna', effort: 'low', maxTokens: 2000 },
 }
 
 /** `balanced` (default) or `economy`. Switchable without a deploy. */
