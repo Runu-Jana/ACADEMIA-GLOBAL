@@ -1,0 +1,104 @@
+/* Self-drawing line loader — from Uiverse.io by arad_8645, themed to Shiksha
+   Sarthi: the stroke is currentColor, and .loader sets that to the site's
+   --primary so it tracks light/dark. The shape lives in the component's SVG;
+   pathLength normalises each path to the dash values below regardless of size. */
+.loader {
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  color: hsl(var(--primary));
+}
+
+.loader svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  transform-origin: center;
+}
+
+.loader path {
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transform-origin: center;
+}
+
+/* Outer path — draws itself, then breathes. */
+.loaderPath {
+  stroke-width: 3;
+  stroke-dasharray: 220;
+  stroke-dashoffset: 220;
+  animation:
+    draw 1.8s cubic-bezier(0.65, 0.05, 0.36, 1) infinite,
+    breathe 1.8s ease-in-out infinite;
+}
+
+/* Inner path — a fainter echo on its own rhythm. */
+.loaderInner {
+  stroke-width: 2;
+  opacity: 0.45;
+  stroke-dasharray: 120;
+  stroke-dashoffset: 120;
+  animation:
+    innerDraw 1.8s cubic-bezier(0.65, 0.05, 0.36, 1) infinite,
+    pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes draw {
+  0% {
+    stroke-dashoffset: 220;
+  }
+  45% {
+    stroke-dashoffset: 0;
+  }
+  70% {
+    stroke-dashoffset: 0;
+  }
+  100% {
+    stroke-dashoffset: -220;
+  }
+}
+
+@keyframes breathe {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.08);
+  }
+}
+
+@keyframes innerDraw {
+  0% {
+    stroke-dashoffset: 120;
+  }
+  50% {
+    stroke-dashoffset: 0;
+  }
+  100% {
+    stroke-dashoffset: -120;
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 0.25;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+/* Reduced motion: hold both paths fully drawn and still, rather than mid-dash
+   (a dash-offset of the full length would leave them invisible). */
+@media (prefers-reduced-motion: reduce) {
+  .loaderPath,
+  .loaderInner {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+}
