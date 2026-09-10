@@ -2,6 +2,7 @@
 
 import * as React from 'react'
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 import { Check, GitCompare } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useCompare } from '@/lib/use-compare'
@@ -11,6 +12,7 @@ import { useCompare } from '@/lib/use-compare'
  * a string crosses the server/client boundary.
  */
 export function CompareButton({ courseId }: { courseId: string }) {
+  const t = useTranslations('courses.detail')
   const { has, toggle, count, ready } = useCompare()
   const [full, setFull] = React.useState(false)
   const inCompare = has(courseId)
@@ -28,20 +30,20 @@ export function CompareButton({ courseId }: { courseId: string }) {
         }}
       >
         {inCompare ? <Check className="h-4 w-4" /> : <GitCompare className="h-4 w-4" />}
-        {inCompare ? 'Added to Compare' : 'Add to Compare'}
+        {inCompare ? t('compareAdded') : t('compareAdd')}
       </Button>
 
       <p role="status" aria-live="polite" className="mt-2 text-center text-xs text-muted-foreground">
         {full ? (
           <span className="font-semibold text-accent-orange">
-            You can compare up to 4 courses at a time.
+            {t('compareFull')}
           </span>
         ) : ready && inCompare ? (
           <Link href="/compare" className="font-bold text-primary-600 hover:underline">
-            Compare {count} {count === 1 ? 'course' : 'courses'} →
+            {t('compareLink', { count })}
           </Link>
         ) : (
-          'Shortlist and compare side by side'
+          t('compareHint')
         )}
       </p>
     </div>

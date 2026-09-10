@@ -2,6 +2,7 @@
 
 import * as React from 'react'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { Star, Trash2, PencilLine } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/field'
@@ -16,6 +17,7 @@ type Existing = { rating: number; body: string } | null
  * reader, not just a mouse.
  */
 export function ReviewForm({ courseId, existing }: { courseId: string; existing: Existing }) {
+  const t = useTranslations('courses.detail.review')
   const router = useRouter()
   const [rating, setRating] = React.useState(existing?.rating ?? 0)
   const [hover, setHover] = React.useState(0)
@@ -30,8 +32,8 @@ export function ReviewForm({ courseId, existing }: { courseId: string; existing:
   async function submit(e: React.FormEvent) {
     e.preventDefault()
     setError('')
-    if (rating < 1) return setError('Please pick a star rating.')
-    if (body.trim().length < 10) return setError('Please write at least 10 characters.')
+    if (rating < 1) return setError(t('errRating'))
+    if (body.trim().length < 10) return setError(t('errBody'))
 
     setBusy(true)
     try {
@@ -42,14 +44,14 @@ export function ReviewForm({ courseId, existing }: { courseId: string; existing:
       })
       const data = await res.json()
       if (!res.ok) {
-        setError(data.error ?? 'Could not save your review. Please try again.')
+        setError(data.error ?? t('errSave'))
         setBusy(false)
         return
       }
       setOpen(false)
       router.refresh()
     } catch {
-      setError('Could not save your review. Please try again.')
+      setError(t('errSave'))
     } finally {
       setBusy(false)
     }
@@ -64,7 +66,7 @@ export function ReviewForm({ courseId, existing }: { courseId: string; existing:
       })
       if (!res.ok) {
         const data = await res.json().catch(() => ({}))
-        setError(data.error ?? 'Could not remove your review.')
+        setError(data.error ?? t('errDelete'))
         setBusy(false)
         return
       }
@@ -73,7 +75,7 @@ export function ReviewForm({ courseId, existing }: { courseId: string; existing:
       setOpen(true)
       router.refresh()
     } catch {
-      setError('Could not remove your review.')
+      setError(t('errDelete'))
       setBusy(false)
     }
   }
@@ -84,8 +86,8 @@ export function ReviewForm({ courseId, existing }: { courseId: string; existing:
     return (
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-primary-200 bg-primary-50/60 p-4 dark:border-primary-500/25 dark:bg-primary-500/10">
         <div className="flex items-center gap-2 text-[13px]">
-          <span className="font-bold">Your review</span>
-          <span className="inline-flex" aria-label={`${existing!.rating} out of 5`}>
+          <span className="font-bold">{t('yourReview')}</span>
+          <span className="inline-flex" aria-label={t('outOf5', { n: existing!.rating })}>
             {Array.from({ length: 5 }, (_, i) => (
               <Star
                 key={i}
@@ -106,7 +108,7 @@ export function ReviewForm({ courseId, existing }: { courseId: string; existing:
           className="inline-flex items-center gap-1.5 text-[12.5px] font-bold text-primary-600 hover:underline"
         >
           <PencilLine className="h-3.5 w-3.5" />
-          Edit
+          {t('editLink')}
         </button>
       </div>
     )
@@ -117,11 +119,11 @@ export function ReviewForm({ courseId, existing }: { courseId: string; existing:
       onSubmit={submit}
       className="mb-5 rounded-xl border border-border bg-card p-4"
     >
-      <p className="text-[13px] font-bold">{editing ? 'Edit your review' : 'Write a review'}</p>
+      <p className="text-[13px] font-bold">{editing ? t('edit') : t('write')}</p>
 
       <div
         role="radiogroup"
-        aria-label="Your rating"
+        aria-label={t('rating')}
         className="mt-2.5 flex items-center gap-1"
         onMouseLeave={() => setHover(0)}
       >
@@ -131,7 +133,7 @@ export function ReviewForm({ courseId, existing }: { courseId: string; existing:
             type="button"
             role="radio"
             aria-checked={rating === n}
-            aria-label={`${n} star${n > 1 ? 's' : ''}`}
+            aria-label={t('starLabel', { n })}
             onMouseEnter={() => setHover(n)}
             onFocus={() => setHover(n)}
             onBlur={() => setHover(0)}
@@ -157,7 +159,7 @@ export function ReviewForm({ courseId, existing }: { courseId: string; existing:
         onChange={(e) => setBody(e.target.value)}
         maxLength={1000}
         rows={4}
-        placeholder="What stood out about the teaching, materials or support? Share what would help another learner decide."
+        placeholder={t('placeholder')}
         className="mt-3"
       />
       <p className="mt-1 text-right text-[11px] text-muted-foreground">{body.length}/1000</p>
@@ -170,12 +172,12 @@ export function ReviewForm({ courseId, existing }: { courseId: string; existing:
 
       <div className="mt-3 flex flex-wrap items-center gap-2">
         <Button type="submit" size="sm" loading={busy} disabled={busy}>
-          {editing ? 'Update review' : 'Post review'}
+          {editing ? t('update') : t('post')}
         </Button>
         {editing && (
           <>
             <Button type="button" variant="ghost" size="sm" onClick={() => setOpen(false)} disabled={busy}>
-              Cancel
+              {t('cancel')}
             </Button>
             <button
               type="button"
@@ -184,7 +186,7 @@ export function ReviewForm({ courseId, existing }: { courseId: string; existing:
               className="ml-auto inline-flex items-center gap-1.5 text-[12.5px] font-semibold text-muted-foreground transition-colors hover:text-red-600 disabled:opacity-50"
             >
               <Trash2 className="h-3.5 w-3.5" />
-              Delete
+              {t('delete')}
             </button>
           </>
         )}
