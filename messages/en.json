@@ -271,6 +271,106 @@
       "SCIENCE": "Science"
     }
   },
+  "pricing": {
+    "badge": "Pricing",
+    "title": "Simple, <accent>transparent pricing</accent>",
+    "subtitle": "Start free, pay only when you enrol, and split any fee into no-cost EMI. No hidden charges — the price you see on a course is the price you pay.",
+    "feesNote": "Exact fees vary by programme and university — open any course to see its fee, discounts and EMI options.",
+    "mostPopular": "Most popular",
+    "tiers": {
+      "explore": {
+        "name": "Explore",
+        "price": "Free",
+        "priceNote": "No card, no commitment",
+        "tagline": "See everything before you decide.",
+        "f1": "Browse every programme & university",
+        "f2": "Ask Sarthi — your AI course counsellor",
+        "f3": "Compare courses side by side",
+        "f4": "Entrance-exam guidance",
+        "f5": "Download brochures & apply",
+        "cta": "Browse courses"
+      },
+      "certificate": {
+        "name": "Certificate Courses",
+        "price": "Pay per course",
+        "priceNote": "One fee, everything included",
+        "tagline": "Learn a skill, earn a certificate.",
+        "f1": "Everything in Explore",
+        "f2": "Full video lessons & study material",
+        "f3": "Live classes & doubt support",
+        "f4": "Tests, assignments & the AI tutor",
+        "f5": "Verifiable certificate on completion",
+        "f6": "No-cost EMI available",
+        "cta": "Find a course"
+      },
+      "degree": {
+        "name": "Degree Programmes",
+        "price": "Full tuition",
+        "priceNote": "Per-year fees or EMI",
+        "tagline": "UGC-entitled online & distance degrees.",
+        "f1": "Everything in Certificate Courses",
+        "f2": "UGC-entitled UG & PG degrees",
+        "f3": "Placement support",
+        "f4": "Scholarships up to 35% off",
+        "f5": "Pay per year or split into EMI",
+        "cta": "Explore degrees"
+      }
+    },
+    "emi": {
+      "eyebrow": "No-cost EMI",
+      "title": "Split your fee, interest-free",
+      "sub": "Estimate your monthly instalment. No-cost EMI means the total never exceeds the fee.",
+      "fee": "Programme fee",
+      "tenure": "Tenure",
+      "monthly": "Monthly EMI",
+      "perMonths": "× {months} months",
+      "tenurePill": "{months}m",
+      "total": "No-cost EMI · total {total}",
+      "disclaimer": "Indicative, interest-free estimate. Final plans and eligibility are set by our partner lenders at checkout."
+    },
+    "compare": {
+      "eyebrow": "Compare",
+      "title": "What's included",
+      "sub": "Everything unlocks the moment you enrol.",
+      "feature": "Feature",
+      "included": "Included",
+      "notIncluded": "Not included",
+      "colExplore": "Explore",
+      "colCertificate": "Certificate",
+      "colDegree": "Degree",
+      "browse": "Browse & compare programmes",
+      "ai": "Ask Sarthi — AI counsellor",
+      "videos": "Video lessons & study material",
+      "live": "Live classes & doubt support",
+      "tests": "Tests, assignments & AI tutor",
+      "certificate": "Verifiable certificate",
+      "degree": "UGC-entitled degree",
+      "placement": "Placement support",
+      "emi": "No-cost EMI",
+      "scholarships": "Scholarships up to 35%"
+    },
+    "band": {
+      "title": "Bring the price down further",
+      "body": "Combine a scholarship of up to 35% with no-cost EMI. Tell our counsellor your marks, category and budget, and we'll shortlist the programmes where your total outgo is lowest.",
+      "seeScholarships": "See scholarships"
+    },
+    "faq": {
+      "eyebrow": "FAQ",
+      "title": "Questions about paying",
+      "exploreQ": "Is it really free to explore?",
+      "exploreA": "Yes. Browsing the catalogue, comparing programmes, chatting with Sarthi and applying all cost nothing. You only pay when you enrol in a course.",
+      "feeQ": "What does a course fee cover?",
+      "feeA": "The fee shown on each course covers all of it — video lessons, live classes, study material, tests and assignments, the AI tutor, and a verifiable certificate on completion.",
+      "emiQ": "How does EMI work?",
+      "emiA": "Eligible programmes offer no-cost EMI over 3, 6, 9 or 12 months through our partner lenders. You pay only the first instalment to enrol. Try the calculator above, and see <link>Scholarships & EMI</link> for details.",
+      "scholarshipQ": "Can I get a scholarship?",
+      "scholarshipA": "Merit, need-based and category scholarships can reduce tuition by up to 35%. Check what you qualify for on the <link>Scholarships</link> page.",
+      "recognitionQ": "Are the certificates and degrees recognised?",
+      "recognitionA": "Our degree programmes are UGC-entitled, and every certificate we issue is verifiable online at <link>Verify Certificate</link>."
+    },
+    "noFees": "No hidden fees. Cancel an unpaid application any time.",
+    "exploreCourses": "Explore courses"
+  },
   "footer": {
     "tagline": "India's most trusted platform to continue your education journey from school to university and achieve your dreams.",
     "quickLinks": "Quick Links",

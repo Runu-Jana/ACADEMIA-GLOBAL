@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { getTranslations } from 'next-intl/server'
 import {
   Compass, Award, GraduationCap, Check, Minus, ArrowRight, HandCoins, ShieldCheck, HelpCircle,
 } from 'lucide-react'
@@ -19,200 +20,51 @@ export const metadata: Metadata = {
   alternates: { canonical: '/pricing' },
 }
 
-type Tier = {
-  name: string
-  price: string
-  priceNote: string
-  tagline: string
-  icon: React.ElementType
-  features: string[]
-  cta: { label: string; href: string }
-  featured?: boolean
-}
+// Copy lives in messages (pricing.tiers.<mkey>.*); icon/href/accent stay here.
+const TIERS = [
+  { mkey: 'explore', icon: Compass, features: ['f1', 'f2', 'f3', 'f4', 'f5'], ctaHref: '/courses' },
+  { mkey: 'certificate', icon: Award, features: ['f1', 'f2', 'f3', 'f4', 'f5', 'f6'], ctaHref: '/courses?level=CERTIFICATE', featured: true },
+  { mkey: 'degree', icon: GraduationCap, features: ['f1', 'f2', 'f3', 'f4', 'f5'], ctaHref: '/courses?mode=ONLINE' },
+] as const
 
-const TIERS: Tier[] = [
-  {
-    name: 'Explore',
-    price: 'Free',
-    priceNote: 'No card, no commitment',
-    tagline: 'See everything before you decide.',
-    icon: Compass,
-    features: [
-      'Browse every programme & university',
-      'Ask Sarthi — your AI course counsellor',
-      'Compare courses side by side',
-      'Entrance-exam guidance',
-      'Download brochures & apply',
-    ],
-    cta: { label: 'Browse courses', href: '/courses' },
-  },
-  {
-    name: 'Certificate Courses',
-    price: 'Pay per course',
-    priceNote: 'One fee, everything included',
-    tagline: 'Learn a skill, earn a certificate.',
-    icon: Award,
-    featured: true,
-    features: [
-      'Everything in Explore',
-      'Full video lessons & study material',
-      'Live classes & doubt support',
-      'Tests, assignments & the AI tutor',
-      'Verifiable certificate on completion',
-      'No-cost EMI available',
-    ],
-    cta: { label: 'Find a course', href: '/courses?level=CERTIFICATE' },
-  },
-  {
-    name: 'Degree Programmes',
-    price: 'Full tuition',
-    priceNote: 'Per-year fees or EMI',
-    tagline: 'UGC-entitled online & distance degrees.',
-    icon: GraduationCap,
-    features: [
-      'Everything in Certificate Courses',
-      'UGC-entitled UG & PG degrees',
-      'Placement support',
-      'Scholarships up to 35% off',
-      'Pay per year or split into EMI',
-    ],
-    cta: { label: 'Explore degrees', href: '/courses?mode=ONLINE' },
-  },
+// Each row: message key + which tiers include it.
+const MATRIX: { k: string; on: [boolean, boolean, boolean] }[] = [
+  { k: 'browse', on: [true, true, true] },
+  { k: 'ai', on: [true, true, true] },
+  { k: 'videos', on: [false, true, true] },
+  { k: 'live', on: [false, true, true] },
+  { k: 'tests', on: [false, true, true] },
+  { k: 'certificate', on: [false, true, true] },
+  { k: 'degree', on: [false, false, true] },
+  { k: 'placement', on: [false, false, true] },
+  { k: 'emi', on: [false, true, true] },
+  { k: 'scholarships', on: [false, true, true] },
 ]
 
-const COLUMNS = ['Explore', 'Certificate', 'Degree'] as const
-
-const MATRIX: { label: string; on: [boolean, boolean, boolean] }[] = [
-  { label: 'Browse & compare programmes', on: [true, true, true] },
-  { label: 'Ask Sarthi — AI counsellor', on: [true, true, true] },
-  { label: 'Video lessons & study material', on: [false, true, true] },
-  { label: 'Live classes & doubt support', on: [false, true, true] },
-  { label: 'Tests, assignments & AI tutor', on: [false, true, true] },
-  { label: 'Verifiable certificate', on: [false, true, true] },
-  { label: 'UGC-entitled degree', on: [false, false, true] },
-  { label: 'Placement support', on: [false, false, true] },
-  { label: 'No-cost EMI', on: [false, true, true] },
-  { label: 'Scholarships up to 35%', on: [false, true, true] },
+const FAQS: { key: string; href?: string }[] = [
+  { key: 'explore' },
+  { key: 'fee' },
+  { key: 'emi', href: '/scholarships' },
+  { key: 'scholarship', href: '/scholarships' },
+  { key: 'recognition', href: '/verify' },
 ]
 
-const FAQS: { q: string; a: React.ReactNode }[] = [
-  {
-    q: 'Is it really free to explore?',
-    a: 'Yes. Browsing the catalogue, comparing programmes, chatting with Sarthi and applying all cost nothing. You only pay when you enrol in a course.',
-  },
-  {
-    q: 'What does a course fee cover?',
-    a: 'The fee shown on each course covers all of it — video lessons, live classes, study material, tests and assignments, the AI tutor, and a verifiable certificate on completion.',
-  },
-  {
-    q: 'How does EMI work?',
-    a: (
-      <>
-        Eligible programmes offer no-cost EMI over 3, 6, 9 or 12 months through our partner lenders. You
-        pay only the first instalment to enrol. Try the calculator above, and see{' '}
-        <Link href="/scholarships" className="font-semibold text-primary-600 hover:underline">
-          Scholarships &amp; EMI
-        </Link>{' '}
-        for details.
-      </>
-    ),
-  },
-  {
-    q: 'Can I get a scholarship?',
-    a: (
-      <>
-        Merit, need-based and category scholarships can reduce tuition by up to 35%. Check what you
-        qualify for on the{' '}
-        <Link href="/scholarships" className="font-semibold text-primary-600 hover:underline">
-          Scholarships
-        </Link>{' '}
-        page.
-      </>
-    ),
-  },
-  {
-    q: 'Are the certificates and degrees recognised?',
-    a: (
-      <>
-        Our degree programmes are UGC-entitled, and every certificate we issue is verifiable online at{' '}
-        <Link href="/verify" className="font-semibold text-primary-600 hover:underline">
-          Verify Certificate
-        </Link>
-        .
-      </>
-    ),
-  },
-]
+export default async function PricingPage() {
+  const t = await getTranslations('pricing')
+  const th = await getTranslations('header')
 
-function TierCard({ tier }: { tier: Tier }) {
-  const Icon = tier.icon
-  return (
-    <article
-      className={cn(
-        'card-base holo-ring holo-ring-hover relative flex h-full flex-col p-6',
-        tier.featured && 'ring-2 ring-primary-500/40',
-      )}
-    >
-      {tier.featured && (
-        <Badge tone="holo" className="absolute -top-3 left-6 shadow-sm">
-          Most popular
-        </Badge>
-      )}
-      <span
-        className={cn(
-          'grid h-11 w-11 place-items-center rounded-2xl',
-          tier.featured ? 'bg-holo-sweep text-white' : 'bg-primary-50 text-primary-600 dark:bg-primary-500/15 dark:text-primary-300',
-        )}
-      >
-        <Icon className="h-5 w-5" />
-      </span>
-      <h3 className="mt-3.5 font-display text-lg font-extrabold">{tier.name}</h3>
-      <p className="mt-1 text-[13px] text-muted-foreground">{tier.tagline}</p>
-
-      <div className="mt-4">
-        <p className="font-display text-2xl font-extrabold tracking-tight text-primary-700 dark:text-primary-300">
-          {tier.price}
-        </p>
-        <p className="mt-0.5 text-[12px] text-muted-foreground">{tier.priceNote}</p>
-      </div>
-
-      <ul className="mt-5 flex-1 space-y-2.5">
-        {tier.features.map((f) => (
-          <li key={f} className="flex items-start gap-2 text-[13px]">
-            <Check aria-hidden className="mt-0.5 h-4 w-4 shrink-0 text-primary-500" />
-            <span>{f}</span>
-          </li>
-        ))}
-      </ul>
-
-      <Link
-        href={tier.cta.href}
-        className={buttonVariants({
-          variant: tier.featured ? 'holo' : 'outline',
-          className: 'mt-6 w-full',
-        })}
-      >
-        {tier.cta.label}
-        <ArrowRight className="h-4 w-4" />
-      </Link>
-    </article>
-  )
-}
-
-export default function PricingPage() {
   return (
     <>
       {/* ------------------------------------------------------------- hero */}
       <section className="relative overflow-hidden border-b border-border">
         <Aurora palette="cool" density={3} />
         <div className="container relative py-14 text-center">
-          <Badge tone="holo" className="mb-4">Pricing</Badge>
+          <Badge tone="holo" className="mb-4">{t('badge')}</Badge>
           <h1 className="text-balance font-display text-3xl font-extrabold sm:text-4xl">
-            Simple, <span className="holo-text">transparent pricing</span>
+            {t.rich('title', { accent: (chunks) => <span className="holo-text">{chunks}</span> })}
           </h1>
           <p className="mx-auto mt-3 max-w-2xl text-pretty text-[15px] text-muted-foreground">
-            Start free, pay only when you enrol, and split any fee into no-cost EMI. No hidden charges —
-            the price you see on a course is the price you pay.
+            {t('subtitle')}
           </p>
         </div>
       </section>
@@ -220,27 +72,70 @@ export default function PricingPage() {
       {/* -------------------------------------------------------- tier cards */}
       <section className="container py-12">
         <div className="grid gap-5 lg:grid-cols-3">
-          {TIERS.map((tier, i) => (
-            <Reveal key={tier.name} delay={i * 70}>
-              <TiltCard className="group h-full" intensity={5}>
-                <TierCard tier={tier} />
-              </TiltCard>
-            </Reveal>
-          ))}
+          {TIERS.map((tier, i) => {
+            const Icon = tier.icon
+            const featured = 'featured' in tier && tier.featured
+            return (
+              <Reveal key={tier.mkey} delay={i * 70}>
+                <TiltCard className="group h-full" intensity={5}>
+                  <article
+                    className={cn(
+                      'card-base holo-ring holo-ring-hover relative flex h-full flex-col p-6',
+                      featured && 'ring-2 ring-primary-500/40',
+                    )}
+                  >
+                    {featured && (
+                      <Badge tone="holo" className="absolute -top-3 left-6 shadow-sm">
+                        {t('mostPopular')}
+                      </Badge>
+                    )}
+                    <span
+                      className={cn(
+                        'grid h-11 w-11 place-items-center rounded-2xl',
+                        featured ? 'bg-holo-sweep text-white' : 'bg-primary-50 text-primary-600 dark:bg-primary-500/15 dark:text-primary-300',
+                      )}
+                    >
+                      <Icon className="h-5 w-5" />
+                    </span>
+                    <h3 className="mt-3.5 font-display text-lg font-extrabold">{t(`tiers.${tier.mkey}.name`)}</h3>
+                    <p className="mt-1 text-[13px] text-muted-foreground">{t(`tiers.${tier.mkey}.tagline`)}</p>
+
+                    <div className="mt-4">
+                      <p className="font-display text-2xl font-extrabold tracking-tight text-primary-700 dark:text-primary-300">
+                        {t(`tiers.${tier.mkey}.price`)}
+                      </p>
+                      <p className="mt-0.5 text-[12px] text-muted-foreground">{t(`tiers.${tier.mkey}.priceNote`)}</p>
+                    </div>
+
+                    <ul className="mt-5 flex-1 space-y-2.5">
+                      {tier.features.map((fk) => (
+                        <li key={fk} className="flex items-start gap-2 text-[13px]">
+                          <Check aria-hidden className="mt-0.5 h-4 w-4 shrink-0 text-primary-500" />
+                          <span>{t(`tiers.${tier.mkey}.${fk}`)}</span>
+                        </li>
+                      ))}
+                    </ul>
+
+                    <Link
+                      href={tier.ctaHref}
+                      className={buttonVariants({ variant: featured ? 'holo' : 'outline', className: 'mt-6 w-full' })}
+                    >
+                      {t(`tiers.${tier.mkey}.cta`)}
+                      <ArrowRight className="h-4 w-4" />
+                    </Link>
+                  </article>
+                </TiltCard>
+              </Reveal>
+            )
+          })}
         </div>
-        <p className="mt-6 text-center text-[12.5px] text-muted-foreground">
-          Exact fees vary by programme and university — open any course to see its fee, discounts and EMI options.
-        </p>
+        <p className="mt-6 text-center text-[12.5px] text-muted-foreground">{t('feesNote')}</p>
       </section>
 
       {/* ----------------------------------------------------- EMI calculator */}
       <section className="border-y border-border bg-muted/30 py-12">
         <div className="container">
-          <SectionTitle
-            eyebrow="No-cost EMI"
-            title="Split your fee, interest-free"
-            sub="Estimate your monthly instalment. No-cost EMI means the total never exceeds the fee."
-          />
+          <SectionTitle eyebrow={t('emi.eyebrow')} title={t('emi.title')} sub={t('emi.sub')} />
           <Reveal>
             <EmiCalculator />
           </Reveal>
@@ -249,32 +144,32 @@ export default function PricingPage() {
 
       {/* --------------------------------------------------- comparison table */}
       <section className="container py-12">
-        <SectionTitle eyebrow="Compare" title="What's included" sub="Everything unlocks the moment you enrol." />
+        <SectionTitle eyebrow={t('compare.eyebrow')} title={t('compare.title')} sub={t('compare.sub')} />
         <div className="card-base overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full min-w-[36rem] border-collapse text-left">
               <thead className="border-b border-border bg-muted/50">
                 <tr>
                   <th className="px-4 py-3 text-[12px] font-bold uppercase tracking-wider text-muted-foreground">
-                    Feature
+                    {t('compare.feature')}
                   </th>
-                  {COLUMNS.map((c) => (
+                  {(['colExplore', 'colCertificate', 'colDegree'] as const).map((c) => (
                     <th key={c} className="px-4 py-3 text-center text-[12px] font-bold uppercase tracking-wider text-muted-foreground">
-                      {c}
+                      {t(`compare.${c}`)}
                     </th>
                   ))}
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
                 {MATRIX.map((row) => (
-                  <tr key={row.label} className="transition-colors hover:bg-muted/30">
-                    <td className="px-4 py-3 text-[13px] font-medium">{row.label}</td>
+                  <tr key={row.k} className="transition-colors hover:bg-muted/30">
+                    <td className="px-4 py-3 text-[13px] font-medium">{t(`compare.${row.k}`)}</td>
                     {row.on.map((on, i) => (
                       <td key={i} className="px-4 py-3 text-center">
                         {on ? (
-                          <Check aria-label="Included" className="mx-auto h-4 w-4 text-emerald-500" />
+                          <Check aria-label={t('compare.included')} className="mx-auto h-4 w-4 text-emerald-500" />
                         ) : (
-                          <Minus aria-label="Not included" className="mx-auto h-4 w-4 text-muted-foreground/40" />
+                          <Minus aria-label={t('compare.notIncluded')} className="mx-auto h-4 w-4 text-muted-foreground/40" />
                         )}
                       </td>
                     ))}
@@ -294,19 +189,16 @@ export default function PricingPage() {
             <div className="max-w-xl">
               <h2 className="flex items-center gap-2 font-display text-xl font-extrabold">
                 <HandCoins className="h-5 w-5 text-primary-600" />
-                Bring the price down further
+                {t('band.title')}
               </h2>
-              <p className="mt-2 text-[13.5px] leading-relaxed text-muted-foreground">
-                Combine a scholarship of up to 35% with no-cost EMI. Tell our counsellor your marks,
-                category and budget, and we'll shortlist the programmes where your total outgo is lowest.
-              </p>
+              <p className="mt-2 text-[13.5px] leading-relaxed text-muted-foreground">{t('band.body')}</p>
             </div>
             <div className="flex flex-wrap gap-3">
               <Link href="/scholarships" className={buttonVariants({ variant: 'primary' })}>
-                See scholarships
+                {t('band.seeScholarships')}
               </Link>
               <Link href="/counsellor" className={buttonVariants({ variant: 'outline' })}>
-                Ask Sarthi
+                {th('askSarthi')}
               </Link>
             </div>
           </div>
@@ -315,21 +207,30 @@ export default function PricingPage() {
 
       {/* --------------------------------------------------------------- FAQ */}
       <section className="container pb-16">
-        <SectionTitle eyebrow="FAQ" title="Questions about paying" />
+        <SectionTitle eyebrow={t('faq.eyebrow')} title={t('faq.title')} />
         <div className="mx-auto max-w-3xl space-y-3">
           {FAQS.map((item) => (
-            <details key={item.q} className="card-base group overflow-hidden [&_summary]:list-none">
+            <details key={item.key} className="card-base group overflow-hidden [&_summary]:list-none">
               <summary className="flex cursor-pointer items-center justify-between gap-3 p-4 text-[14px] font-bold">
                 <span className="flex items-center gap-2">
                   <HelpCircle className="h-4 w-4 shrink-0 text-primary-500" />
-                  {item.q}
+                  {t(`faq.${item.key}Q`)}
                 </span>
                 <span className="shrink-0 text-muted-foreground transition-transform duration-200 group-open:rotate-45">
                   +
                 </span>
               </summary>
               <div className="border-t border-border px-4 pb-4 pt-3 text-[13.5px] leading-relaxed text-muted-foreground">
-                {item.a}
+                {t.rich(`faq.${item.key}A`, {
+                  link: (chunks) =>
+                    item.href ? (
+                      <Link href={item.href} className="font-semibold text-primary-600 hover:underline">
+                        {chunks}
+                      </Link>
+                    ) : (
+                      <>{chunks}</>
+                    ),
+                })}
               </div>
             </details>
           ))}
@@ -338,10 +239,10 @@ export default function PricingPage() {
         <div className="mt-8 flex flex-col items-center gap-3 text-center">
           <p className="flex items-center gap-1.5 text-[13px] font-semibold text-muted-foreground">
             <ShieldCheck className="h-4 w-4 text-primary-500" />
-            No hidden fees. Cancel an unpaid application any time.
+            {t('noFees')}
           </p>
           <Link href="/courses" className={buttonVariants({ variant: 'holo' })}>
-            Explore courses
+            {t('exploreCourses')}
             <ArrowRight className="h-4 w-4" />
           </Link>
         </div>

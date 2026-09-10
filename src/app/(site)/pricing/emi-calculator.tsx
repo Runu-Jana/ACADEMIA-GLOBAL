@@ -1,6 +1,7 @@
 'use client'
 
 import * as React from 'react'
+import { useTranslations } from 'next-intl'
 import { IndianRupee, CalendarClock } from 'lucide-react'
 import { cn, formatINR } from '@/lib/utils'
 
@@ -14,6 +15,7 @@ const MAX_FEE = 10_00_000 // ₹10 lakh
  * so the monthly figure is simply fee / months and the total equals the fee.
  */
 export function EmiCalculator() {
+  const tr = useTranslations('pricing.emi')
   const [fee, setFee] = React.useState(45000)
   const [months, setMonths] = React.useState<(typeof TENURES)[number]>(12)
 
@@ -25,7 +27,7 @@ export function EmiCalculator() {
       <div className="grid gap-6 sm:grid-cols-2">
         <div>
           <label htmlFor="emi-fee" className="mb-1.5 block text-[13px] font-semibold">
-            Programme fee
+            {tr('fee')}
           </label>
           <div className="relative">
             <IndianRupee className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -43,7 +45,7 @@ export function EmiCalculator() {
           </div>
           <input
             type="range"
-            aria-label="Programme fee"
+            aria-label={tr('fee')}
             min={MIN_FEE}
             max={200000}
             step={1000}
@@ -52,22 +54,22 @@ export function EmiCalculator() {
             className="mt-3 w-full accent-primary-600"
           />
 
-          <p className="mb-1.5 mt-5 block text-[13px] font-semibold">Tenure</p>
+          <p className="mb-1.5 mt-5 block text-[13px] font-semibold">{tr('tenure')}</p>
           <div className="grid grid-cols-4 gap-1.5">
-            {TENURES.map((t) => (
+            {TENURES.map((n) => (
               <button
-                key={t}
+                key={n}
                 type="button"
-                onClick={() => setMonths(t)}
-                aria-pressed={months === t}
+                onClick={() => setMonths(n)}
+                aria-pressed={months === n}
                 className={cn(
                   'grid h-10 place-items-center rounded-lg border text-[13px] font-bold tabular-nums transition-colors',
-                  months === t
+                  months === n
                     ? 'border-primary-600 bg-primary-600 text-white'
                     : 'border-border text-muted-foreground hover:border-primary-300 hover:text-primary-600',
                 )}
               >
-                {t}m
+                {tr('tenurePill', { months: n })}
               </button>
             ))}
           </div>
@@ -76,21 +78,21 @@ export function EmiCalculator() {
         <div className="grid place-items-center rounded-2xl bg-muted/40 p-5 text-center">
           <span className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
             <CalendarClock className="h-3.5 w-3.5" />
-            Monthly EMI
+            {tr('monthly')}
           </span>
           <p className="mt-1.5 font-display text-4xl font-extrabold tracking-tight text-primary-700 dark:text-primary-300">
             {formatINR(monthly)}
           </p>
           <p className="mt-1 text-[12.5px] text-muted-foreground">
-            × {months} months
+            {tr('perMonths', { months })}
           </p>
           <p className="mt-3 rounded-full bg-emerald-50 px-3 py-1 text-[11.5px] font-bold text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300">
-            No-cost EMI · total {formatINR(clamped)}
+            {tr('total', { total: formatINR(clamped) })}
           </p>
         </div>
       </div>
       <p className="mt-4 text-center text-[11.5px] text-muted-foreground">
-        Indicative, interest-free estimate. Final plans and eligibility are set by our partner lenders at checkout.
+        {tr('disclaimer')}
       </p>
     </div>
   )
