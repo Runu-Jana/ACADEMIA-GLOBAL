@@ -2,6 +2,7 @@
 
 import * as React from 'react'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import {
   GraduationCap, BookMarked, BookOpen, School, Briefcase,
   Bot, Map, Building2, Award, BadgeCheck, ArrowRight,
@@ -9,14 +10,14 @@ import {
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
-/** Each entry point maps to a pre-filtered course search. */
+/** Each entry point maps to a pre-filtered course search. `mkey` keys the label. */
 const stages = [
-  { key: 'before-10', label: 'Before\nClass 10', icon: GraduationCap, tone: 'emerald', query: '/courses?level=CERTIFICATE' },
-  { key: 'after-10', label: 'After\nClass 10', icon: BookMarked, tone: 'blue', query: '/courses?level=DIPLOMA' },
-  { key: 'after-12', label: 'After\nClass 12', icon: BookOpen, tone: 'orange', query: '/courses?level=UG' },
-  { key: 'ug-incomplete', label: 'UG\nIncomplete', icon: School, tone: 'violet', query: '/courses?level=UG&mode=DISTANCE' },
-  { key: 'pg-incomplete', label: 'PG\nIncomplete', icon: GraduationCap, tone: 'pink', query: '/courses?level=PG&mode=DISTANCE' },
-  { key: 'working', label: 'Working\nProfessional', icon: Briefcase, tone: 'cyan', query: '/courses?mode=PART_TIME' },
+  { key: 'before-10', mkey: 'before10', icon: GraduationCap, tone: 'emerald', query: '/courses?level=CERTIFICATE' },
+  { key: 'after-10', mkey: 'after10', icon: BookMarked, tone: 'blue', query: '/courses?level=DIPLOMA' },
+  { key: 'after-12', mkey: 'after12', icon: BookOpen, tone: 'orange', query: '/courses?level=UG' },
+  { key: 'ug-incomplete', mkey: 'ugIncomplete', icon: School, tone: 'violet', query: '/courses?level=UG&mode=DISTANCE' },
+  { key: 'pg-incomplete', mkey: 'pgIncomplete', icon: GraduationCap, tone: 'pink', query: '/courses?level=PG&mode=DISTANCE' },
+  { key: 'working', mkey: 'working', icon: Briefcase, tone: 'cyan', query: '/courses?mode=PART_TIME' },
 ] as const
 
 const toneMap: Record<string, { active: string; idle: string; icon: string }> = {
@@ -29,15 +30,16 @@ const toneMap: Record<string, { active: string; idle: string; icon: string }> = 
 }
 
 const support = [
-  { icon: Bot, label: 'AI Based Career Guidance' },
-  { icon: Map, label: 'Personalized Study Roadmap' },
-  { icon: Building2, label: 'Top Universities & Courses' },
-  { icon: Award, label: 'Scholarships & EMI Options' },
-  { icon: BadgeCheck, label: '100% Admission Assistance' },
+  { icon: Bot, key: 'ai' },
+  { icon: Map, key: 'roadmap' },
+  { icon: Building2, key: 'universities' },
+  { icon: Award, key: 'scholarships' },
+  { icon: BadgeCheck, key: 'admission' },
 ]
 
 export function JourneyPicker() {
   const router = useRouter()
+  const t = useTranslations('home.journeyPicker')
   const [selected, setSelected] = React.useState<string | null>(null)
 
   const chosen = stages.find((s) => s.key === selected)
@@ -47,10 +49,8 @@ export function JourneyPicker() {
       <div className="holo-ring grid overflow-hidden rounded-3xl border border-border bg-card shadow-card lg:grid-cols-[1.55fr_1fr]">
         {/* ------------------------------------------------------- selector */}
         <div className="p-6 sm:p-7">
-          <h2 className="text-xl font-extrabold">Where did you stop?</h2>
-          <p className="mt-1.5 max-w-md text-sm text-muted-foreground">
-            Select your last education level and we will show you the best options to continue.
-          </p>
+          <h2 className="text-xl font-extrabold">{t('heading')}</h2>
+          <p className="mt-1.5 max-w-md text-sm text-muted-foreground">{t('sub')}</p>
 
           <div className="mt-5 grid grid-cols-3 gap-2.5 sm:grid-cols-6">
             {stages.map((s) => {
@@ -75,7 +75,7 @@ export function JourneyPicker() {
                     )}
                   />
                   <span className="whitespace-pre-line text-center text-[11px] font-bold leading-tight">
-                    {s.label}
+                    {t(`stages.${s.mkey}`)}
                   </span>
                 </button>
               )
@@ -88,11 +88,11 @@ export function JourneyPicker() {
               disabled={!chosen}
               variant={chosen ? 'holo' : 'primary'}
             >
-              Find My Best Path
+              {t('findPath')}
               <ArrowRight className="h-4 w-4" />
             </Button>
             <span className="text-xs text-muted-foreground">
-              {chosen ? 'We found matching programs for you' : 'Takes less than 60 seconds'}
+              {chosen ? t('matched') : t('time')}
             </span>
           </div>
         </div>
@@ -103,14 +103,14 @@ export function JourneyPicker() {
             aria-hidden
             className="absolute -right-12 -top-12 h-44 w-44 rounded-full bg-holo-sweep opacity-20 blur-2xl"
           />
-          <h3 className="relative text-lg font-extrabold">Your Journey, Our Support</h3>
+          <h3 className="relative text-lg font-extrabold">{t('supportHeading')}</h3>
           <ul className="relative mt-4 space-y-3">
-            {support.map(({ icon: Icon, label }) => (
-              <li key={label} className="flex items-center gap-2.5 text-[13px] font-semibold">
+            {support.map(({ icon: Icon, key }) => (
+              <li key={key} className="flex items-center gap-2.5 text-[13px] font-semibold">
                 <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-surface text-primary-600 shadow-sm dark:bg-slate-800 dark:text-primary-300">
                   <Icon className="h-3.5 w-3.5" />
                 </span>
-                {label}
+                {t(`support.${key}`)}
               </li>
             ))}
           </ul>

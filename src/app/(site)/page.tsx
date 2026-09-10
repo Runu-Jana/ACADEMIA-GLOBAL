@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { getTranslations } from 'next-intl/server'
 import { ArrowRight } from 'lucide-react'
 import { prisma } from '@/lib/prisma'
 import { liveCourses, liveUniversities } from '@/lib/visibility'
@@ -53,6 +54,8 @@ export default async function HomePage() {
     course: r.course.title,
   }))
 
+  const t = await getTranslations('home')
+
   return (
     <>
       <Hero />
@@ -62,12 +65,12 @@ export default async function HomePage() {
       {/* ---------------------------------------------------- featured courses */}
       <section className="container py-10">
         <SectionTitle
-          eyebrow="Trending"
-          title="Popular Courses This Month"
-          sub="Hand-picked programs from top UGC-entitled universities across India."
+          eyebrow={t('featured.eyebrow')}
+          title={t('featured.title')}
+          sub={t('featured.sub')}
           action={
             <Link href="/courses" className={buttonVariants({ variant: 'outline', size: 'sm' })}>
-              View All Courses
+              {t('featured.viewAllCourses')}
               <ArrowRight className="h-3.5 w-3.5" />
             </Link>
           }
@@ -88,11 +91,11 @@ export default async function HomePage() {
         <div className="grid gap-5 lg:grid-cols-[2.2fr_1fr]">
           <div className="min-w-0">
             <SectionTitle
-              eyebrow="Institutions"
-              title="Top Universities &amp; Institutions"
+              eyebrow={t('universities.eyebrow')}
+              title={t('universities.title')}
               action={
                 <Link href="/universities" className="text-xs font-bold text-primary-600 hover:underline">
-                  View All
+                  {t('viewAll')}
                 </Link>
               }
               className="mb-5"

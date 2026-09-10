@@ -2,6 +2,7 @@
 
 import * as React from 'react'
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { UniversityMark } from '@/components/course/course-thumb'
 import { Stars } from '@/components/ui/stars'
@@ -18,6 +19,7 @@ export type RailUniversity = {
 }
 
 export function UniversityRail({ universities }: { universities: RailUniversity[] }) {
+  const t = useTranslations('home.universities')
   const scroller = React.useRef<HTMLDivElement>(null)
   const [atStart, setAtStart] = React.useState(true)
   const [atEnd, setAtEnd] = React.useState(false)
@@ -51,7 +53,7 @@ export function UniversityRail({ universities }: { universities: RailUniversity[
         type="button"
         onClick={() => scrollBy(-1)}
         disabled={atStart}
-        aria-label="Previous universities"
+        aria-label={t('prev')}
         className={cn(
           'absolute -left-3 top-1/2 z-10 hidden h-9 w-9 -translate-y-1/2 place-items-center rounded-full border border-border bg-card shadow-card transition-all hover:border-primary-300 hover:text-primary-600 disabled:opacity-0 sm:grid',
         )}
@@ -90,7 +92,7 @@ export function UniversityRail({ universities }: { universities: RailUniversity[
         type="button"
         onClick={() => scrollBy(1)}
         disabled={atEnd}
-        aria-label="Next universities"
+        aria-label={t('next')}
         className={cn(
           'absolute -right-3 top-1/2 z-10 hidden h-9 w-9 -translate-y-1/2 place-items-center rounded-full border border-border bg-card shadow-card transition-all hover:border-primary-300 hover:text-primary-600 disabled:opacity-0 sm:grid',
         )}

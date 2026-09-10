@@ -24,6 +24,7 @@
     "switchTo": "Switch language"
   },
   "home": {
+    "viewAll": "View All",
     "hero": {
       "badge": "India's most trusted virtual learning platform",
       "title": "Continue your <accent>education journey</accent>",
@@ -48,6 +49,139 @@
         "succeed": "Succeed",
         "succeedSub": "Achieve your goals"
       }
+    },
+    "journeyPicker": {
+      "heading": "Where did you stop?",
+      "sub": "Select your last education level and we will show you the best options to continue.",
+      "findPath": "Find My Best Path",
+      "matched": "We found matching programs for you",
+      "time": "Takes less than 60 seconds",
+      "supportHeading": "Your Journey, Our Support",
+      "stages": {
+        "before10": "Before\nClass 10",
+        "after10": "After\nClass 10",
+        "after12": "After\nClass 12",
+        "ugIncomplete": "UG\nIncomplete",
+        "pgIncomplete": "PG\nIncomplete",
+        "working": "Working\nProfessional"
+      },
+      "support": {
+        "ai": "AI Based Career Guidance",
+        "roadmap": "Personalized Study Roadmap",
+        "universities": "Top Universities & Courses",
+        "scholarships": "Scholarships & EMI Options",
+        "admission": "100% Admission Assistance"
+      }
+    },
+    "programs": {
+      "eyebrow": "Programs",
+      "title": "Explore Programs",
+      "sub": "Every format of learning, from fully online degrees to on-campus programs — pick what fits your life.",
+      "online": {
+        "title": "Online Degree",
+        "sub": "Study Anytime, Anywhere",
+        "cta": "Explore Online Degrees",
+        "ug": "UG Online Degrees",
+        "pg": "PG Online Degrees",
+        "diploma": "Diploma Online",
+        "certificate": "Certificate Courses"
+      },
+      "distance": {
+        "title": "Distance Learning",
+        "sub": "UGC & DEB Approved Programs",
+        "cta": "Explore Distance Courses",
+        "ug": "UG Distance Degrees",
+        "pg": "PG Distance Degrees",
+        "diploma": "Diploma Courses",
+        "certificate": "Certificate Courses"
+      },
+      "regular": {
+        "title": "Regular Degree",
+        "sub": "On-Campus Programs from Top Universities",
+        "cta": "Explore Regular Degrees",
+        "engineering": "Engineering",
+        "medical": "Medical",
+        "law": "Law",
+        "management": "Management"
+      },
+      "partTime": {
+        "title": "Part-Time Courses",
+        "sub": "For Working Professionals & Busy Learners",
+        "cta": "Explore Part-Time Courses",
+        "weekend": "Weekend Programs",
+        "evening": "Evening Programs",
+        "hybrid": "Hybrid Programs",
+        "shortTerm": "Short Term Courses"
+      }
+    },
+    "featured": {
+      "eyebrow": "Trending",
+      "title": "Popular Courses This Month",
+      "sub": "Hand-picked programs from top UGC-entitled universities across India.",
+      "viewAllCourses": "View All Courses"
+    },
+    "restart": {
+      "title": "Restart, Continue & Complete Your Education",
+      "sub": "We have the right path for every learner.",
+      "counsellorSub": "Get instant answers to all your education & career questions.",
+      "paths": {
+        "class10": "Complete\nClass 10",
+        "class12": "Complete\nClass 12",
+        "graduation": "Complete\nGraduation",
+        "pg": "Complete\nPost Graduation",
+        "professional": "Professional\nCourses",
+        "skill": "Skill &\nCertificate Courses"
+      }
+    },
+    "universities": {
+      "eyebrow": "Institutions",
+      "title": "Top Universities & Institutions",
+      "prev": "Previous universities",
+      "next": "Next universities"
+    },
+    "exams": {
+      "title": "Popular Exams"
+    },
+    "trust": {
+      "ugcTitle": "UGC Approved",
+      "ugcSub": "Recognized Degrees",
+      "emiTitle": "Easy EMI Options",
+      "emiSub": "Flexible Installments",
+      "scholarshipsTitle": "Scholarships",
+      "scholarshipsSub": "For Eligible Students",
+      "secureTitle": "100% Secure",
+      "secureSub": "Admission Process",
+      "placementTitle": "Placement Support",
+      "placementSub": "Career Assistance",
+      "supportTitle": "24/7 Support",
+      "supportSub": "We are here to help"
+    },
+    "stories": {
+      "heading": "Success Stories",
+      "whyHeading": "Why Choose Shiksha Sarthi?",
+      "why": {
+        "universities": "1000+ Top Universities",
+        "courses": "1,00,000+ Courses & Programs",
+        "ai": "AI Powered Guidance",
+        "roadmap": "Personalized Roadmap",
+        "scholarships": "Scholarships & EMI Available",
+        "students": "Trusted by 10 Lakh+ Students"
+      },
+      "appHeading": "Download Our App",
+      "appSub": "Learn on the go. Anytime, Anywhere.",
+      "tip": "<b>Tip:</b> this site is an installable app — open the browser menu and choose “Add to Home Screen”."
+    },
+    "blog": {
+      "heading": "Latest from Our Blog",
+      "post1Title": "How to Complete Your Degree After Dropout?",
+      "post1Category": "Guidance",
+      "post2Title": "Best Online Degrees for Working Professionals",
+      "post2Category": "Online Learning",
+      "post3Title": "Top Government Exams after Graduation",
+      "post3Category": "Exams",
+      "ctaHeading": "Still Confused? We are here to help!",
+      "ctaSub": "Book a free counselling session with our experts and get a personalised roadmap.",
+      "ctaButton": "Book Free Session"
     }
   },
   "footer": {
