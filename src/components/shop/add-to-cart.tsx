@@ -64,7 +64,7 @@ export function AddToCart({
     'grid h-full w-11 place-items-center text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-40 disabled:hover:bg-transparent'
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3 sm:max-w-sm">
       <div className="flex items-center gap-3">
         <div className="inline-flex h-13 shrink-0 items-center overflow-hidden rounded-xl border border-border bg-card">
           <button

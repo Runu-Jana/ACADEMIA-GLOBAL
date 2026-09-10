@@ -280,7 +280,7 @@ export default async function ProductPage({
                 />
               </div>
 
-              <div className="mt-3">
+              <div className="mt-3 sm:max-w-sm">
                 <ProductSaveButton
                   productId={product.id}
                   variant="chip"
