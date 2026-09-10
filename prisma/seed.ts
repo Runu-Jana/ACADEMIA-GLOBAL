@@ -749,6 +749,8 @@ async function main() {
   // Order matters: children before parents.
   await prisma.partnerApplication.deleteMany()
   await prisma.chatMessage.deleteMany()
+  await prisma.learningPathCourse.deleteMany()
+  await prisma.learningPath.deleteMany()
   await prisma.review.deleteMany()
   await prisma.certificate.deleteMany()
   await prisma.application.deleteMany()
@@ -1098,6 +1100,61 @@ async function main() {
       courseId: courseIdBySlug['online-bca'],
     },
   })
+
+  // ---------------------------------------------------------- learning paths
+  // Curated, ordered tracks of existing courses toward one career outcome —
+  // a discovery layer; each course is still enrolled on its own page.
+  console.log('Creating learning paths...')
+  const learningPaths = [
+    {
+      slug: 'digital-marketing-career',
+      title: 'Digital Marketing Career Track',
+      subtitle: 'From your first campaign to data-driven marketing leadership.',
+      about:
+        'A guided route into modern marketing. Start hands-on with a practitioner diploma, earn a full undergraduate degree specialising in digital marketing, then step up to analytics-led strategy — each stage building on the one before.',
+      outcome:
+        'Run end-to-end campaigns across SEO, social, content and paid ads, read the analytics behind them, and lead a marketing team.',
+      stream: 'MANAGEMENT',
+      skills: ['SEO', 'Social media', 'Content marketing', 'Paid ads', 'Marketing analytics', 'Campaign strategy'],
+      featured: true,
+      courses: ['diploma-digital-marketing', 'online-bba-digital-marketing', 'online-mba-business-analytics'],
+    },
+    {
+      slug: 'software-data-developer',
+      title: 'Software & Data Developer Track',
+      subtitle: 'From your first line of code to full-stack and machine learning.',
+      about:
+        'Build a software career step by step: computing foundations and programming in a BCA, an in-demand data-science specialisation, and advanced software engineering in an MCA.',
+      outcome:
+        'Build full-stack applications, work with data and machine learning, and take on software engineering roles.',
+      stream: 'IT',
+      skills: ['Programming', 'Web development', 'Databases', 'Python', 'Data science', 'Software engineering'],
+      featured: true,
+      courses: ['online-bca', 'certificate-data-science', 'online-mca'],
+    },
+    {
+      slug: 'finance-accounting-professional',
+      title: 'Finance & Accounting Professional Track',
+      subtitle: 'From commerce fundamentals to analytics-led finance roles.',
+      about:
+        'A commerce-to-finance progression: a strong B.Com (Hons) foundation, a postgraduate M.Com with finance and taxation depth, and an analytics MBA that turns numbers into decisions.',
+      outcome:
+        'Take on accounting, taxation and financial-analysis roles, and move into analytics-driven finance.',
+      stream: 'COMMERCE',
+      skills: ['Accounting', 'Taxation', 'Corporate law', 'Financial analysis', 'Business analytics'],
+      featured: false,
+      courses: ['bcom-hons-online', 'mcom-online', 'online-mba-business-analytics'],
+    },
+  ]
+  for (const p of learningPaths) {
+    const { courses: pathCourses, ...data } = p
+    const created = await prisma.learningPath.create({ data })
+    await prisma.learningPathCourse.createMany({
+      data: pathCourses
+        .map((slug, i) => ({ pathId: created.id, courseId: courseIdBySlug[slug], order: i + 1 }))
+        .filter((row) => row.courseId),
+    })
+  }
 
   // ------------------------------------------------------------ application
   await prisma.application.create({

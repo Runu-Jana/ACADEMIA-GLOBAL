@@ -350,6 +350,7 @@ model Course {
   batches     Batch[]
   liveClasses LiveClass[]
   savedBy     SavedCourse[]
+  pathLinks   LearningPathCourse[]
 
   gradingSchemeId String?
   gradingScheme   GradingScheme? @relation(fields: [gradingSchemeId], references: [id], onDelete: SetNull)
@@ -1155,4 +1156,45 @@ model PromotionRedemption {
 
   @@index([promotionId, createdAt])
   @@index([userId])
+}
+
+/// A curated, ordered track of existing courses toward one career outcome — the
+/// Specialization analog. Purely a discovery/marketing layer in this iteration:
+/// each step links to its course, which is still enrolled and paid for on its own.
+model LearningPath {
+  id        String   @id @default(cuid())
+  slug      String   @unique
+  title     String
+  subtitle  String
+  about     String
+  /// What a learner can do once they finish the whole track.
+  outcome   String
+  stream    String // MANAGEMENT | IT | COMMERCE | ... (themes the page, enables filtering)
+  skills    Json // string[]
+  featured  Boolean  @default(false)
+  published Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  courses LearningPathCourse[]
+
+  @@index([published])
+  @@index([stream])
+}
+
+/// Join row placing a course at a position in a path. A course may sit in several
+/// paths, so this is an explicit many-to-many carrying the step order.
+model LearningPathCourse {
+  id    String @id @default(cuid())
+  order Int
+
+  pathId String
+  path   LearningPath @relation(fields: [pathId], references: [id], onDelete: Cascade)
+
+  courseId String
+  course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([pathId, courseId])
+  @@index([pathId])
+  @@index([courseId])
 }
