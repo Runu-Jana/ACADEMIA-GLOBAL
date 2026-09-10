@@ -666,5 +666,124 @@
     "saveCourse": "Save course",
     "saveItem": "Save item",
     "removeSaved": "Remove from saved"
+  },
+  "exams": {
+    "badge": "Exam Guidance",
+    "title": "Popular <accent>Entrance & Competitive Exams</accent>",
+    "sub": "Understand eligibility, timelines and what to study — then pick a degree that keeps your options open.",
+    "sectionEyebrow": "Directory",
+    "sectionTitle": "Exams at a glance",
+    "sectionSub": "Indicative windows — always confirm dates on the official conducting body’s website.",
+    "eligibility": "Eligibility",
+    "windowLabel": "Typical window",
+    "relatedCourses": "Related courses",
+    "disclaimer": "Exam patterns and dates change every cycle. Treat this page as orientation, not as official notification — always verify with the conducting authority.",
+    "items": {
+      "upsc-cse": {
+        "category": "Government",
+        "level": "Graduation",
+        "window": "Feb – Sep",
+        "blurb": "India’s premier civil services examination for IAS, IPS and allied services."
+      },
+      "neet-ug": {
+        "category": "Medical",
+        "level": "After 12th",
+        "window": "May",
+        "blurb": "Single entrance test for MBBS, BDS and AYUSH admissions across India."
+      },
+      "jee-main": {
+        "category": "Engineering",
+        "level": "After 12th",
+        "window": "Jan & Apr",
+        "blurb": "Gateway to NITs, IIITs and the JEE Advanced qualifier for the IITs."
+      },
+      "cat": {
+        "category": "Management",
+        "level": "Graduation",
+        "window": "Nov",
+        "blurb": "The common admission test for IIMs and top B-schools nationwide."
+      },
+      "clat": {
+        "category": "Law",
+        "level": "After 12th",
+        "window": "Dec",
+        "blurb": "Common law admission test for the National Law Universities."
+      },
+      "cuet-ug": {
+        "category": "Central Universities",
+        "level": "After 12th",
+        "window": "May – Jun",
+        "blurb": "Common entrance for undergraduate admissions to central universities."
+      },
+      "ssc-cgl": {
+        "category": "Government",
+        "level": "Graduation",
+        "window": "Jun – Sep",
+        "blurb": "Combined graduate level exam for Group B and C posts in central ministries."
+      },
+      "ibps-po": {
+        "category": "Banking",
+        "level": "Graduation",
+        "window": "Aug – Nov",
+        "blurb": "Probationary officer recruitment across public sector banks."
+      },
+      "rrb-ntpc": {
+        "category": "Government",
+        "level": "12th / Graduation",
+        "window": "Varies",
+        "blurb": "Non-technical popular categories recruitment for Indian Railways."
+      },
+      "haryana-cet": {
+        "category": "State",
+        "level": "12th / Graduation",
+        "window": "Varies",
+        "blurb": "Common eligibility test for Group C and D posts in Haryana."
+      }
+    }
+  },
+  "scholarships": {
+    "badge": "Fee Support",
+    "title": "Scholarships & <accent>Flexible EMI</accent>",
+    "sub": "Cost should not decide whether you finish your education. Combine a scholarship with a no-cost instalment plan and start this session.",
+    "sectionEyebrow": "Scholarships",
+    "sectionTitle": "Ways to reduce your fees",
+    "sectionSub": "Waivers are applied to tuition, are not stackable beyond 35% in total, and are confirmed after document verification.",
+    "cut": "Up to {pct}% off",
+    "emiTitle": "How EMI works",
+    "emiStep1": "Pick your programme and start the admission form.",
+    "emiStep2": "Choose “Pay in instalments” at the fee step.",
+    "emiStep3": "Select a 3, 6, 9 or 12-month plan from a partner lender.",
+    "emiStep4": "Complete a one-time verification and pay only the first instalment to enrol.",
+    "helpTitle": "Not sure what you qualify for?",
+    "helpBody": "Tell our counsellor your marks, category and budget, and we’ll shortlist the programmes where your total outgo is lowest.",
+    "checkEligibility": "Check my eligibility",
+    "browseCourses": "Browse courses",
+    "disclaimer": "Indicative waivers shown for guidance. Final scholarship amounts are decided by the awarding university after document verification.",
+    "schemes": {
+      "merit": {
+        "title": "Merit Scholarship",
+        "who": "Students with 75%+ in their qualifying exam"
+      },
+      "need": {
+        "title": "Need-Based Aid",
+        "who": "Family income below ₹4 LPA, with income proof"
+      },
+      "defence": {
+        "title": "Defence & Kin",
+        "who": "Serving/retired defence personnel and their dependants"
+      },
+      "alumni": {
+        "title": "Alumni Continuation",
+        "who": "Learners returning for a second programme"
+      },
+      "earlyBird": {
+        "title": "Early Bird",
+        "who": "Applications completed before the session cut-off"
+      },
+      "divyang": {
+        "title": "Divyangjan Support",
+        "who": "Students with 40%+ benchmark disability certification"
+      }
+    }
   }
 }
