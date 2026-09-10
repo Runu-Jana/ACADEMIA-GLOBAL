@@ -141,6 +141,55 @@ export function enrolmentEmail(opts: {
   }
 }
 
+/**
+ * Re-engagement nudge — the email half of the "come back" loop. Three shapes:
+ * a streak-save, a continue-where-you-left-off, and a start-your-course prompt.
+ */
+export function reminderEmail(opts: {
+  name: string
+  kind: 'streak' | 'continue' | 'comeback'
+  courseTitle?: string
+  /** App-relative path the CTA opens, e.g. /dashboard/learn/<id>. */
+  path: string
+  streakDays?: number
+  progressPct?: number
+}): AdminMail {
+  const hi = firstName(opts.name)
+  const link = `${APP_URL}${opts.path}`
+
+  let subject: string
+  let heading: string
+  let body: string
+  let cta: string
+  if (opts.kind === 'streak') {
+    subject = `Keep your ${opts.streakDays}-day streak alive 🔥`
+    heading = `Don't break the chain, ${hi}`
+    body = `You've learned ${opts.streakDays} days in a row. Do one lesson today to keep your streak going.`
+    cta = 'Continue learning'
+  } else if (opts.kind === 'continue') {
+    subject = `Pick up ${opts.courseTitle} where you left off`
+    heading = `You're ${opts.progressPct}% of the way there, ${hi}`
+    body = `Your progress in ${opts.courseTitle} is saved. A few minutes today keeps the momentum going.`
+    cta = 'Resume course'
+  } else {
+    subject = `Your classroom is waiting, ${hi}`
+    heading = `Ready to begin, ${hi}?`
+    body = `You enrolled in ${opts.courseTitle} but haven't started yet — your first lesson takes only a few minutes.`
+    cta = 'Start learning'
+  }
+
+  return {
+    subject,
+    text: [`Hi ${hi},`, ``, body, ``, `${cta}: ${link}`, ``, `— The ${BRAND} team`].join('\n'),
+    html: shell(
+      subject,
+      `<h1 style="margin:0 0 12px;font-size:20px;font-weight:800;">${heading}</h1>
+       <p style="margin:0 0 22px;font-size:14px;line-height:1.65;color:#334155;">${body}</p>
+       <p style="margin:0;">${button(link, cta)}</p>`,
+    ),
+  }
+}
+
 /** Order confirmation sent to the buyer once payment clears. */
 export function shopOrderEmail(order: {
   orderNumber: string

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { promoteClaimable } from '@/lib/commission'
+import { sendReengagementNudges } from '@/lib/reminders'
 import { captureError } from '@/lib/observability'
 
 export const dynamic = 'force-dynamic'
@@ -39,13 +40,24 @@ async function handle(req: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
+  // Each task is isolated so one failing doesn't skip the others.
+  const result: Record<string, unknown> = { ok: true }
+
   try {
-    const commissions = await promoteClaimable()
-    return NextResponse.json({ ok: true, ...commissions })
+    result.commissions = await promoteClaimable()
   } catch (err) {
     captureError(err, { scope: 'cron', task: 'promoteClaimable' })
-    return NextResponse.json({ error: 'Maintenance run failed' }, { status: 500 })
+    result.commissions = { error: true }
   }
+
+  try {
+    result.nudges = await sendReengagementNudges()
+  } catch (err) {
+    captureError(err, { scope: 'cron', task: 'reengagementNudges' })
+    result.nudges = { error: true }
+  }
+
+  return NextResponse.json(result)
 }
 
 // Cron services use GET; POST is accepted too for flexibility.

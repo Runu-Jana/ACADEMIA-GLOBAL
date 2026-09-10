@@ -3,7 +3,7 @@
 import * as React from 'react'
 import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
-import { Bell, GraduationCap, Award, ClipboardList, FolderOpen, Video, Info, CheckCheck, Flame } from 'lucide-react'
+import { Bell, GraduationCap, Award, ClipboardList, FolderOpen, Video, Info, CheckCheck, Flame, Clock } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 export type NotificationItem = {
@@ -23,6 +23,7 @@ export const NOTIF_ICON: Record<string, React.ElementType> = {
   MATERIAL: FolderOpen,
   LIVE: Video,
   ACHIEVEMENT: Flame,
+  REMINDER: Clock,
   GENERAL: Info,
 }
 
