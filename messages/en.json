@@ -371,6 +371,86 @@
     "noFees": "No hidden fees. Cancel an unpaid application any time.",
     "exploreCourses": "Explore courses"
   },
+  "shop": {
+    "home": "Home",
+    "shop": "Shop",
+    "badge": "Student Shop",
+    "heroTitle": "Everything you need to <accent>prepare and pass</accent>",
+    "heroSub": "Competitive exam books and study stationery, priced for students. Free delivery on orders above {amount}.",
+    "genuine": "Genuine editions",
+    "freeDelivery": "Free delivery over {amount}",
+    "curated": "Curated for Indian entrance exams",
+    "matching": "Matching products",
+    "all": "All products",
+    "count": "{count, plural, one {# product} other {# products}}",
+    "pageOf": "Page {page} of {total}",
+    "emptyTitle": "Nothing matched those filters",
+    "emptyBody": "Try removing a filter, or search by book title, author or ISBN.",
+    "clearAll": "Clear all filters",
+    "prev": "Prev",
+    "next": "Next",
+    "pagesLabel": "Shop results pages",
+    "refine": "Refine",
+    "filters": "Filters",
+    "closeFilters": "Close filters",
+    "close": "Close",
+    "showProducts": "{count, plural, one {Show # product} other {Show # products}}",
+    "searchPlaceholder": "Search books, authors, ISBN or stationery…",
+    "searchLabel": "Search the shop",
+    "searchButton": "Search",
+    "sortLabel": "Sort products",
+    "inStock": "In stock only",
+    "clearAllFilters": "Clear All Filters",
+    "clearAllChips": "Clear all",
+    "groups": {
+      "type": "Product Type",
+      "category": "Category",
+      "exam": "Exam",
+      "price": "Price",
+      "availability": "Availability"
+    },
+    "sort": {
+      "relevance": "Most Relevant",
+      "price-asc": "Price: Low to High",
+      "price-desc": "Price: High to Low",
+      "rating": "Highest Rated",
+      "newest": "Newest First"
+    },
+    "kind": {
+      "BOOK": "Books",
+      "STATIONERY": "Stationery"
+    },
+    "category": {
+      "ENGINEERING_ENTRANCE": "Engineering Entrance",
+      "MEDICAL_ENTRANCE": "Medical Entrance",
+      "GOVERNMENT_EXAMS": "Government & Banking",
+      "MANAGEMENT_ENTRANCE": "Management Entrance",
+      "SCHOOL_BOARDS": "School & Boards",
+      "GENERAL_STUDIES": "General Studies",
+      "NOTEBOOKS": "Notebooks & Registers",
+      "WRITING": "Pens & Pencils",
+      "GEOMETRY": "Geometry & Maths",
+      "EXAM_ESSENTIALS": "Exam Day Essentials",
+      "DESK": "Desk & Organisers"
+    },
+    "price": {
+      "under-200": "Under ₹200",
+      "200-500": "₹200 – ₹500",
+      "500-1000": "₹500 – ₹1,000",
+      "over-1000": "Above ₹1,000"
+    },
+    "card": {
+      "details": "Details",
+      "add": "Add",
+      "inCart": "In cart",
+      "outOfStock": "Out of stock",
+      "onlyLeft": "Only {n} left",
+      "off": "{off}% OFF",
+      "save": "Save item",
+      "saved": "Saved",
+      "removeSaved": "Remove from saved"
+    }
+  },
   "footer": {
     "tagline": "India's most trusted platform to continue your education journey from school to university and achieve your dreams.",
     "quickLinks": "Quick Links",

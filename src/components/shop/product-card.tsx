@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 import { ShoppingCart, Check, BookOpen, Package, Heart } from 'lucide-react'
 import { ProductCover } from './product-cover'
 import { Badge } from '@/components/ui/badge'
@@ -10,7 +11,7 @@ import { TiltCard } from '@/components/fx/tilt-card'
 import { useCart } from '@/lib/use-cart'
 import { useSavedProducts } from '@/lib/use-saved'
 import { cn } from '@/lib/utils'
-import { formatPaise, discountPct, stockState, categoryLabel } from '@/lib/shop'
+import { formatPaise, discountPct, stockState } from '@/lib/shop'
 
 export type ProductCardData = {
   id: string
@@ -38,6 +39,7 @@ export function ProductCard({
   className?: string
   tilt?: boolean
 }) {
+  const t = useTranslations('shop')
   const { add, has, ready } = useCart()
   const inCart = ready && has(product.id)
   const { isSaved, toggle: toggleSave } = useSavedProducts()
@@ -73,8 +75,8 @@ export function ProductCard({
             toggleSave(product.id)
           }}
           aria-pressed={saved}
-          aria-label={saved ? 'Remove from saved' : 'Save item'}
-          title={saved ? 'Saved' : 'Save item'}
+          aria-label={saved ? t('card.removeSaved') : t('card.save')}
+          title={saved ? t('card.saved') : t('card.save')}
           className={cn(
             'absolute right-3 top-3 z-10 grid h-8 w-8 place-items-center rounded-lg backdrop-blur-md transition-all duration-300 active:scale-90',
             saved
@@ -87,7 +89,7 @@ export function ProductCard({
 
         {off > 0 && (
           <Badge tone="holo" className="absolute left-3 top-3 shadow-sm">
-            {off}% OFF
+            {t('card.off', { off })}
           </Badge>
         )}
 
@@ -97,7 +99,7 @@ export function ProductCard({
           // click and an out-of-stock product could not be opened at all.
           <div className="pointer-events-none absolute inset-0 grid place-items-center bg-slate-900/55 backdrop-blur-[1px]">
             <span className="rounded-lg bg-white/95 px-3 py-1.5 text-[12px] font-extrabold text-slate-800">
-              Out of stock
+              {t('card.outOfStock')}
             </span>
           </div>
         )}
@@ -106,7 +108,7 @@ export function ProductCard({
       <div className="flex flex-1 flex-col p-4">
         <span className="mb-1.5 inline-flex w-fit items-center gap-1 text-[10.5px] font-bold uppercase tracking-wider text-muted-foreground">
           {isBook ? <BookOpen className="h-3 w-3" /> : <Package className="h-3 w-3" />}
-          {categoryLabel(product.category)}
+          {t(`category.${product.category}`)}
         </span>
 
         <Link href={`/shop/${product.slug}`} className="group/title">
@@ -139,7 +141,7 @@ export function ProductCard({
 
         {stock === 'LOW' && (
           <p className="mt-1.5 text-[11px] font-bold text-amber-600 dark:text-amber-400">
-            Only {product.stock} left
+            {t('card.onlyLeft', { n: product.stock })}
           </p>
         )}
 
@@ -148,7 +150,7 @@ export function ProductCard({
             href={`/shop/${product.slug}`}
             className={buttonVariants({ variant: 'outline', size: 'sm', className: 'flex-1' })}
           >
-            Details
+            {t('card.details')}
           </Link>
           <Button
             variant={inCart ? 'secondary' : 'primary'}
@@ -168,12 +170,12 @@ export function ProductCard({
             {inCart ? (
               <>
                 <Check className="h-4 w-4" />
-                In cart
+                {t('card.inCart')}
               </>
             ) : (
               <>
                 <ShoppingCart className="h-4 w-4" />
-                Add
+                {t('card.add')}
               </>
             )}
           </Button>

@@ -9,6 +9,7 @@
 
 import * as React from 'react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { SlidersHorizontal, X, ChevronDown, RotateCcw, Search, Loader2 } from 'lucide-react'
 import { Checkbox } from '@/components/ui/field'
 import { Button } from '@/components/ui/button'
@@ -24,13 +25,7 @@ export type ShopFacetCounts = {
   price: Record<string, number>
 }
 
-const SORT_OPTIONS = [
-  { value: 'relevance', label: 'Most Relevant' },
-  { value: 'price-asc', label: 'Price: Low to High' },
-  { value: 'price-desc', label: 'Price: High to Low' },
-  { value: 'rating', label: 'Highest Rated' },
-  { value: 'newest', label: 'Newest First' },
-] as const
+const SORT_VALUES = ['relevance', 'price-asc', 'price-desc', 'rating', 'newest'] as const
 
 type MultiKey = 'kind' | 'category' | 'exam' | 'price'
 
@@ -142,6 +137,8 @@ function PanelBody({
   apply: (next: Partial<ShopFilterState>) => void
   clearAll: () => void
 }) {
+  const t = useTranslations('shop')
+
   // Only show category rows relevant to the selected kind — a buyer filtering
   // "Stationery" has no use for "Medical Entrance".
   const categories = state.kind.length
@@ -152,13 +149,13 @@ function PanelBody({
 
   return (
     <div>
-      <Group title="Product Type">
+      <Group title={t('groups.type')}>
         <fieldset>
-          <legend className="sr-only">Product type</legend>
+          <legend className="sr-only">{t('groups.type')}</legend>
           {PRODUCT_KINDS.map((k) => (
             <OptionRow
               key={k.value}
-              label={k.label}
+              label={t(`kind.${k.value}`)}
               count={counts.kind[k.value] ?? 0}
               checked={state.kind.includes(k.value)}
               onToggle={() => toggle('kind', k.value)}
@@ -167,13 +164,13 @@ function PanelBody({
         </fieldset>
       </Group>
 
-      <Group title="Category">
+      <Group title={t('groups.category')}>
         <fieldset>
-          <legend className="sr-only">Category</legend>
+          <legend className="sr-only">{t('groups.category')}</legend>
           {categories.map((c) => (
             <OptionRow
               key={c.value}
-              label={c.label}
+              label={t(`category.${c.value}`)}
               count={counts.category[c.value] ?? 0}
               checked={state.category.includes(c.value)}
               onToggle={() => toggle('category', c.value)}
@@ -183,9 +180,9 @@ function PanelBody({
       </Group>
 
       {showExams && (
-        <Group title="Exam">
+        <Group title={t('groups.exam')}>
           <fieldset>
-            <legend className="sr-only">Exam</legend>
+            <legend className="sr-only">{t('groups.exam')}</legend>
             <div className="flex flex-wrap gap-1.5 px-2 pt-1">
               {EXAM_TAGS.map((tag) => {
                 const on = state.exam.includes(tag)
@@ -211,13 +208,13 @@ function PanelBody({
         </Group>
       )}
 
-      <Group title="Price">
+      <Group title={t('groups.price')}>
         <fieldset>
-          <legend className="sr-only">Price</legend>
+          <legend className="sr-only">{t('groups.price')}</legend>
           {PRICE_BUCKETS.map((b) => (
             <OptionRow
               key={b.value}
-              label={b.label}
+              label={t(`price.${b.value}`)}
               count={counts.price[b.value] ?? 0}
               checked={state.price.includes(b.value)}
               onToggle={() => toggle('price', b.value)}
@@ -226,11 +223,11 @@ function PanelBody({
         </fieldset>
       </Group>
 
-      <Group title="Availability">
+      <Group title={t('groups.availability')}>
         <fieldset>
-          <legend className="sr-only">Availability</legend>
+          <legend className="sr-only">{t('groups.availability')}</legend>
           <OptionRow
-            label="In stock only"
+            label={t('inStock')}
             checked={state.inStock}
             onToggle={() => apply({ inStock: !state.inStock })}
           />
@@ -247,7 +244,7 @@ function PanelBody({
           disabled={activeCount(state) === 0 && !state.q}
         >
           <RotateCcw className="h-3.5 w-3.5" />
-          Clear All Filters
+          {t('clearAllFilters')}
         </Button>
       </div>
     </div>
@@ -258,14 +255,15 @@ function PanelBody({
 
 export function ShopFilterSidebar({ counts }: { counts: ShopFacetCounts }) {
   const { state, apply, toggle, clearAll, pending } = useShopUrl()
+  const t = useTranslations('shop')
 
   return (
     <aside
-      aria-label="Filter products"
+      aria-label={t('filters')}
       className={cn('card-base sticky top-24 overflow-hidden transition-opacity', pending && 'opacity-60')}
     >
       <div className="flex items-center justify-between border-b border-border px-4 py-3">
-        <h2 className="text-[13px] font-extrabold tracking-tight">Refine</h2>
+        <h2 className="text-[13px] font-extrabold tracking-tight">{t('refine')}</h2>
         {pending && <Loader2 aria-hidden className="h-3.5 w-3.5 animate-spin text-muted-foreground" />}
       </div>
       <PanelBody counts={counts} state={state} toggle={toggle} apply={apply} clearAll={clearAll} />
@@ -278,6 +276,7 @@ export function ShopFilterSidebar({ counts }: { counts: ShopFacetCounts }) {
 export function ShopFilterDrawer({ counts, total }: { counts: ShopFacetCounts; total: number }) {
   const [open, setOpen] = React.useState(false)
   const { state, apply, toggle, clearAll } = useShopUrl()
+  const t = useTranslations('shop')
   const active = activeCount(state)
 
   // Lock the page behind the sheet, and let Escape close it.
@@ -297,7 +296,7 @@ export function ShopFilterDrawer({ counts, total }: { counts: ShopFacetCounts; t
     <>
       <Button type="button" variant="outline" size="sm" onClick={() => setOpen(true)} className="lg:hidden">
         <SlidersHorizontal className="h-4 w-4" />
-        Filters
+        {t('filters')}
         {active > 0 && (
           <span className="ml-0.5 grid h-5 min-w-5 place-items-center rounded-full bg-primary-600 px-1 text-[10px] font-bold text-white">
             {active}
@@ -306,20 +305,20 @@ export function ShopFilterDrawer({ counts, total }: { counts: ShopFacetCounts; t
       </Button>
 
       {open && (
-        <div className="fixed inset-0 z-[70] lg:hidden" role="dialog" aria-modal="true" aria-label="Filter products">
+        <div className="fixed inset-0 z-[70] lg:hidden" role="dialog" aria-modal="true" aria-label={t('filters')}>
           <button
             type="button"
-            aria-label="Close filters"
+            aria-label={t('closeFilters')}
             onClick={() => setOpen(false)}
             className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm"
           />
           <div className="absolute inset-x-0 bottom-0 max-h-[85dvh] overflow-y-auto rounded-t-3xl bg-card shadow-2xl">
             <div className="sticky top-0 z-10 flex items-center justify-between border-b border-border bg-card px-4 py-3">
-              <h2 className="text-sm font-extrabold">Filters</h2>
+              <h2 className="text-sm font-extrabold">{t('filters')}</h2>
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                aria-label="Close"
+                aria-label={t('close')}
                 className="grid h-9 w-9 place-items-center rounded-xl text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
               >
                 <X className="h-4.5 w-4.5" />
@@ -330,7 +329,7 @@ export function ShopFilterDrawer({ counts, total }: { counts: ShopFacetCounts; t
 
             <div className="sticky bottom-0 border-t border-border bg-card p-4">
               <Button type="button" className="w-full" onClick={() => setOpen(false)}>
-                Show {total} {total === 1 ? 'product' : 'products'}
+                {t('showProducts', { count: total })}
               </Button>
             </div>
           </div>
@@ -344,6 +343,7 @@ export function ShopFilterDrawer({ counts, total }: { counts: ShopFacetCounts; t
 
 export function ShopSearchBox({ className }: { className?: string }) {
   const { state, apply } = useShopUrl()
+  const t = useTranslations('shop')
   const [value, setValue] = React.useState(state.q)
 
   // Keep the box honest when the query string changes underneath it (back
@@ -366,14 +366,14 @@ export function ShopSearchBox({ className }: { className?: string }) {
           name="q"
           value={value}
           onChange={(e) => setValue(e.target.value)}
-          placeholder="Search books, authors, ISBN or stationery…"
-          aria-label="Search the shop"
+          placeholder={t('searchPlaceholder')}
+          aria-label={t('searchLabel')}
           maxLength={80}
           className="h-10 w-full rounded-xl border border-border bg-card pl-9 pr-3 text-[13px] outline-none transition-colors placeholder:text-muted-foreground focus:border-primary-400 focus-visible:ring-2 focus-visible:ring-ring"
         />
       </div>
       <Button type="submit" size="sm" className="shrink-0">
-        Search
+        {t('searchButton')}
       </Button>
     </form>
   )
@@ -381,18 +381,19 @@ export function ShopSearchBox({ className }: { className?: string }) {
 
 export function ShopSortSelect() {
   const { state, apply } = useShopUrl()
+  const t = useTranslations('shop')
 
   return (
     <label className="flex items-center gap-2 text-[13px]">
-      <span className="sr-only">Sort products</span>
+      <span className="sr-only">{t('sortLabel')}</span>
       <select
         value={state.sort}
         onChange={(e) => apply({ sort: e.target.value as ShopFilterState['sort'] })}
         className="h-10 rounded-xl border border-border bg-card px-3 text-[13px] font-semibold outline-none transition-colors hover:border-primary-300 focus:border-primary-400 focus-visible:ring-2 focus-visible:ring-ring"
       >
-        {SORT_OPTIONS.map((o) => (
-          <option key={o.value} value={o.value}>
-            {o.label}
+        {SORT_VALUES.map((v) => (
+          <option key={v} value={v}>
+            {t(`sort.${v}`)}
           </option>
         ))}
       </select>
@@ -404,31 +405,23 @@ export function ShopSortSelect() {
 
 export function ShopActiveChips() {
   const { state, apply, toggle, clearAll } = useShopUrl()
+  const t = useTranslations('shop')
   if (activeCount(state) === 0 && !state.q) return null
 
-  const chips: { label: string; clear: () => void }[] = []
+  const chips: { key: string; label: string; clear: () => void }[] = []
 
-  if (state.q) chips.push({ label: `“${state.q}”`, clear: () => apply({ q: '' }) })
-  for (const v of state.kind) {
-    const label = PRODUCT_KINDS.find((k) => k.value === v)?.label ?? v
-    chips.push({ label, clear: () => toggle('kind', v) })
-  }
-  for (const v of state.category) {
-    const label = SHOP_CATEGORIES.find((c) => c.value === v)?.label ?? v
-    chips.push({ label, clear: () => toggle('category', v) })
-  }
-  for (const v of state.exam) chips.push({ label: v, clear: () => toggle('exam', v) })
-  for (const v of state.price) {
-    const label = PRICE_BUCKETS.find((b) => b.value === v)?.label ?? v
-    chips.push({ label, clear: () => toggle('price', v) })
-  }
-  if (state.inStock) chips.push({ label: 'In stock only', clear: () => apply({ inStock: false }) })
+  if (state.q) chips.push({ key: 'q', label: `“${state.q}”`, clear: () => apply({ q: '' }) })
+  for (const v of state.kind) chips.push({ key: `kind:${v}`, label: t(`kind.${v}`), clear: () => toggle('kind', v) })
+  for (const v of state.category) chips.push({ key: `cat:${v}`, label: t(`category.${v}`), clear: () => toggle('category', v) })
+  for (const v of state.exam) chips.push({ key: `exam:${v}`, label: v, clear: () => toggle('exam', v) })
+  for (const v of state.price) chips.push({ key: `price:${v}`, label: t(`price.${v}`), clear: () => toggle('price', v) })
+  if (state.inStock) chips.push({ key: 'inStock', label: t('inStock'), clear: () => apply({ inStock: false }) })
 
   return (
     <div className="mb-4 flex flex-wrap items-center gap-1.5">
       {chips.map((c) => (
         <button
-          key={c.label}
+          key={c.key}
           type="button"
           onClick={c.clear}
           className="inline-flex items-center gap-1 rounded-full border border-border bg-card px-2.5 py-1 text-[11.5px] font-semibold transition-colors hover:border-red-300 hover:text-red-600"
@@ -442,7 +435,7 @@ export function ShopActiveChips() {
         onClick={clearAll}
         className="ml-1 text-[11.5px] font-bold text-primary-600 hover:underline"
       >
-        Clear all
+        {t('clearAllChips')}
       </button>
     </div>
   )

@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { getTranslations } from 'next-intl/server'
 import { ChevronRight, ChevronLeft, SearchX, BookOpen, Package, Truck, ShieldCheck } from 'lucide-react'
 import { prisma } from '@/lib/prisma'
 import { ProductCard } from '@/components/shop/product-card'
@@ -65,28 +66,29 @@ function pageWindow(current: number, total: number): (number | 'gap')[] {
   return out
 }
 
-function Pagination({ state, page, totalPages }: {
+async function Pagination({ state, page, totalPages }: {
   state: ShopFilterState
   page: number
   totalPages: number
 }) {
   if (totalPages <= 1) return null
+  const t = await getTranslations('shop')
 
   const href = (n: number) => `/shop${shopQueryString(state, { page: n })}`
   const stepClass =
     'inline-flex h-10 min-w-10 items-center justify-center gap-1 rounded-xl border border-border px-3 text-[13px] font-bold transition-all duration-300 ease-spring'
 
   return (
-    <nav aria-label="Shop results pages" className="mt-10 flex flex-wrap items-center justify-center gap-1.5">
+    <nav aria-label={t('pagesLabel')} className="mt-10 flex flex-wrap items-center justify-center gap-1.5">
       {page > 1 ? (
         <Link href={href(page - 1)} rel="prev" className={cn(stepClass, 'bg-card hover:border-primary-300 hover:shadow-card')}>
           <ChevronLeft aria-hidden className="h-4 w-4" />
-          Prev
+          {t('prev')}
         </Link>
       ) : (
         <span className={cn(stepClass, 'cursor-not-allowed opacity-40')} aria-disabled>
           <ChevronLeft aria-hidden className="h-4 w-4" />
-          Prev
+          {t('prev')}
         </span>
       )}
 
@@ -112,12 +114,12 @@ function Pagination({ state, page, totalPages }: {
 
       {page < totalPages ? (
         <Link href={href(page + 1)} rel="next" className={cn(stepClass, 'bg-card hover:border-primary-300 hover:shadow-card')}>
-          Next
+          {t('next')}
           <ChevronRight aria-hidden className="h-4 w-4" />
         </Link>
       ) : (
         <span className={cn(stepClass, 'cursor-not-allowed opacity-40')} aria-disabled>
-          Next
+          {t('next')}
           <ChevronRight aria-hidden className="h-4 w-4" />
         </span>
       )}
@@ -132,6 +134,8 @@ export default async function ShopPage({
 }) {
   const state = parseShopFilters(await searchParams)
   const where = buildShopWhere(state)
+  const t = await getTranslations('shop')
+  const freeOver = formatPaise(FREE_SHIPPING_OVER)
 
   // Facet counts come from the unfiltered live set so a zero-count row still
   // renders (greyed) instead of vanishing — a rail that reshuffles as you tick
@@ -186,13 +190,12 @@ export default async function ShopPage({
         <GridPattern />
         <div className="container relative py-12 sm:py-14">
           <div className="mx-auto max-w-2xl text-center">
-            <Badge tone="holo" className="mb-4">Student Shop</Badge>
+            <Badge tone="holo" className="mb-4">{t('badge')}</Badge>
             <h1 className="text-balance font-display text-3xl font-extrabold text-white sm:text-4xl">
-              Everything you need to <span className="holo-text">prepare and pass</span>
+              {t.rich('heroTitle', { accent: (chunks) => <span className="holo-text">{chunks}</span> })}
             </h1>
             <p className="mx-auto mt-3 max-w-xl text-pretty text-[15px] text-white/70">
-              Competitive exam books and study stationery, priced for students. Free delivery on
-              orders above {formatPaise(FREE_SHIPPING_OVER)}.
+              {t('heroSub', { amount: freeOver })}
             </p>
           </div>
 
@@ -203,15 +206,15 @@ export default async function ShopPage({
           <ul className="mx-auto mt-7 flex max-w-2xl flex-wrap items-center justify-center gap-x-6 gap-y-2 text-[12.5px] font-semibold text-white/75">
             <li className="flex items-center gap-1.5">
               <ShieldCheck aria-hidden className="h-4 w-4 text-holo-cyan" />
-              Genuine editions
+              {t('genuine')}
             </li>
             <li className="flex items-center gap-1.5">
               <Truck aria-hidden className="h-4 w-4 text-holo-cyan" />
-              Free delivery over {formatPaise(FREE_SHIPPING_OVER)}
+              {t('freeDelivery', { amount: freeOver })}
             </li>
             <li className="flex items-center gap-1.5">
               <BookOpen aria-hidden className="h-4 w-4 text-holo-cyan" />
-              Curated for Indian entrance exams
+              {t('curated')}
             </li>
           </ul>
         </div>
@@ -220,9 +223,9 @@ export default async function ShopPage({
       {/* --------------------------------------------------------- results */}
       <section className="container py-8 sm:py-10">
         <nav aria-label="Breadcrumb" className="mb-5 flex items-center gap-1.5 text-[12.5px] text-muted-foreground">
-          <Link href="/" className="hover:text-primary-600">Home</Link>
+          <Link href="/" className="hover:text-primary-600">{t('home')}</Link>
           <ChevronRight aria-hidden className="h-3.5 w-3.5" />
-          <span className="font-semibold text-foreground">Shop</span>
+          <span className="font-semibold text-foreground">{t('shop')}</span>
         </nav>
 
         <div className="grid gap-6 lg:grid-cols-[16rem_1fr]">
@@ -234,11 +237,11 @@ export default async function ShopPage({
             <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
               <div>
                 <h2 className="font-display text-lg font-extrabold tracking-tight">
-                  {filtered ? 'Matching products' : 'All products'}
+                  {filtered ? t('matching') : t('all')}
                 </h2>
                 <p className="mt-0.5 text-[13px] text-muted-foreground">
-                  {total} {total === 1 ? 'product' : 'products'}
-                  {totalPages > 1 && ` · Page ${state.page} of ${totalPages}`}
+                  {t('count', { count: total })}
+                  {totalPages > 1 && ` · ${t('pageOf', { page: state.page, total: totalPages })}`}
                 </p>
               </div>
               <div className="flex items-center gap-2">
@@ -252,12 +255,12 @@ export default async function ShopPage({
             {products.length === 0 ? (
               <div className="card-base grid place-items-center px-6 py-16 text-center">
                 <SearchX aria-hidden className="mb-3 h-10 w-10 text-muted-foreground" />
-                <p className="text-[15px] font-bold">Nothing matched those filters</p>
+                <p className="text-[15px] font-bold">{t('emptyTitle')}</p>
                 <p className="mt-1 max-w-sm text-[13px] text-muted-foreground">
-                  Try removing a filter, or search by book title, author or ISBN.
+                  {t('emptyBody')}
                 </p>
                 <Link href="/shop" className={buttonVariants({ variant: 'outline', size: 'sm', className: 'mt-5' })}>
-                  Clear all filters
+                  {t('clearAll')}
                 </Link>
               </div>
             ) : (
