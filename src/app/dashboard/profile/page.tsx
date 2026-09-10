@@ -1,12 +1,21 @@
+import { prisma } from '@/lib/prisma'
 import { requireUser } from '@/lib/auth'
 import { PanelHeading } from '@/components/dashboard/primitives'
 import { ProfileForm } from '@/components/dashboard/profile-form'
+import { NotificationSettings } from '@/components/dashboard/notification-settings'
+import { resolvePrefs } from '@/lib/notification-prefs'
 import { formatDate } from '@/lib/utils'
 
 export const metadata = { title: 'Profile' }
+export const dynamic = 'force-dynamic'
 
 export default async function ProfilePage() {
   const user = await requireUser('/dashboard/profile')
+
+  const prefRow = await prisma.notificationPreference.findUnique({
+    where: { userId: user.id },
+    select: { channels: true },
+  })
 
   return (
     <div className="mx-auto max-w-5xl">
@@ -27,6 +36,8 @@ export default async function ProfilePage() {
           state: user.state ?? '',
         }}
       />
+
+      <NotificationSettings initial={resolvePrefs(prefRow?.channels)} />
     </div>
   )
 }

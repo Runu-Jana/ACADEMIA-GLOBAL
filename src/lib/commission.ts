@@ -2,6 +2,7 @@ import { prisma } from './prisma'
 import { sendEmail } from './email'
 import { enrolmentEmail } from './emails'
 import { notify } from './notifications'
+import { resolvePrefs, wants } from './notification-prefs'
 
 /**
  * Marketplace money.
@@ -100,21 +101,27 @@ export async function markOrderPaid(orderId: string, gatewayPaymentId?: string) 
     create: { userId: order.userId, courseId: order.courseId, status: 'ACTIVE' },
   })
 
-  await notify(order.userId, {
-    type: 'ENROLMENT',
-    title: `You're enrolled in ${course.title}`,
-    body: `${course.university.name} — pick up from your dashboard whenever you're ready.`,
-    url: '/dashboard/learn',
-  })
+  // In-app only here; the richer receipt email below is sent (and preference-gated) separately.
+  await notify(
+    order.userId,
+    {
+      type: 'ENROLMENT',
+      title: `You're enrolled in ${course.title}`,
+      body: `${course.university.name} — pick up from your dashboard whenever you're ready.`,
+      url: '/dashboard/learn',
+    },
+    { email: false },
+  )
 
   // Confirmation + receipt to the student. This runs once (the already-PAID
   // guard above means retries/webhook re-confirms won't re-send). Best-effort:
-  // sendEmail no-ops without RESEND_API_KEY and never throws.
+  // sendEmail no-ops without RESEND_API_KEY and never throws. Honours the
+  // student's "Course & enrolment" email preference.
   const student = await prisma.user.findUnique({
     where: { id: order.userId },
-    select: { name: true, email: true },
+    select: { name: true, email: true, notificationPreference: { select: { channels: true } } },
   })
-  if (student) {
+  if (student && wants(resolvePrefs(student.notificationPreference?.channels), 'ENROLMENT', 'email')) {
     await sendEmail(
       student.email,
       enrolmentEmail({

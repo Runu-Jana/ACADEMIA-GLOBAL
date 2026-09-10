@@ -49,6 +49,7 @@ model User {
   savedCourses     SavedCourse[]
   savedProducts    SavedProduct[]
   learningGoal     LearningGoal?
+  notificationPreference NotificationPreference?
 
   @@index([role])
   @@index([universityId])
@@ -97,6 +98,18 @@ model LearningGoal {
   weeklyDays Int      @default(5)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
+}
+
+/// Per-student notification preferences. One row per student (userId is the PK).
+/// `channels` is a JSON map { [category]: { inApp, email } }; any missing category
+/// falls back to the defaults in lib/notification-prefs.ts, so an absent row means
+/// "all defaults". Respected by notify() (in-app + generic email) and the
+/// enrolment/reminder emails.
+model NotificationPreference {
+  userId    String   @id
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  channels  Json
+  updatedAt DateTime @updatedAt
 }
 
 /// A learner-facing notification — the nudge that pulls a student back:

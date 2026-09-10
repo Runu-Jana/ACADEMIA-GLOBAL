@@ -142,6 +142,35 @@ export function enrolmentEmail(opts: {
 }
 
 /**
+ * Generic notification email — the email channel for in-app notifications a
+ * student has opted to also receive by email (tests graded, certificate ready,
+ * achievements…). Kept plain and reusable; richer events (enrolment receipt,
+ * re-engagement nudge) keep their own tailored templates.
+ */
+export function notificationEmail(opts: {
+  name?: string | null
+  title: string
+  body?: string | null
+  /** App-relative path the CTA opens. */
+  path?: string | null
+}): AdminMail {
+  const hi = opts.name ? firstName(opts.name) : 'there'
+  const link = `${APP_URL}${opts.path || '/dashboard'}`
+  return {
+    subject: opts.title,
+    text: [`Hi ${hi},`, ``, opts.title, opts.body ? `\n${opts.body}` : ``, ``, `Open: ${link}`, ``, `— The ${BRAND} team`]
+      .filter((l) => l !== '')
+      .join('\n'),
+    html: shell(
+      opts.title,
+      `<h1 style="margin:0 0 ${opts.body ? '10px' : '18px'};font-size:19px;font-weight:800;">${opts.title}</h1>
+       ${opts.body ? `<p style="margin:0 0 20px;font-size:14px;line-height:1.65;color:#334155;">${opts.body}</p>` : ''}
+       <p style="margin:0;">${button(link, 'Open')}</p>`,
+    ),
+  }
+}
+
+/**
  * Re-engagement nudge — the email half of the "come back" loop. Three shapes:
  * a streak-save, a continue-where-you-left-off, and a start-your-course prompt.
  */

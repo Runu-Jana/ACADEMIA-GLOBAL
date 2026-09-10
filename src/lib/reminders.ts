@@ -3,6 +3,7 @@ import { sendEmail } from '@/lib/email'
 import { reminderEmail } from '@/lib/emails'
 import { notify } from '@/lib/notifications'
 import { getStreakSnapshot, dayKeyIST } from '@/lib/gamification'
+import { resolvePrefs, wants } from '@/lib/notification-prefs'
 import { captureError } from '@/lib/observability'
 
 /**
@@ -99,6 +100,7 @@ export async function sendReengagementNudges(
       id: true,
       name: true,
       email: true,
+      notificationPreference: { select: { channels: true } },
       enrollments: {
         select: {
           progressPct: true,
@@ -118,6 +120,7 @@ export async function sendReengagementNudges(
 
     const last = lastAct.get(s.id) ?? null
     const remindedAt = lastReminder.get(s.id) ?? null
+    const emailAllowed = wants(resolvePrefs(s.notificationPreference?.channels), 'REMINDER', 'email')
 
     // ---- streak save: active yesterday, not today, streak ≥ 3 ----
     if (last && dayKeyIST(last) === yesterdayKey) {
@@ -125,7 +128,7 @@ export async function sendReengagementNudges(
       if (!remindedToday) {
         const snap = await getStreakSnapshot(s.id)
         if (snap.current >= STREAK_MIN) {
-          await fire(s, { kind: 'streak', streakDays: snap.current }, dryRun)
+          await fire(s, { kind: 'streak', streakDays: snap.current }, dryRun, emailAllowed)
           summary.streakSaves++
         }
       }
@@ -148,10 +151,10 @@ export async function sendReengagementNudges(
     if (!resume) continue // finished everything — not a lapse to chase
 
     if (resume.progressPct > 0) {
-      await fire(s, { kind: 'continue', course: resume.course, progressPct: resume.progressPct }, dryRun)
+      await fire(s, { kind: 'continue', course: resume.course, progressPct: resume.progressPct }, dryRun, emailAllowed)
       summary.continues++
     } else {
-      await fire(s, { kind: 'comeback', course: resume.course }, dryRun)
+      await fire(s, { kind: 'comeback', course: resume.course }, dryRun, emailAllowed)
       summary.comebacks++
     }
   }
@@ -168,6 +171,7 @@ async function fire(
     progressPct?: number
   },
   dryRun: boolean,
+  emailAllowed: boolean,
 ): Promise<void> {
   if (dryRun) return
 
@@ -180,23 +184,27 @@ async function fire(
         ? { title: `Continue ${n.course!.title}`, body: `You’re ${n.progressPct}% through — pick up where you left off.` }
         : { title: `Ready to start ${n.course!.title}?`, body: 'Your classroom is waiting whenever you are.' }
 
-  // In-app notification (also serves as the cooldown marker).
-  await notify(student.id, { type: 'REMINDER', title: inApp.title, body: inApp.body, url: path })
+  // In-app notification (also serves as the cooldown marker). Preference-gated by
+  // notify(); email:false because the tailored reminderEmail below is our email.
+  await notify(student.id, { type: 'REMINDER', title: inApp.title, body: inApp.body, url: path }, { email: false })
 
-  // Email — best-effort; no-ops when the mailer isn't configured.
-  try {
-    await sendEmail(
-      student.email,
-      reminderEmail({
-        name: student.name,
-        kind: n.kind,
-        courseTitle: n.course?.title,
-        path,
-        streakDays: n.streakDays,
-        progressPct: n.progressPct,
-      }),
-    )
-  } catch (err) {
-    captureError(err, { scope: 'reminders/email', userId: student.id })
+  // Tailored email — only when the student wants reminder emails; best-effort and
+  // no-ops when the mailer isn't configured.
+  if (emailAllowed) {
+    try {
+      await sendEmail(
+        student.email,
+        reminderEmail({
+          name: student.name,
+          kind: n.kind,
+          courseTitle: n.course?.title,
+          path,
+          streakDays: n.streakDays,
+          progressPct: n.progressPct,
+        }),
+      )
+    } catch (err) {
+      captureError(err, { scope: 'reminders/email', userId: student.id })
+    }
   }
 }
