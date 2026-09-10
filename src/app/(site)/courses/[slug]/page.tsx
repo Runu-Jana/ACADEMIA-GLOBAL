@@ -7,7 +7,7 @@ import {
   BadgeCheck, Wallet, MessageSquare, ArrowRight, BookOpen, Info,
 } from 'lucide-react'
 import { prisma } from '@/lib/prisma'
-import { getCurrentUser, getSession } from '@/lib/auth'
+import { getCurrentUser } from '@/lib/auth'
 import { isCourseLive, isCourseListed, isDirectoryCourse, listedCourses } from '@/lib/visibility'
 import { LeadForm } from '@/components/lead/lead-form'
 import { BrochureGate } from '@/components/course/brochure-gate'
@@ -26,6 +26,7 @@ import { COURSE_LEVELS, COURSE_MODES, STREAMS } from '@/lib/constants'
 import { CourseTabs, type TabItem } from './course-tabs'
 import { CompareButton } from './compare-button'
 import { SaveButton } from '@/components/course/save-button'
+import { ReviewForm } from '@/components/course/review-form'
 
 const courseSelect = {
   id: true, slug: true, title: true, mode: true, stream: true, level: true,
@@ -74,7 +75,7 @@ function getCourse(slug: string) {
         take: 8,
         select: {
           id: true, rating: true, body: true, createdAt: true,
-          user: { select: { name: true } },
+          user: { select: { id: true, name: true } },
         },
       },
     },
@@ -219,10 +220,14 @@ export default async function CourseDetailPage({
   // Shown to admins/partners viewing something not yet publicly listed.
   const preview = !listed
 
+  // Fetched once and reused: preview auth, the pre-filled lead form, the brochure
+  // gate, and the enrolment-gated review form all need to know who is looking.
+  const me = await getCurrentUser()
+
   // Not publicly listed → only an admin or the owning partner may preview it, so
   // a reviewer sees exactly what will publish. The viewer is reused to pre-fill
   // the lead form on a directory listing.
-  const viewer = !listed || directory ? await getCurrentUser() : null
+  const viewer = !listed || directory ? me : null
   if (!listed) {
     const canPreview =
       viewer?.role === 'ADMIN' ||
@@ -233,9 +238,23 @@ export default async function CourseDetailPage({
     ? { name: viewer.name, email: viewer.email, phone: viewer.phone ?? undefined }
     : undefined
 
-  // Whether to gate the brochure download. `viewer` is only fetched for directory
-  // listings, so fall back to a cheap session check for ordinary partner courses.
-  const signedIn = Boolean(viewer) || Boolean(await getSession())
+  const signedIn = Boolean(me)
+
+  // A learner may review a course they are enrolled in — one review each, shown
+  // pre-filled for editing. Both reads are skipped entirely for a signed-out visitor.
+  const [myEnrollment, myReview] = me
+    ? await Promise.all([
+        prisma.enrollment.findUnique({
+          where: { userId_courseId: { userId: me.id, courseId: course.id } },
+          select: { id: true },
+        }),
+        prisma.review.findUnique({
+          where: { userId_courseId: { userId: me.id, courseId: course.id } },
+          select: { rating: true, body: true },
+        }),
+      ])
+    : [null, null]
+  const canReview = Boolean(myEnrollment)
 
   // "Keep exploring" stays WITHIN the same university — we never recommend
   // similar courses at a different university while a student is deciding to
@@ -688,6 +707,24 @@ export default async function CourseDetailPage({
             </p>
           </div>
 
+          {canReview ? (
+            <ReviewForm courseId={course.id} existing={myReview} />
+          ) : signedIn ? (
+            <p className="mb-5 rounded-xl border border-dashed border-border bg-muted/40 p-4 text-[13px] text-muted-foreground">
+              Enrol in this program to share your own review.
+            </p>
+          ) : (
+            <p className="mb-5 rounded-xl border border-dashed border-border bg-muted/40 p-4 text-[13px] text-muted-foreground">
+              <Link
+                href={`/login?returnTo=${encodeURIComponent(`/courses/${course.slug}`)}`}
+                className="font-bold text-primary-600 hover:underline"
+              >
+                Sign in
+              </Link>{' '}
+              and enrol to write a review.
+            </p>
+          )}
+
           {course.courseReview.length > 0 ? (
             <ul className="space-y-3">
               {course.courseReview.map((r) => (
@@ -700,7 +737,14 @@ export default async function CourseDetailPage({
                       {initials(r.user.name)}
                     </span>
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-[13px] font-bold">{r.user.name}</p>
+                      <p className="flex items-center gap-1.5 truncate text-[13px] font-bold">
+                        {r.user.name}
+                        {r.user.id === me?.id && (
+                          <span className="rounded-full bg-primary-100 px-1.5 py-0.5 text-[10px] font-bold text-primary-700 dark:bg-primary-500/20 dark:text-primary-300">
+                            You
+                          </span>
+                        )}
+                      </p>
                       <p className="text-[11px] text-muted-foreground">{formatDate(r.createdAt)}</p>
                     </div>
                     <Stars rating={r.rating} size={12} showValue={false} />
