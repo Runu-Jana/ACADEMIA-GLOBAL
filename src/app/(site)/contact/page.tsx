@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { getTranslations } from 'next-intl/server'
 import { Phone, Mail, MapPin, Clock, MessageSquare, Building2 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Aurora } from '@/components/fx/aurora'
@@ -19,25 +20,29 @@ export const metadata: Metadata = {
   description: 'Talk to the Shiksha Sarthi team about admissions, partnerships or support.',
 }
 
-const channels = [
-  { icon: Phone, title: 'Call us', lines: [SUPPORT_PHONE, SUPPORT_HOURS], href: SUPPORT_PHONE_HREF },
-  { icon: Mail, title: 'Email us', lines: [SUPPORT_EMAIL, 'We reply within one working day'], href: `mailto:${SUPPORT_EMAIL}` },
-  { icon: MapPin, title: 'Head office', lines: [HEAD_OFFICE_CITY, HEAD_OFFICE_POSTCODE] },
-  { icon: Building2, title: 'Partnerships', lines: [PARTNERSHIPS_EMAIL, 'For universities and institutions'], href: `mailto:${PARTNERSHIPS_EMAIL}` },
-]
+export default async function ContactPage() {
+  const t = await getTranslations('contact')
 
-export default function ContactPage() {
+  // The primary line of each channel is contact data (phone, email, city); only
+  // the descriptive second line is prose, so a couple of channels carry a note.
+  const channels = [
+    { icon: Phone, title: t('channels.call.title'), primary: SUPPORT_PHONE, secondary: SUPPORT_HOURS, href: SUPPORT_PHONE_HREF },
+    { icon: Mail, title: t('channels.email.title'), primary: SUPPORT_EMAIL, secondary: t('channels.email.note'), href: `mailto:${SUPPORT_EMAIL}` },
+    { icon: MapPin, title: t('channels.office.title'), primary: HEAD_OFFICE_CITY, secondary: HEAD_OFFICE_POSTCODE, href: undefined },
+    { icon: Building2, title: t('channels.partnerships.title'), primary: PARTNERSHIPS_EMAIL, secondary: t('channels.partnerships.note'), href: `mailto:${PARTNERSHIPS_EMAIL}` },
+  ]
+
   return (
     <>
       <section className="relative overflow-hidden border-b border-border">
         <Aurora palette="cool" density={2} />
         <div className="container relative py-14 text-center">
-          <Badge tone="holo" className="mb-4">Get in touch</Badge>
+          <Badge tone="holo" className="mb-4">{t('badge')}</Badge>
           <h1 className="text-balance font-display text-3xl font-extrabold sm:text-4xl">
-            We&apos;re here to <span className="holo-text">help you decide</span>
+            {t.rich('title', { accent: (chunks) => <span className="holo-text">{chunks}</span> })}
           </h1>
           <p className="mx-auto mt-3 max-w-xl text-pretty text-[15px] text-muted-foreground">
-            Admissions questions, fee structures, document requirements — ask away.
+            {t('sub')}
           </p>
         </div>
       </section>
@@ -52,14 +57,8 @@ export default function ContactPage() {
                 </span>
                 <div className="min-w-0">
                   <p className="text-[14px] font-extrabold">{c.title}</p>
-                  {c.lines.map((l, j) => (
-                    <p
-                      key={l}
-                      className={j === 0 ? 'mt-0.5 break-all text-[13px] font-semibold' : 'text-[12px] text-muted-foreground'}
-                    >
-                      {l}
-                    </p>
-                  ))}
+                  <p className="mt-0.5 break-all text-[13px] font-semibold">{c.primary}</p>
+                  <p className="text-[12px] text-muted-foreground">{c.secondary}</p>
                 </div>
               </div>
             )
@@ -80,8 +79,7 @@ export default function ContactPage() {
             <div className="flex items-start gap-3 rounded-2xl border border-dashed border-border bg-muted/40 p-4">
               <Clock className="mt-0.5 h-4 w-4 shrink-0 text-primary-500" />
               <p className="text-[12px] leading-relaxed text-muted-foreground">
-                Counselling calls are free and there&apos;s no obligation to enrol. We never ask for
-                payment over the phone — always pay the university through the official admission flow.
+                {t('safetyNote')}
               </p>
             </div>
           </Reveal>
@@ -91,7 +89,7 @@ export default function ContactPage() {
           <div className="card-base holo-ring p-6">
             <div className="mb-5 flex items-center gap-2.5">
               <MessageSquare className="h-5 w-5 text-primary-600" />
-              <h2 className="font-display text-lg font-extrabold">Send us a message</h2>
+              <h2 className="font-display text-lg font-extrabold">{t('formTitle')}</h2>
             </div>
             <ContactForm />
           </div>

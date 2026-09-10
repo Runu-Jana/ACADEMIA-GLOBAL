@@ -1,14 +1,17 @@
 'use client'
 
 import * as React from 'react'
+import { useTranslations } from 'next-intl'
 import { CheckCircle2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Field, Input, Select, Textarea } from '@/components/ui/field'
 import { SUPPORT_PHONE } from '@/lib/contact'
 
-const topics = ['Admission enquiry', 'Fees & scholarships', 'Technical support', 'University partnership', 'Something else']
+const TOPIC_KEYS = ['admission', 'fees', 'tech', 'partnership', 'other'] as const
 
 export function ContactForm() {
+  const t = useTranslations('contact.form')
+  const topics = TOPIC_KEYS.map((k) => t(`topics.${k}`))
   const [sent, setSent] = React.useState(false)
   const [busy, setBusy] = React.useState(false)
 
@@ -28,13 +31,12 @@ export function ContactForm() {
         <span className="grid h-14 w-14 place-items-center rounded-2xl bg-emerald-50 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400">
           <CheckCircle2 className="h-7 w-7" />
         </span>
-        <p className="text-[15px] font-extrabold">Thanks — we&apos;ve got your message</p>
+        <p className="text-[15px] font-extrabold">{t('sentTitle')}</p>
         <p className="max-w-sm text-[13px] text-muted-foreground">
-          A counsellor will reach out within one working day. For anything urgent, call{' '}
-          {SUPPORT_PHONE}.
+          {t('sentBody', { phone: SUPPORT_PHONE })}
         </p>
         <Button variant="outline" size="sm" onClick={() => setSent(false)} className="mt-2">
-          Send another message
+          {t('sendAnother')}
         </Button>
       </div>
     )
@@ -43,38 +45,38 @@ export function ContactForm() {
   return (
     <form onSubmit={onSubmit} className="space-y-4">
       <div className="grid gap-4 sm:grid-cols-2">
-        <Field label="Full name" required>
-          <Input name="name" placeholder="Your name" required />
+        <Field label={t('name')} required>
+          <Input name="name" placeholder={t('namePlaceholder')} required />
         </Field>
-        <Field label="Mobile number" required>
+        <Field label={t('phone')} required>
           <Input name="phone" type="tel" placeholder="+91 98765 43210" required />
         </Field>
       </div>
 
-      <Field label="Email address" required>
+      <Field label={t('email')} required>
         <Input name="email" type="email" placeholder="you@example.com" required />
       </Field>
 
-      <Field label="What's this about?" required>
+      <Field label={t('topic')} required>
         <Select name="topic" required defaultValue={topics[0]}>
-          {topics.map((t) => (
-            <option key={t} value={t}>
-              {t}
+          {topics.map((label) => (
+            <option key={label} value={label}>
+              {label}
             </option>
           ))}
         </Select>
       </Field>
 
-      <Field label="Message" required>
-        <Textarea name="message" placeholder="Tell us where you stopped studying and what you'd like to do next…" required />
+      <Field label={t('message')} required>
+        <Textarea name="message" placeholder={t('messagePlaceholder')} required />
       </Field>
 
       <Button type="submit" variant="holo" size="lg" loading={busy} className="w-full">
-        {busy ? 'Sending…' : 'Send message'}
+        {busy ? t('sending') : t('send')}
       </Button>
 
       <p className="text-center text-[11px] text-muted-foreground">
-        This demo form doesn&apos;t deliver email yet — connect a mail provider before launch.
+        {t('demoNote')}
       </p>
     </form>
   )
