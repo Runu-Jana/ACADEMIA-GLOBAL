@@ -2,8 +2,9 @@
 
 import * as React from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
-import { ShoppingCart, Check, Minus, Plus, Truck } from 'lucide-react'
+import { ShoppingCart, Check, Minus, Plus, Truck, Zap } from 'lucide-react'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { useCart, MAX_QTY } from '@/lib/use-cart'
 import { cn } from '@/lib/utils'
@@ -30,6 +31,7 @@ export function AddToCart({
   stock: number
 }) {
   const t = useTranslations('shop.addToCart')
+  const router = useRouter()
   const { add, has, qtyOf, ready } = useCart()
   const [qty, setQty] = React.useState(1)
   const [justAdded, setJustAdded] = React.useState(false)
@@ -116,6 +118,21 @@ export function AddToCart({
           )}
         </Button>
       </div>
+
+      {/* Buy now — drop this item into the cart and jump straight to checkout,
+          reusing the same priced checkout + payment flow as the cart. */}
+      <Button
+        variant="primary"
+        size="lg"
+        className="w-full"
+        onClick={() => {
+          add({ productId, qty, title, slug, price })
+          router.push('/shop/checkout')
+        }}
+      >
+        <Zap className="h-5 w-5" />
+        {t('buyNow')}
+      </Button>
 
       {inCart && (
         <p className="flex flex-wrap items-center gap-x-2 text-[12.5px] text-muted-foreground">

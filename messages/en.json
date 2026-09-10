@@ -657,7 +657,8 @@
       "viewCart": "View cart",
       "freeOnItem": "Free delivery on this item.",
       "flatDelivery": "{flat} delivery, or free on orders above {over}.",
-      "goToCart": "Go to cart"
+      "goToCart": "Go to cart",
+      "buyNow": "Buy now"
     },
     "cart": {
       "crumb": "Cart",
