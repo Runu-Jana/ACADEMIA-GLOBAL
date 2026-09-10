@@ -29,6 +29,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: url('/universities'), lastModified: now, changeFrequency: 'weekly', priority: 0.8 },
     { url: url('/exams'), lastModified: now, changeFrequency: 'weekly', priority: 0.6 },
     { url: url('/scholarships'), lastModified: now, changeFrequency: 'weekly', priority: 0.6 },
+    { url: url('/pricing'), lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
     { url: url('/compare'), lastModified: now, changeFrequency: 'monthly', priority: 0.5 },
     { url: url('/blog'), lastModified: now, changeFrequency: 'weekly', priority: 0.6 },
     { url: url('/about'), lastModified: now, changeFrequency: 'monthly', priority: 0.4 },

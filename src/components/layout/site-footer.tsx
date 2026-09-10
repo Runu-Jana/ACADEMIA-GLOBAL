@@ -10,6 +10,7 @@ const columns = [
       { label: 'About Us', href: '/about' },
       { label: 'All Courses', href: '/courses' },
       { label: 'Universities', href: '/universities' },
+      { label: 'Pricing', href: '/pricing' },
       { label: 'Scholarships', href: '/scholarships' },
       { label: 'Exams', href: '/exams' },
       { label: 'Student Shop', href: '/shop' },
@@ -22,7 +23,7 @@ const columns = [
     links: [
       { label: 'Ask Sarthi', href: '/counsellor' },
       { label: 'Admission Process', href: '/courses' },
-      { label: 'EMI Options', href: '/scholarships' },
+      { label: 'Pricing & EMI', href: '/pricing' },
       { label: 'Study Material', href: '/dashboard/materials' },
       { label: 'Placement Support', href: '/about' },
       { label: 'Verify Certificate', href: '/verify' },
