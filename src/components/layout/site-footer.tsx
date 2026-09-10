@@ -1,55 +1,57 @@
 import Link from 'next/link'
+import { getTranslations } from 'next-intl/server'
 import { Facebook, Instagram, Linkedin, Twitter, Youtube, Phone, Mail, MapPin } from 'lucide-react'
 import { SUPPORT_EMAIL, SUPPORT_PHONE, SUPPORT_PHONE_HREF, SUPPORT_HOURS, HEAD_OFFICE_CITY } from '@/lib/contact'
 import { Logo } from './logo'
 
+// Labels live in messages (footer.links.*); hrefs stay in code.
 const columns = [
   {
-    title: 'Quick Links',
+    titleKey: 'quickLinks',
     links: [
-      { label: 'About Us', href: '/about' },
-      { label: 'All Courses', href: '/courses' },
-      { label: 'Universities', href: '/universities' },
-      { label: 'Pricing', href: '/pricing' },
-      { label: 'Scholarships', href: '/scholarships' },
-      { label: 'Exams', href: '/exams' },
-      { label: 'Student Shop', href: '/shop' },
-      { label: 'Blogs', href: '/blog' },
-      { label: 'Contact Us', href: '/contact' },
+      { key: 'about', href: '/about' },
+      { key: 'courses', href: '/courses' },
+      { key: 'universities', href: '/universities' },
+      { key: 'pricing', href: '/pricing' },
+      { key: 'scholarships', href: '/scholarships' },
+      { key: 'exams', href: '/exams' },
+      { key: 'shop', href: '/shop' },
+      { key: 'blogs', href: '/blog' },
+      { key: 'contact', href: '/contact' },
     ],
   },
   {
-    title: 'For Students',
+    titleKey: 'forStudents',
     links: [
-      { label: 'Ask Sarthi', href: '/counsellor' },
-      { label: 'Admission Process', href: '/courses' },
-      { label: 'Pricing & EMI', href: '/pricing' },
-      { label: 'Study Material', href: '/dashboard/materials' },
-      { label: 'Placement Support', href: '/about' },
-      { label: 'Verify Certificate', href: '/verify' },
-      { label: 'FAQs', href: '/about' },
+      { key: 'askSarthi', href: '/counsellor' },
+      { key: 'admission', href: '/courses' },
+      { key: 'pricingEmi', href: '/pricing' },
+      { key: 'material', href: '/dashboard/materials' },
+      { key: 'placement', href: '/about' },
+      { key: 'verify', href: '/verify' },
+      { key: 'faqs', href: '/about' },
     ],
   },
   {
-    title: 'For Universities',
+    titleKey: 'forUniversities',
     links: [
-      { label: 'Partner With Us', href: '/for-universities' },
-      { label: 'List Your Programmes', href: '/for-universities' },
-      { label: 'Partner Login', href: '/login' },
-      { label: 'Marketing Solutions', href: '/contact' },
-      { label: 'Resources', href: '/blog' },
+      { key: 'partner', href: '/for-universities' },
+      { key: 'listProgrammes', href: '/for-universities' },
+      { key: 'partnerLogin', href: '/login' },
+      { key: 'marketing', href: '/contact' },
+      { key: 'resources', href: '/blog' },
     ],
   },
   {
-    title: 'Legal',
+    titleKey: 'legal',
     links: [
-      { label: 'Privacy Policy', href: '/legal/privacy' },
-      { label: 'Terms & Conditions', href: '/legal/terms' },
-      { label: 'Refund Policy', href: '/legal/refund' },
-      { label: 'Disclaimer', href: '/legal/disclaimer' },
+      { key: 'privacy', href: '/legal/privacy' },
+      { key: 'terms', href: '/legal/terms' },
+      { key: 'refund', href: '/legal/refund' },
+      { key: 'disclaimer', href: '/legal/disclaimer' },
     ],
   },
-]
+] as const
 
 const socials = [
   { icon: Facebook, label: 'Facebook', href: '#' },
@@ -59,7 +61,8 @@ const socials = [
   { icon: Youtube, label: 'YouTube', href: '#' },
 ]
 
-export function SiteFooter() {
+export async function SiteFooter() {
+  const t = await getTranslations('footer')
   return (
     // pb-20 clears the fixed mobile tab bar. <main> already reserves that space,
     // but the footer is its sibling, so without this the bar sat on top of the
@@ -76,10 +79,7 @@ export function SiteFooter() {
         <div className="grid gap-10 lg:grid-cols-[1.4fr_repeat(4,1fr)_1.3fr]">
           <div>
             <Logo invert />
-            <p className="mt-4 max-w-xs text-sm leading-relaxed text-white/70">
-              India&apos;s most trusted platform to continue your education journey from school to
-              university and achieve your dreams.
-            </p>
+            <p className="mt-4 max-w-xs text-sm leading-relaxed text-white/70">{t('tagline')}</p>
             <div className="mt-5 flex gap-2">
               {socials.map(({ icon: Icon, label, href }) => (
                 <a
@@ -95,16 +95,16 @@ export function SiteFooter() {
           </div>
 
           {columns.map((col) => (
-            <div key={col.title}>
-              <h3 className="mb-3.5 text-sm font-bold">{col.title}</h3>
+            <div key={col.titleKey}>
+              <h3 className="mb-3.5 text-sm font-bold">{t(col.titleKey)}</h3>
               <ul className="space-y-2">
                 {col.links.map((l) => (
-                  <li key={l.label}>
+                  <li key={l.key}>
                     <Link
                       href={l.href}
                       className="inline-block text-[13px] text-white/65 transition-all duration-200 hover:translate-x-0.5 hover:text-white"
                     >
-                      {l.label}
+                      {t(`links.${l.key}`)}
                     </Link>
                   </li>
                 ))}
@@ -113,7 +113,7 @@ export function SiteFooter() {
           ))}
 
           <div>
-            <h3 className="mb-3.5 text-sm font-bold">Talk to Our Experts</h3>
+            <h3 className="mb-3.5 text-sm font-bold">{t('experts')}</h3>
             <ul className="space-y-3.5 text-[13px]">
               <li className="flex gap-2.5">
                 <Phone className="mt-0.5 h-4 w-4 shrink-0 text-holo-cyan" />
@@ -133,14 +133,14 @@ export function SiteFooter() {
               </li>
               <li className="flex gap-2.5">
                 <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-holo-cyan" />
-                <span className="text-white/70">Head Office: {HEAD_OFFICE_CITY}, India</span>
+                <span className="text-white/70">{t('headOffice', { city: HEAD_OFFICE_CITY })}</span>
               </li>
             </ul>
           </div>
         </div>
 
         <div className="mt-11 border-t border-white/12 pt-6 text-center text-xs text-white/55">
-          © {new Date().getFullYear()} Shiksha Sarthi Virtual Learning. All Rights Reserved.
+          {t('rights', { year: String(new Date().getFullYear()) })}
         </div>
       </div>
     </footer>

@@ -22,5 +22,69 @@
   "language": {
     "label": "Language",
     "switchTo": "Switch language"
+  },
+  "home": {
+    "hero": {
+      "badge": "India's most trusted virtual learning platform",
+      "title": "Continue your <accent>education journey</accent>",
+      "subtitle": "Left School or College? It's Never Too Late!",
+      "description": "We help you restart, continue and complete your education from 10th to PG and beyond — with UGC-entitled degrees, live classes and placement support.",
+      "ctaStart": "Start My Journey",
+      "degreeAwaits": "Your Degree Awaits",
+      "ugcEntitled": "UGC Entitled",
+      "stats": {
+        "universities": "Universities",
+        "courses": "Courses",
+        "students": "Students",
+        "trusted": "Trusted Platform"
+      },
+      "journey": {
+        "learn": "Learn",
+        "learnSub": "Choose your path",
+        "restart": "Restart",
+        "restartSub": "Get the right guidance",
+        "continue": "Continue",
+        "continueSub": "Enroll & Study",
+        "succeed": "Succeed",
+        "succeedSub": "Achieve your goals"
+      }
+    }
+  },
+  "footer": {
+    "tagline": "India's most trusted platform to continue your education journey from school to university and achieve your dreams.",
+    "quickLinks": "Quick Links",
+    "forStudents": "For Students",
+    "forUniversities": "For Universities",
+    "legal": "Legal",
+    "experts": "Talk to Our Experts",
+    "headOffice": "Head Office: {city}, India",
+    "rights": "© {year} Shiksha Sarthi Virtual Learning. All Rights Reserved.",
+    "links": {
+      "about": "About Us",
+      "courses": "All Courses",
+      "universities": "Universities",
+      "pricing": "Pricing",
+      "scholarships": "Scholarships",
+      "exams": "Exams",
+      "shop": "Student Shop",
+      "blogs": "Blogs",
+      "contact": "Contact Us",
+      "askSarthi": "Ask Sarthi",
+      "admission": "Admission Process",
+      "pricingEmi": "Pricing & EMI",
+      "material": "Study Material",
+      "placement": "Placement Support",
+      "verify": "Verify Certificate",
+      "faqs": "FAQs",
+      "partner": "Partner With Us",
+      "listProgrammes": "List Your Programmes",
+      "partnerLogin": "Partner Login",
+      "marketing": "Marketing Solutions",
+      "resources": "Resources",
+      "privacy": "Privacy Policy",
+      "terms": "Terms & Conditions",
+      "refund": "Refund Policy",
+      "disclaimer": "Disclaimer"
+    }
   }
 }
