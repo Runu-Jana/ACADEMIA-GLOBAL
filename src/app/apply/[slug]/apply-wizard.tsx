@@ -3,6 +3,7 @@
 import * as React from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import {
   Check, ChevronLeft, ChevronRight, AlertCircle, GraduationCap, User as UserIcon,
   BookOpen, Wallet, ShieldCheck, Sparkles, Info, ArrowRight, Percent, CalendarDays,
@@ -11,7 +12,6 @@ import { Badge } from '@/components/ui/badge'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Field, Input, Select, Checkbox } from '@/components/ui/field'
 import { CourseThumb, UniversityMark } from '@/components/course/course-thumb'
-import { COURSE_LEVELS, COURSE_MODES } from '@/lib/constants'
 import { cn, formatINR } from '@/lib/utils'
 import { openRazorpayCheckout, CHECKOUT_CANCELLED } from '@/lib/payments/checkout'
 
@@ -60,20 +60,36 @@ type Program = {
 }
 
 const STEPS = [
-  { n: 1, label: 'Personal Details', icon: UserIcon },
-  { n: 2, label: 'Education Details', icon: BookOpen },
-  { n: 3, label: 'Program Selection', icon: GraduationCap },
-  { n: 4, label: 'Review & Payment', icon: Wallet },
-]
+  { n: 1, key: 'personal', icon: UserIcon },
+  { n: 2, key: 'education', icon: BookOpen },
+  { n: 3, key: 'program', icon: GraduationCap },
+  { n: 4, key: 'review', icon: Wallet },
+] as const
 
+// Value stays English (it's persisted and shown in admin); only the label is
+// translated for display.
 const QUALIFICATIONS = [
-  'Class 10', 'Class 12', 'Diploma', 'Undergraduate (UG)',
-  'Postgraduate (PG)', 'Other',
-]
+  { value: 'Class 10', key: 'class10' },
+  { value: 'Class 12', key: 'class12' },
+  { value: 'Diploma', key: 'diploma' },
+  { value: 'Undergraduate (UG)', key: 'ug' },
+  { value: 'Postgraduate (PG)', key: 'pg' },
+  { value: 'Other', key: 'other' },
+] as const
 
-const GENDERS = ['Male', 'Female', 'Other', 'Prefer not to say']
+const GENDERS = [
+  { value: 'Male', key: 'male' },
+  { value: 'Female', key: 'female' },
+  { value: 'Other', key: 'other' },
+  { value: 'Prefer not to say', key: 'na' },
+] as const
 
-const INTAKES = ['January 2026', 'April 2026', 'July 2026', 'October 2026']
+const INTAKES = [
+  { value: 'January 2026', key: 'jan' },
+  { value: 'April 2026', key: 'apr' },
+  { value: 'July 2026', key: 'jul' },
+  { value: 'October 2026', key: 'oct' },
+] as const
 
 export function ApplyWizard({
   course,
@@ -96,6 +112,8 @@ export function ApplyWizard({
   paymentsLive: boolean
 }) {
   const router = useRouter()
+  const t = useTranslations('apply')
+  const tc = useTranslations('courses')
 
   const [step, setStep] = React.useState(Math.min(Math.max(initialStep, 1), 4))
   const [done, setDone] = React.useState(false)
@@ -124,7 +142,7 @@ export function ApplyWizard({
   })
 
   const [program, setProgram] = React.useState<Program>({
-    intake: initialProgram.intake ?? INTAKES[0],
+    intake: initialProgram.intake ?? INTAKES[0].value,
     specialisation: initialProgram.specialisation ?? (course.skills[0] ?? 'Core specialisation'),
     emi: initialProgram.emi ?? false,
   })
@@ -137,8 +155,13 @@ export function ApplyWizard({
   // A real payment is collected only when the gateway is live and there's a fee.
   const paidCheckout = paymentsLive && course.feePerYear > 0
 
-  const levelLabel = COURSE_LEVELS.find((l) => l.value === course.level)?.label ?? course.level
-  const modeLabel = COURSE_MODES.find((m) => m.value === course.mode)?.label ?? course.mode
+  const levelLabel = tc(`level.${course.level}`)
+  const modeLabel = tc(`mode.${course.mode}`)
+
+  // Selects persist English values; these map a stored value back to its label.
+  const genderLabel = (v: string) => GENDERS.find((x) => x.value === v) ? t(`gen.${GENDERS.find((x) => x.value === v)!.key}`) : v
+  const qualLabel = (v: string) => QUALIFICATIONS.find((x) => x.value === v) ? t(`qual.${QUALIFICATIONS.find((x) => x.value === v)!.key}`) : v
+  const intakeLabel = (v: string) => INTAKES.find((x) => x.value === v) ? t(`intake.${INTAKES.find((x) => x.value === v)!.key}`) : v
 
   const setP =
     (key: keyof Personal) =>
@@ -156,14 +179,14 @@ export function ApplyWizard({
 
   function validate(target: number) {
     if (target === 1) {
-      if (personal.fullName.trim().length < 2) return 'Please enter your full name.'
-      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(personal.email.trim())) return 'Enter a valid email address.'
-      if (!/^[+\d][\d\s-]{7,17}$/.test(personal.mobile.trim())) return 'Enter a valid mobile number.'
+      if (personal.fullName.trim().length < 2) return t('err.name')
+      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(personal.email.trim())) return t('err.email')
+      if (!/^[+\d][\d\s-]{7,17}$/.test(personal.mobile.trim())) return t('err.mobile')
     }
     if (target === 2) {
-      if (!education.qualification) return 'Select your highest qualification.'
-      if (education.institute.trim().length < 2) return 'Enter your school or college name.'
-      if (!/^\d{4}$/.test(education.yearOfPassing.trim())) return 'Enter the year of passing as 4 digits.'
+      if (!education.qualification) return t('err.qualification')
+      if (education.institute.trim().length < 2) return t('err.institute')
+      if (!/^\d{4}$/.test(education.yearOfPassing.trim())) return t('err.year')
     }
     return ''
   }
@@ -193,12 +216,12 @@ export function ApplyWizard({
         }),
       })
       const data = await res.json()
-      if (!res.ok) throw new Error(data.error ?? 'Could not save your application')
+      if (!res.ok) throw new Error(data.error ?? t('err.save'))
 
       setStep(nextStep)
       window.scrollTo({ top: 0, behavior: 'smooth' })
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not save your application')
+      setError(err instanceof Error ? err.message : t('err.save'))
     } finally {
       setLoading(false)
     }
@@ -206,7 +229,7 @@ export function ApplyWizard({
 
   async function finalSubmit() {
     if (!consent) {
-      setError('Please confirm the declaration before submitting.')
+      setError(t('err.consent'))
       return
     }
 
@@ -226,7 +249,7 @@ export function ApplyWizard({
         }),
       })
       const appData = await appRes.json()
-      if (!appRes.ok) throw new Error(appData.error ?? 'Could not submit your application')
+      if (!appRes.ok) throw new Error(appData.error ?? t('err.submit'))
 
       const payRes = await fetch('/api/payments/create', {
         method: 'POST',
@@ -234,7 +257,7 @@ export function ApplyWizard({
         body: JSON.stringify({ courseId: course.id }),
       })
       const payData = await payRes.json()
-      if (!payRes.ok) throw new Error(payData.error ?? 'Could not start your enrolment')
+      if (!payRes.ok) throw new Error(payData.error ?? t('err.start'))
 
       // Paid course with a live gateway: collect payment, then confirm it
       // server-side before we treat the student as enrolled.
@@ -251,10 +274,10 @@ export function ApplyWizard({
             }),
           })
           const verifyData = await verifyRes.json()
-          if (!verifyRes.ok) throw new Error(verifyData.error ?? 'We could not confirm your payment')
+          if (!verifyRes.ok) throw new Error(verifyData.error ?? t('err.verify'))
         } catch (payErr) {
           if (payErr instanceof Error && payErr.message === CHECKOUT_CANCELLED) {
-            setError('Payment was cancelled. Your application is saved — you can pay to enrol any time.')
+            setError(t('err.cancelled'))
             return
           }
           throw payErr
@@ -265,7 +288,7 @@ export function ApplyWizard({
       router.refresh()
       window.scrollTo({ top: 0, behavior: 'smooth' })
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not submit your application')
+      setError(err instanceof Error ? err.message : t('err.submit'))
     } finally {
       setLoading(false)
     }
@@ -281,20 +304,22 @@ export function ApplyWizard({
               <Check className="h-8 w-8" strokeWidth={3} />
             </span>
             <h2 className="mt-4 font-display text-2xl font-extrabold tracking-tight">
-              Application submitted
+              {t('submittedTitle')}
             </h2>
             <p className="mx-auto mt-2 max-w-sm text-pretty text-sm text-muted-foreground">
-              You&rsquo;re enrolled in <span className="font-bold text-foreground">{course.title}</span>.
-              Your classroom, study material and tests are ready now.
+              {t.rich('submittedBody', {
+                course: course.title,
+                b: (chunks) => <span className="font-bold text-foreground">{chunks}</span>,
+              })}
             </p>
           </div>
 
           <div className="p-5">
             <dl className="grid grid-cols-2 gap-4 text-left">
-              <SummaryRow label="Programme" value={course.title} />
-              <SummaryRow label="University" value={course.universityName} />
-              <SummaryRow label="Intake" value={program.intake} />
-              <SummaryRow label="Status" value="Submitted · Under review" />
+              <SummaryRow label={t('sumProgramme')} value={course.title} />
+              <SummaryRow label={t('sumUniversity')} value={course.universityName} />
+              <SummaryRow label={t('sumIntake')} value={intakeLabel(program.intake)} />
+              <SummaryRow label={t('sumStatus')} value={t('statusValue')} />
             </dl>
 
             <div className="mt-6 flex flex-col gap-2.5 sm:flex-row">
@@ -302,14 +327,14 @@ export function ApplyWizard({
                 href={`/dashboard/learn/${course.id}`}
                 className={buttonVariants({ variant: 'holo', className: 'w-full sm:flex-1' })}
               >
-                Go to Classroom
+                {t('goClassroom')}
                 <ArrowRight className="h-4 w-4" />
               </Link>
               <Link
                 href="/dashboard"
                 className={buttonVariants({ variant: 'outline', className: 'w-full sm:flex-1' })}
               >
-                My Dashboard
+                {t('myDashboard')}
               </Link>
             </div>
           </div>
@@ -331,7 +356,7 @@ export function ApplyWizard({
           />
           <div className="min-w-0 flex-1">
             <p className="text-[11px] font-bold uppercase tracking-wider text-primary-600 dark:text-primary-300">
-              Admission Application
+              {t('heading')}
             </p>
             <h2 className="mt-1 text-balance font-display text-lg font-extrabold tracking-tight sm:text-xl">
               {course.title}
@@ -347,7 +372,7 @@ export function ApplyWizard({
             <p className="font-display text-lg font-extrabold text-primary-700 dark:text-primary-300">
               {formatINR(course.feePerYear)}
             </p>
-            <p className="text-[11px] text-muted-foreground">per year</p>
+            <p className="text-[11px] text-muted-foreground">{t('perYear')}</p>
           </div>
         </div>
       </div>
@@ -356,13 +381,11 @@ export function ApplyWizard({
         <div className="mb-5 flex items-start gap-2.5 rounded-xl border border-primary-200 bg-primary-50 p-3.5 text-[13px] text-primary-800 dark:border-primary-500/30 dark:bg-primary-500/10 dark:text-primary-200">
           <Info className="mt-0.5 h-4 w-4 shrink-0" />
           <p>
-            {alreadyEnrolled
-              ? 'You are already enrolled in this programme. '
-              : 'You have already submitted an application for this programme. '}
+            {alreadyEnrolled ? t('alreadyEnrolled') : t('alreadySubmitted')}{' '}
             <Link href={`/dashboard/learn/${course.id}`} className="font-bold underline">
-              Open the classroom
+              {t('openClassroom')}
             </Link>
-            {' '}or continue reviewing your details below.
+            {' '}{t('orContinue')}
           </p>
         </div>
       )}
@@ -386,39 +409,39 @@ export function ApplyWizard({
           <section aria-labelledby="step1-heading">
             <StepHeading
               id="step1-heading"
-              title="Personal Details"
-              sub="Prefilled from your account — correct anything that has changed."
+              title={t('step.personal')}
+              sub={t('s1sub')}
             />
 
             <div className="grid gap-4 sm:grid-cols-2">
-              <Field label="Full name" required className="sm:col-span-2">
-                <Input value={personal.fullName} onChange={setP('fullName')} placeholder="As per your Class 10 certificate" autoComplete="name" />
+              <Field label={t('fullName')} required className="sm:col-span-2">
+                <Input value={personal.fullName} onChange={setP('fullName')} placeholder={t('fullNamePlaceholder')} autoComplete="name" />
               </Field>
-              <Field label="Email address" required>
+              <Field label={t('email')} required>
                 <Input type="email" value={personal.email} onChange={setP('email')} placeholder="you@example.com" autoComplete="email" />
               </Field>
-              <Field label="Mobile number" required>
+              <Field label={t('mobile')} required>
                 <Input type="tel" value={personal.mobile} onChange={setP('mobile')} placeholder="+91 98765 43210" autoComplete="tel" />
               </Field>
-              <Field label="Date of birth">
+              <Field label={t('dob')}>
                 <Input type="date" value={personal.dob} onChange={setP('dob')} autoComplete="bday" />
               </Field>
-              <Field label="Gender">
+              <Field label={t('gender')}>
                 <Select value={personal.gender} onChange={setP('gender')}>
-                  <option value="">Not specified</option>
-                  {GENDERS.map((g) => <option key={g} value={g}>{g}</option>)}
+                  <option value="">{t('genderNotSpecified')}</option>
+                  {GENDERS.map((g) => <option key={g.value} value={g.value}>{t(`gen.${g.key}`)}</option>)}
                 </Select>
               </Field>
-              <Field label="Address" className="sm:col-span-2">
-                <Input value={personal.address} onChange={setP('address')} placeholder="House / street / locality" autoComplete="street-address" />
+              <Field label={t('address')} className="sm:col-span-2">
+                <Input value={personal.address} onChange={setP('address')} placeholder={t('addressPlaceholder')} autoComplete="street-address" />
               </Field>
-              <Field label="City">
-                <Input value={personal.city} onChange={setP('city')} placeholder="e.g. Ludhiana" autoComplete="address-level2" />
+              <Field label={t('city')}>
+                <Input value={personal.city} onChange={setP('city')} placeholder={t('cityPlaceholder')} autoComplete="address-level2" />
               </Field>
-              <Field label="State">
-                <Input value={personal.state} onChange={setP('state')} placeholder="e.g. Punjab" autoComplete="address-level1" />
+              <Field label={t('state')}>
+                <Input value={personal.state} onChange={setP('state')} placeholder={t('statePlaceholder')} autoComplete="address-level1" />
               </Field>
-              <Field label="PIN code">
+              <Field label={t('pincode')}>
                 <Input value={personal.pincode} onChange={setP('pincode')} placeholder="141001" inputMode="numeric" maxLength={6} autoComplete="postal-code" />
               </Field>
             </div>
@@ -430,33 +453,33 @@ export function ApplyWizard({
           <section aria-labelledby="step2-heading">
             <StepHeading
               id="step2-heading"
-              title="Education Details"
-              sub="Tell us what you have completed so far. Documents are verified later by the university."
+              title={t('step.education')}
+              sub={t('s2sub')}
             />
 
             <div className="mb-4 flex items-start gap-2.5 rounded-xl border border-border bg-muted/50 p-3.5 text-[12.5px] text-muted-foreground">
               <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-primary-500" />
-              <p><span className="font-semibold text-foreground">Eligibility:</span> {course.eligibility}</p>
+              <p><span className="font-semibold text-foreground">{t('eligibility')}</span> {course.eligibility}</p>
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
-              <Field label="Highest qualification" required>
+              <Field label={t('qualification')} required>
                 <Select value={education.qualification} onChange={setE('qualification')}>
-                  <option value="">Select qualification</option>
-                  {QUALIFICATIONS.map((q) => <option key={q} value={q}>{q}</option>)}
+                  <option value="">{t('selectQualification')}</option>
+                  {QUALIFICATIONS.map((q) => <option key={q.value} value={q.value}>{t(`qual.${q.key}`)}</option>)}
                 </Select>
               </Field>
-              <Field label="Board / University">
-                <Input value={education.board} onChange={setE('board')} placeholder="e.g. CBSE, PSEB, Panjab University" />
+              <Field label={t('board')}>
+                <Input value={education.board} onChange={setE('board')} placeholder={t('boardPlaceholder')} />
               </Field>
-              <Field label="School / College name" required className="sm:col-span-2">
-                <Input value={education.institute} onChange={setE('institute')} placeholder="Name of your last institution" />
+              <Field label={t('institute')} required className="sm:col-span-2">
+                <Input value={education.institute} onChange={setE('institute')} placeholder={t('institutePlaceholder')} />
               </Field>
-              <Field label="Year of passing" required>
+              <Field label={t('yearOfPassing')} required>
                 <Input value={education.yearOfPassing} onChange={setE('yearOfPassing')} placeholder="2023" inputMode="numeric" maxLength={4} />
               </Field>
-              <Field label="Percentage / CGPA" hint="Optional — helps with scholarship eligibility">
-                <Input value={education.percentage} onChange={setE('percentage')} placeholder="e.g. 78%" maxLength={10} />
+              <Field label={t('percentage')} hint={t('percentageHint')}>
+                <Input value={education.percentage} onChange={setE('percentage')} placeholder={t('percentagePlaceholder')} maxLength={10} />
               </Field>
             </div>
           </section>
@@ -467,8 +490,8 @@ export function ApplyWizard({
           <section aria-labelledby="step3-heading">
             <StepHeading
               id="step3-heading"
-              title="Program Selection"
-              sub="Confirm the programme, your preferred intake and how you'd like to pay."
+              title={t('step.program')}
+              sub={t('s3sub')}
             />
 
             <div className="rounded-2xl border border-border p-4">
@@ -478,29 +501,29 @@ export function ApplyWizard({
                   <p className="mt-1 line-clamp-2 text-[12.5px] text-muted-foreground">{course.subtitle}</p>
                 </div>
                 {course.discountPct > 0 && (
-                  <Badge tone="success">{course.discountPct}% OFF</Badge>
+                  <Badge tone="success">{t('off', { pct: String(course.discountPct) })}</Badge>
                 )}
               </div>
 
               <div className="mt-3 flex flex-wrap gap-1.5">
                 <span className="chip">{levelLabel}</span>
                 <span className="chip">{modeLabel}</span>
-                <span className="chip">{course.durationYears} {course.durationYears === 1 ? 'Year' : 'Years'}</span>
+                <span className="chip">{t('years', { n: course.durationYears })}</span>
                 <span className="chip">{course.examMode}</span>
               </div>
             </div>
 
             <div className="mt-4 grid gap-4 sm:grid-cols-2">
-              <Field label="Preferred intake" required>
+              <Field label={t('preferredIntake')} required>
                 <Select
                   value={program.intake}
                   onChange={(e) => setProgram((p) => ({ ...p, intake: e.target.value }))}
                 >
-                  {INTAKES.map((i) => <option key={i} value={i}>{i}</option>)}
+                  {INTAKES.map((i) => <option key={i.value} value={i.value}>{t(`intake.${i.key}`)}</option>)}
                 </Select>
               </Field>
 
-              <Field label="Specialisation interest" hint="Used to plan your electives">
+              <Field label={t('specialisation')} hint={t('specialisationHint')}>
                 <Select
                   value={program.specialisation}
                   onChange={(e) => setProgram((p) => ({ ...p, specialisation: e.target.value }))}
@@ -519,9 +542,9 @@ export function ApplyWizard({
                 className="mt-0.5"
               />
               <span className="min-w-0 flex-1">
-                <span className="block text-[13.5px] font-bold">I&rsquo;d like to pay in monthly instalments</span>
+                <span className="block text-[13.5px] font-bold">{t('emiLabel')}</span>
                 <span className="mt-0.5 block text-[12px] text-muted-foreground">
-                  Approximately {formatINR(emiMonthly)}/month for 12 months at 0% interest, subject to approval.
+                  {t('emiSub', { emi: formatINR(emiMonthly) })}
                 </span>
               </span>
             </label>
@@ -533,46 +556,49 @@ export function ApplyWizard({
           <section aria-labelledby="step4-heading">
             <StepHeading
               id="step4-heading"
-              title="Review & Payment"
-              sub="Check your details, then confirm your enrolment."
+              title={t('step.review')}
+              sub={t('s4sub')}
             />
 
             <div className="space-y-4">
               <ReviewBlock
-                title="Personal details"
+                title={t('reviewPersonal')}
+                editLabel={t('edit')}
                 onEdit={() => setStep(1)}
                 rows={[
-                  ['Full name', personal.fullName],
-                  ['Email', personal.email],
-                  ['Mobile', personal.mobile],
-                  ['Date of birth', personal.dob],
-                  ['Gender', personal.gender],
-                  ['City', [personal.city, personal.state].filter(Boolean).join(', ')],
+                  [t('rowFullName'), personal.fullName],
+                  [t('rowEmail'), personal.email],
+                  [t('rowMobile'), personal.mobile],
+                  [t('rowDob'), personal.dob],
+                  [t('rowGender'), genderLabel(personal.gender)],
+                  [t('rowCity'), [personal.city, personal.state].filter(Boolean).join(', ')],
                 ]}
               />
 
               <ReviewBlock
-                title="Education details"
+                title={t('reviewEducation')}
+                editLabel={t('edit')}
                 onEdit={() => setStep(2)}
                 rows={[
-                  ['Qualification', education.qualification],
-                  ['Board / University', education.board],
-                  ['Institution', education.institute],
-                  ['Year of passing', education.yearOfPassing],
-                  ['Percentage / CGPA', education.percentage],
+                  [t('rowQualification'), qualLabel(education.qualification)],
+                  [t('rowBoard'), education.board],
+                  [t('rowInstitution'), education.institute],
+                  [t('rowYear'), education.yearOfPassing],
+                  [t('rowPercentage'), education.percentage],
                 ]}
               />
 
               <ReviewBlock
-                title="Programme"
+                title={t('reviewProgramme')}
+                editLabel={t('edit')}
                 onEdit={() => setStep(3)}
                 rows={[
-                  ['Course', course.title],
-                  ['University', course.universityName],
-                  ['Mode', modeLabel],
-                  ['Duration', `${course.durationYears} ${course.durationYears === 1 ? 'year' : 'years'}`],
-                  ['Intake', program.intake],
-                  ['Specialisation', program.specialisation],
+                  [t('rowCourse'), course.title],
+                  [t('rowUniversity'), course.universityName],
+                  [t('rowMode'), modeLabel],
+                  [t('rowDuration'), t('yearsLower', { n: course.durationYears })],
+                  [t('rowIntake'), intakeLabel(program.intake)],
+                  [t('rowSpecialisation'), program.specialisation],
                 ]}
               />
 
@@ -580,24 +606,24 @@ export function ApplyWizard({
               <div className="rounded-2xl border border-border overflow-hidden">
                 <div className="flex items-center gap-2 border-b border-border bg-muted/50 px-4 py-3">
                   <Wallet className="h-4 w-4 text-primary-600" />
-                  <h4 className="text-[13.5px] font-bold">Fee breakdown</h4>
+                  <h4 className="text-[13.5px] font-bold">{t('feeBreakdown')}</h4>
                 </div>
 
                 <dl className="divide-y divide-border">
-                  <FeeRow label="Programme fee (per year)" value={formatINR(course.feePerYear)} />
+                  <FeeRow label={t('feePerYear')} value={formatINR(course.feePerYear)} />
                   <FeeRow
-                    label={`Duration`}
-                    value={`${course.durationYears} ${course.durationYears === 1 ? 'year' : 'years'}`}
+                    label={t('feeDuration')}
+                    value={t('yearsLower', { n: course.durationYears })}
                   />
-                  <FeeRow label="Total programme fee" value={formatINR(totalFee)} />
+                  <FeeRow label={t('feeTotal')} value={formatINR(totalFee)} />
                   {savings > 0 && (
                     <FeeRow
-                      label="Scholarship / discount applied"
+                      label={t('feeScholarship')}
                       value={`– ${formatINR(savings)}`}
                       tone="success"
                     />
                   )}
-                  <FeeRow label="Payable now (Year 1)" value={formatINR(course.feePerYear)} strong />
+                  <FeeRow label={t('feePayableNow')} value={formatINR(course.feePerYear)} strong />
                 </dl>
 
                 <div className="border-t border-border bg-muted/30 p-4">
@@ -605,11 +631,10 @@ export function ApplyWizard({
                     <Percent className="mt-0.5 h-4 w-4 shrink-0 text-primary-600" />
                     <div className="min-w-0">
                       <p className="text-[12.5px] font-bold">
-                        EMI option {program.emi ? '(selected)' : '(available)'}
+                        {program.emi ? t('emiSelected') : t('emiAvailable')}
                       </p>
                       <p className="mt-0.5 text-[12px] leading-relaxed text-muted-foreground">
-                        {formatINR(emiMonthly)} × 12 months at 0% interest on the Year 1 fee.
-                        Instalment plans are confirmed by the university finance team after admission.
+                        {t('emiNote', { emi: formatINR(emiMonthly) })}
                       </p>
                     </div>
                   </div>
@@ -623,12 +648,10 @@ export function ApplyWizard({
                     <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
                     <div className="min-w-0">
                       <p className="text-[13px] font-bold text-emerald-900 dark:text-emerald-200">
-                        Secure payment · powered by Razorpay
+                        {t('securePayTitle')}
                       </p>
                       <p className="mt-1 text-[12.5px] leading-relaxed text-emerald-800 dark:text-emerald-200/90">
-                        Confirming opens a secure Razorpay window to pay the Year 1 fee by card, UPI,
-                        net-banking or EMI. Your classroom unlocks the moment payment is confirmed. You
-                        won&rsquo;t be charged until you complete the payment.
+                        {t('securePayBody')}
                       </p>
                     </div>
                   </div>
@@ -639,12 +662,10 @@ export function ApplyWizard({
                     <Info className="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
                     <div className="min-w-0">
                       <p className="text-[13px] font-bold text-amber-900 dark:text-amber-200">
-                        Demonstration checkout — no payment is taken
+                        {t('demoPayTitle')}
                       </p>
                       <p className="mt-1 text-[12.5px] leading-relaxed text-amber-800 dark:text-amber-200/90">
-                        No card, UPI or bank details are collected and no money changes hands.
-                        Confirming records your application and opens your classroom so you can explore
-                        the programme.
+                        {t('demoPayBody')}
                       </p>
                     </div>
                   </div>
@@ -658,8 +679,7 @@ export function ApplyWizard({
                   className="mt-0.5"
                 />
                 <span className="text-[12.5px] leading-relaxed">
-                  I declare that the information provided is accurate to the best of my knowledge and
-                  agree to Shiksha Sarthi&rsquo;s admission terms.
+                  {t('consent')}
                 </span>
               </label>
             </div>
@@ -676,11 +696,11 @@ export function ApplyWizard({
             className="w-full sm:w-auto"
           >
             <ChevronLeft className="h-4 w-4" />
-            Back
+            {t('back')}
           </Button>
 
           <p className="order-last text-center text-[11.5px] text-muted-foreground sm:order-none sm:mx-auto">
-            Step {step} of 4 · your progress is saved automatically
+            {t('progress', { step })}
           </p>
 
           {step < 4 ? (
@@ -691,7 +711,7 @@ export function ApplyWizard({
               loading={loading}
               className="w-full sm:w-auto"
             >
-              Save & Continue
+              {t('saveContinue')}
               <ChevronRight className="h-4 w-4" />
             </Button>
           ) : (
@@ -704,10 +724,10 @@ export function ApplyWizard({
             >
               {paidCheckout ? <Wallet className="h-4 w-4" /> : <Sparkles className="h-4 w-4" />}
               {paidCheckout
-                ? `Pay ${formatINR(course.feePerYear)} & Enrol`
+                ? t('payEnrol', { fee: formatINR(course.feePerYear) })
                 : course.feePerYear > 0
-                  ? 'Confirm Enrolment (demo)'
-                  : 'Confirm Enrolment'}
+                  ? t('confirmDemo')
+                  : t('confirmEnrol')}
             </Button>
           )}
         </div>
@@ -719,8 +739,9 @@ export function ApplyWizard({
 /* ------------------------------------------------------------------ bits */
 
 function Stepper({ step }: { step: number }) {
+  const t = useTranslations('apply')
   return (
-    <ol className="mb-5 flex items-center gap-1.5 sm:gap-2" aria-label="Application progress">
+    <ol className="mb-5 flex items-center gap-1.5 sm:gap-2" aria-label={t('heading')}>
       {STEPS.map((s, i) => {
         const state = step > s.n ? 'done' : step === s.n ? 'current' : 'todo'
         const Icon = s.icon
@@ -755,7 +776,7 @@ function Stepper({ step }: { step: number }) {
                   state !== 'current' && 'hidden lg:inline',
                 )}
               >
-                {s.label}
+                {t(`step.${s.key}`)}
               </span>
             </div>
 
@@ -786,10 +807,12 @@ function StepHeading({ id, title, sub }: { id: string; title: string; sub: strin
 
 function ReviewBlock({
   title,
+  editLabel,
   rows,
   onEdit,
 }: {
   title: string
+  editLabel: string
   rows: [string, string][]
   onEdit: () => void
 }) {
@@ -802,7 +825,7 @@ function ReviewBlock({
           onClick={onEdit}
           className="text-[12px] font-bold text-primary-600 transition-colors hover:underline"
         >
-          Edit
+          {editLabel}
         </button>
       </div>
       <dl className="grid gap-3 p-4 sm:grid-cols-2">
