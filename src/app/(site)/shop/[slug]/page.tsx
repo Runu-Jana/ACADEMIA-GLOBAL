@@ -10,7 +10,6 @@ import { ProductCard } from '@/components/shop/product-card'
 import { ProductGallery } from '@/components/shop/product-gallery'
 import { AddToCart } from '@/components/shop/add-to-cart'
 import { RecentlyViewed } from '@/components/shop/recently-viewed'
-import { ProductSaveButton } from '@/components/course/save-button'
 import { Badge } from '@/components/ui/badge'
 import { Stars } from '@/components/ui/stars'
 import { Reveal } from '@/components/fx/reveal'
@@ -277,14 +276,6 @@ export default async function ProductPage({
                   title={product.title}
                   price={product.price}
                   stock={product.stock}
-                />
-              </div>
-
-              <div className="mt-3 sm:max-w-sm">
-                <ProductSaveButton
-                  productId={product.id}
-                  variant="chip"
-                  className="w-full justify-center"
                 />
               </div>
             </div>

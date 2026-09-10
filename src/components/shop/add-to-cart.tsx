@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { ShoppingCart, Check, Minus, Plus, Truck, Zap } from 'lucide-react'
 import { Button, buttonVariants } from '@/components/ui/button'
+import { ProductSaveButton } from '@/components/course/save-button'
 import { useCart, MAX_QTY } from '@/lib/use-cart'
 import { cn } from '@/lib/utils'
 import { formatPaise, FREE_SHIPPING_OVER, SHIPPING_FLAT } from '@/lib/shop'
@@ -153,14 +154,16 @@ export function AddToCart({
         </span>
       </p>
 
-      {/* Full-width like the buttons above, so the whole control stack shares
-          one left and right edge. */}
-      <Link
-        href="/shop/cart"
-        className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'w-full')}
-      >
-        {t('goToCart')}
-      </Link>
+      {/* The two secondary actions share a row. */}
+      <div className="flex items-stretch gap-2.5">
+        <Link
+          href="/shop/cart"
+          className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'flex-1')}
+        >
+          {t('goToCart')}
+        </Link>
+        <ProductSaveButton productId={productId} variant="chip" className="flex-1 justify-center" />
+      </div>
     </div>
   )
 }
