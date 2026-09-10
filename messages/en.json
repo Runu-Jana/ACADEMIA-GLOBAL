@@ -1217,5 +1217,30 @@
       "verify": "We could not confirm your payment",
       "cancelled": "Payment was cancelled. Your application is saved — you can pay to enrol any time."
     }
+  },
+  "leads": {
+    "downloadBrochure": "Download Brochure",
+    "close": "Close",
+    "title": "Get the brochure",
+    "sub": "Tell us where to reach you and we'll open the <b>{course}</b> brochure. A counsellor can help with admissions if you'd like.",
+    "fullName": "Full name",
+    "bNamePlaceholder": "Aditi Sharma",
+    "email": "Email",
+    "phone": "Phone",
+    "submit": "Get the brochure",
+    "privacy": "We only use this to help with your admission — no spam.",
+    "errCheck": "Please check your details and try again.",
+    "errNetwork": "Network error — please try again.",
+    "yourName": "Your name",
+    "leadNamePlaceholder": "Full name",
+    "messageLabel": "Anything specific?",
+    "messageHint": "Optional",
+    "messagePlaceholder": "Preferred intake, budget, questions…",
+    "requestCallback": "Request a callback",
+    "submitting": "Submitting…",
+    "agree": "By submitting, you agree to be contacted by a Shiksha Sarthi counsellor.",
+    "sentThanks": "Thanks{name}! We'll call you shortly.",
+    "sentBody": "An admission counsellor will reach out to help you find the right programme and get you admitted.",
+    "errGeneric": "Something went wrong. Please try again."
   }
 }

@@ -1,6 +1,7 @@
 'use client'
 
 import * as React from 'react'
+import { useTranslations } from 'next-intl'
 import { CheckCircle2, AlertCircle, PhoneCall } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Field, Input, Textarea } from '@/components/ui/field'
@@ -17,7 +18,7 @@ export function LeadForm({
   interestedCourseId,
   interestedUniversityId,
   defaults,
-  submitLabel = 'Request a callback',
+  submitLabel,
 }: {
   source?: Source
   interestedCourseId?: string
@@ -25,6 +26,8 @@ export function LeadForm({
   defaults?: { name?: string; email?: string; phone?: string }
   submitLabel?: string
 }) {
+  const t = useTranslations('leads')
+  const label = submitLabel ?? t('requestCallback')
   const [form, setForm] = React.useState({
     name: defaults?.name ?? '',
     email: defaults?.email ?? '',
@@ -52,12 +55,12 @@ export function LeadForm({
       })
       const data = await res.json().catch(() => ({}))
       if (!res.ok) {
-        setError(typeof data.error === 'string' ? data.error : 'Something went wrong. Please try again.')
+        setError(typeof data.error === 'string' ? data.error : t('errGeneric'))
         return
       }
       setDone(true)
     } catch {
-      setError('Network error — please try again.')
+      setError(t('errNetwork'))
     } finally {
       setLoading(false)
     }
@@ -70,11 +73,10 @@ export function LeadForm({
           <CheckCircle2 className="h-6 w-6" />
         </span>
         <p className="text-[13.5px] font-bold text-emerald-900 dark:text-emerald-200">
-          Thanks{form.name ? `, ${form.name.split(' ')[0]}` : ''}! We&rsquo;ll call you shortly.
+          {t('sentThanks', { name: form.name ? `, ${form.name.split(' ')[0]}` : '' })}
         </p>
         <p className="mt-1 text-[12px] leading-relaxed text-emerald-800 dark:text-emerald-200/90">
-          An admission counsellor will reach out to help you find the right programme and get you
-          admitted.
+          {t('sentBody')}
         </p>
       </div>
     )
@@ -88,24 +90,24 @@ export function LeadForm({
           {error}
         </p>
       )}
-      <Field label="Your name" required>
-        <Input value={form.name} onChange={set('name')} placeholder="Full name" autoComplete="name" required />
+      <Field label={t('yourName')} required>
+        <Input value={form.name} onChange={set('name')} placeholder={t('leadNamePlaceholder')} autoComplete="name" required />
       </Field>
-      <Field label="Phone" required>
+      <Field label={t('phone')} required>
         <Input type="tel" value={form.phone} onChange={set('phone')} placeholder="+91 98765 43210" autoComplete="tel" required />
       </Field>
-      <Field label="Email" required>
+      <Field label={t('email')} required>
         <Input type="email" value={form.email} onChange={set('email')} placeholder="you@example.com" autoComplete="email" required />
       </Field>
-      <Field label="Anything specific?" hint="Optional">
-        <Textarea value={form.message} onChange={set('message')} placeholder="Preferred intake, budget, questions…" maxLength={1000} className="min-h-[64px]" />
+      <Field label={t('messageLabel')} hint={t('messageHint')}>
+        <Textarea value={form.message} onChange={set('message')} placeholder={t('messagePlaceholder')} maxLength={1000} className="min-h-[64px]" />
       </Field>
       <Button type="submit" variant="holo" loading={loading} disabled={loading} className="w-full">
         {!loading && <PhoneCall className="h-4 w-4" />}
-        {loading ? 'Submitting…' : submitLabel}
+        {loading ? t('submitting') : label}
       </Button>
       <p className="text-center text-[10.5px] leading-relaxed text-muted-foreground">
-        By submitting, you agree to be contacted by an Shiksha Sarthi counsellor.
+        {t('agree')}
       </p>
     </form>
   )

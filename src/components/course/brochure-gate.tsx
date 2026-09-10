@@ -1,6 +1,7 @@
 'use client'
 
 import * as React from 'react'
+import { useTranslations } from 'next-intl'
 import { Download, X, FileText, ShieldCheck, AlertCircle } from 'lucide-react'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Field, Input } from '@/components/ui/field'
@@ -29,6 +30,7 @@ export function BrochureGate({
   courseTitle: string
   signedIn: boolean
 }) {
+  const t = useTranslations('leads')
   const [open, setOpen] = React.useState(false)
   const [form, setForm] = React.useState({ name: '', email: '', phone: '' })
   const [loading, setLoading] = React.useState(false)
@@ -89,7 +91,7 @@ export function BrochureGate({
       })
       const data = await res.json().catch(() => ({}))
       if (!res.ok) {
-        setError(typeof data.error === 'string' ? data.error : 'Please check your details and try again.')
+        setError(typeof data.error === 'string' ? data.error : t('errCheck'))
         return
       }
       try {
@@ -101,7 +103,7 @@ export function BrochureGate({
       // call (a popup would risk the blocker); the brochure page has a back link.
       window.location.assign(brochureHref)
     } catch {
-      setError('Network error — please try again.')
+      setError(t('errNetwork'))
     } finally {
       setLoading(false)
     }
@@ -117,7 +119,7 @@ export function BrochureGate({
         className={buttonVariants({ variant: 'outline', className: 'w-full' })}
       >
         <Download className="h-4 w-4" />
-        Download Brochure
+        {t('downloadBrochure')}
       </a>
 
       {open && (
@@ -136,7 +138,7 @@ export function BrochureGate({
             <button
               type="button"
               onClick={() => setOpen(false)}
-              aria-label="Close"
+              aria-label={t('close')}
               className="absolute right-3 top-3 z-10 grid h-9 w-9 place-items-center rounded-lg border border-border bg-card/80 text-muted-foreground transition-colors hover:border-primary-300 hover:text-primary-600"
             >
               <X className="h-4 w-4" />
@@ -148,12 +150,13 @@ export function BrochureGate({
               </span>
               <div className="min-w-0">
                 <h2 id="brochure-gate-title" className="font-display text-lg font-extrabold tracking-tight">
-                  Get the brochure
+                  {t('title')}
                 </h2>
                 <p className="mt-0.5 text-pretty text-[12.5px] text-muted-foreground">
-                  Tell us where to reach you and we&rsquo;ll open the{' '}
-                  <span className="font-semibold text-foreground">{courseTitle}</span> brochure. A
-                  counsellor can help with admissions if you&rsquo;d like.
+                  {t.rich('sub', {
+                    course: courseTitle,
+                    b: (chunks) => <span className="font-semibold text-foreground">{chunks}</span>,
+                  })}
                 </p>
               </div>
             </div>
@@ -166,26 +169,26 @@ export function BrochureGate({
                 </p>
               )}
 
-              <Field label="Full name" required>
-                <Input ref={firstRef} value={form.name} onChange={set('name')} placeholder="Aditi Sharma" maxLength={80} autoComplete="name" />
+              <Field label={t('fullName')} required>
+                <Input ref={firstRef} value={form.name} onChange={set('name')} placeholder={t('bNamePlaceholder')} maxLength={80} autoComplete="name" />
               </Field>
               <div className="grid gap-3.5 sm:grid-cols-2">
-                <Field label="Email" required>
+                <Field label={t('email')} required>
                   <Input type="email" value={form.email} onChange={set('email')} placeholder="you@example.com" maxLength={120} autoComplete="email" />
                 </Field>
-                <Field label="Phone" required>
+                <Field label={t('phone')} required>
                   <Input type="tel" value={form.phone} onChange={set('phone')} placeholder="+91 98765 43210" maxLength={20} autoComplete="tel" />
                 </Field>
               </div>
 
               <Button type="submit" variant="holo" size="lg" loading={loading} disabled={loading || !ready} className="w-full">
                 {!loading && <Download className="h-4 w-4" />}
-                Get the brochure
+                {t('submit')}
               </Button>
 
               <p className="flex items-center justify-center gap-1.5 text-[11px] text-muted-foreground">
                 <ShieldCheck className="h-3 w-3 text-emerald-500" />
-                We only use this to help with your admission — no spam.
+                {t('privacy')}
               </p>
             </form>
           </div>
