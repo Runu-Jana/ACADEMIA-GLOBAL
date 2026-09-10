@@ -65,8 +65,8 @@ export function AddToCart({
 
   return (
     <div className="space-y-3">
-      <div className="flex flex-wrap items-center gap-3">
-        <div className="inline-flex h-13 items-center overflow-hidden rounded-xl border border-border bg-card">
+      <div className="flex items-center gap-3">
+        <div className="inline-flex h-13 shrink-0 items-center overflow-hidden rounded-xl border border-border bg-card">
           <button
             type="button"
             onClick={() => setQty((q) => Math.max(1, q - 1))}
@@ -93,13 +93,10 @@ export function AddToCart({
         <Button
           size="lg"
           variant="holo"
-          // Sits beside the stepper at every width. On a phone that leaves it
-          // ~175px, and the lg size's px-7 would push the longer "Added to cart"
-          // label past the edge — so the padding tightens to px-4 there and goes
-          // back to the full size once there's room.
-          // No min-w-0 here on purpose: a flex item's default min-width:auto is
-          // what stops this shrinking below its own nowrap label.
-          className="flex-1 px-4 sm:w-60 sm:flex-none sm:px-7"
+          // Fills the row beside the stepper so its right edge lines up with the
+          // full-width Buy-now / Go-to-cart / Save buttons below. min-w-0 lets it
+          // shrink on a narrow phone rather than overflow the card.
+          className="min-w-0 flex-1 px-4 sm:px-7"
           onClick={() => {
             add({ productId, qty, title, slug, price })
             setJustAdded(true)
@@ -124,7 +121,7 @@ export function AddToCart({
       <Button
         variant="primary"
         size="lg"
-        className="w-full sm:w-60"
+        className="w-full"
         onClick={() => {
           add({ productId, qty, title, slug, price })
           router.push('/shop/checkout')
@@ -156,11 +153,11 @@ export function AddToCart({
         </span>
       </p>
 
-      {/* Secondary action, so it tracks the primary's width rather than
-          stretching wider than the button it sits under. */}
+      {/* Full-width like the buttons above, so the whole control stack shares
+          one left and right edge. */}
       <Link
         href="/shop/cart"
-        className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'w-full sm:w-60')}
+        className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'w-full')}
       >
         {t('goToCart')}
       </Link>
