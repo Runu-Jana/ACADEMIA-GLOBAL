@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
+import { getTranslations } from 'next-intl/server'
 import {
   ChevronRight, BookOpen, Package, Truck, ShieldCheck, RefreshCcw, Check,
 } from 'lucide-react'
@@ -17,7 +18,7 @@ import { liveProducts, isProductLive } from '@/lib/visibility'
 import { breadcrumbLd, productLd } from '@/lib/seo'
 import { asList } from '@/lib/utils'
 import {
-  formatPaise, discountPct, stockState, categoryLabel, kindLabel,
+  formatPaise, discountPct, stockState, categoryLabel,
   FREE_SHIPPING_OVER,
 } from '@/lib/shop'
 
@@ -91,6 +92,7 @@ export default async function ProductPage({
   const product = await prisma.product.findUnique({ where: { slug } })
   if (!product || !isProductLive(product)) notFound()
 
+  const t = await getTranslations('shop')
   const highlights = asList(product.highlights)
   const specs = asList(product.specs)
   const examTags = asList(product.examTags)
@@ -119,15 +121,15 @@ export default async function ProductPage({
     <ul className="mt-4 grid gap-2.5 text-[12.5px] text-muted-foreground">
       <li className="flex items-center gap-2">
         <ShieldCheck aria-hidden className="h-4 w-4 shrink-0 text-primary-500" />
-        {isBook ? 'Genuine, publisher-sourced edition' : 'Genuine, brand-sourced stock'}
+        {isBook ? t('detail.promiseGenuineBook') : t('detail.promiseGenuineItem')}
       </li>
       <li className="flex items-center gap-2">
         <Truck aria-hidden className="h-4 w-4 shrink-0 text-primary-500" />
-        Free delivery over {formatPaise(FREE_SHIPPING_OVER)}
+        {t('detail.promiseDelivery', { amount: formatPaise(FREE_SHIPPING_OVER) })}
       </li>
       <li className="flex items-center gap-2">
         <RefreshCcw aria-hidden className="h-4 w-4 shrink-0 text-primary-500" />
-        7-day replacement for damaged items
+        {t('detail.promiseReplacement')}
       </li>
     </ul>
   )
@@ -147,12 +149,12 @@ export default async function ProductPage({
       <div className="container py-6 sm:py-8">
         {/* ---------------------------------------------------- breadcrumb */}
         <nav aria-label="Breadcrumb" className="mb-5 flex flex-wrap items-center gap-1.5 text-[12.5px] text-muted-foreground">
-          <Link href="/" className="hover:text-primary-600">Home</Link>
+          <Link href="/" className="hover:text-primary-600">{t('home')}</Link>
           <ChevronRight aria-hidden className="h-3.5 w-3.5" />
-          <Link href="/shop" className="hover:text-primary-600">Shop</Link>
+          <Link href="/shop" className="hover:text-primary-600">{t('shop')}</Link>
           <ChevronRight aria-hidden className="h-3.5 w-3.5" />
           <Link href={`/shop?category=${product.category}`} className="hover:text-primary-600">
-            {categoryLabel(product.category)}
+            {t(`category.${product.category}`)}
           </Link>
           <ChevronRight aria-hidden className="h-3.5 w-3.5" />
           <span className="line-clamp-1 font-semibold text-foreground">{product.title}</span>
@@ -185,14 +187,14 @@ export default async function ProductPage({
             <div className="flex flex-wrap items-center gap-2">
               <Badge tone="primary">
                 {isBook ? <BookOpen className="h-3 w-3" /> : <Package className="h-3 w-3" />}
-                {kindLabel(product.kind)}
+                {t(`kind.${product.kind}`)}
               </Badge>
               <Link href={`/shop?category=${product.category}`}>
                 <Badge tone="default" className="transition-colors hover:border-primary-300">
-                  {categoryLabel(product.category)}
+                  {t(`category.${product.category}`)}
                 </Badge>
               </Link>
-              {product.featured && <Badge tone="holo">Bestseller</Badge>}
+              {product.featured && <Badge tone="holo">{t('detail.bestseller')}</Badge>}
             </div>
 
             <h1 className="mt-3 text-balance font-display text-2xl font-extrabold leading-tight tracking-tight sm:text-3xl">
@@ -202,7 +204,7 @@ export default async function ProductPage({
 
             {(product.author || product.brand) && (
               <p className="mt-2.5 text-[13.5px]">
-                <span className="text-muted-foreground">{isBook ? 'By ' : 'Brand: '}</span>
+                <span className="text-muted-foreground">{isBook ? t('detail.by') : t('detail.brand')}</span>{' '}
                 <span className="font-bold">{product.author ?? product.brand}</span>
                 {product.publisher && (
                   <span className="text-muted-foreground"> · {product.publisher}</span>
@@ -215,7 +217,7 @@ export default async function ProductPage({
                 <Stars rating={product.rating} size={15} />
                 <span className="text-[13px] font-bold">{product.rating.toFixed(1)}</span>
                 <span className="text-[13px] text-muted-foreground">
-                  ({product.reviews.toLocaleString('en-IN')} ratings)
+                  {t('detail.ratings', { count: product.reviews.toLocaleString('en-IN') })}
                 </span>
               </div>
             )}
@@ -232,29 +234,29 @@ export default async function ProductPage({
                       {formatPaise(product.mrp)}
                     </span>
                     <span className="rounded-md bg-accent-green px-2 py-0.5 text-[12px] font-bold leading-none text-white">
-                      {off}% OFF
+                      {t('detail.off', { off })}
                     </span>
                   </>
                 )}
               </div>
               {saving > 0 && (
                 <p className="mt-1.5 text-[12.5px] font-semibold text-emerald-600 dark:text-emerald-400">
-                  You save {formatPaise(saving)}
+                  {t('detail.youSave', { amount: formatPaise(saving) })}
                 </p>
               )}
-              <p className="mt-1 text-[11.5px] text-muted-foreground">Inclusive of all taxes</p>
+              <p className="mt-1 text-[11.5px] text-muted-foreground">{t('detail.taxesIncl')}</p>
 
               <div className="mt-3 flex items-center gap-2 text-[13px] font-bold">
                 {stock === 'OUT' ? (
-                  <span className="text-red-600 dark:text-red-400">Out of stock</span>
+                  <span className="text-red-600 dark:text-red-400">{t('detail.outOfStock')}</span>
                 ) : stock === 'LOW' ? (
                   <span className="text-amber-600 dark:text-amber-400">
-                    Only {product.stock} left in stock
+                    {t('detail.lowStock', { n: String(product.stock) })}
                   </span>
                 ) : (
                   <span className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400">
                     <Check aria-hidden className="h-4 w-4" />
-                    In stock
+                    {t('detail.inStock')}
                   </span>
                 )}
               </div>
@@ -283,7 +285,7 @@ export default async function ProductPage({
             {/* ---------------------------------------------- highlights */}
             {highlights.length > 0 && (
               <section className="mt-7">
-                <h2 className="font-display text-lg font-extrabold tracking-tight">Highlights</h2>
+                <h2 className="font-display text-lg font-extrabold tracking-tight">{t('detail.highlights')}</h2>
                 <ul className="mt-3 grid gap-2 sm:grid-cols-2">
                   {highlights.map((h) => (
                     <li key={h} className="flex items-start gap-2 text-[13.5px]">
@@ -299,7 +301,7 @@ export default async function ProductPage({
             {examTags.length > 0 && (
               <section className="mt-7">
                 <h2 className="font-display text-lg font-extrabold tracking-tight">
-                  Recommended for
+                  {t('detail.recommendedFor')}
                 </h2>
                 <div className="mt-3 flex flex-wrap gap-1.5">
                   {examTags.map((tag) => (
@@ -316,7 +318,7 @@ export default async function ProductPage({
             {/* ---------------------------------------------- description */}
             <section className="mt-7">
               <h2 className="font-display text-lg font-extrabold tracking-tight">
-                About this {isBook ? 'book' : 'product'}
+                {isBook ? t('detail.aboutBook') : t('detail.aboutProduct')}
               </h2>
               <div className="mt-3 space-y-3 text-[14px] leading-relaxed text-muted-foreground">
                 {product.description.split('\n').filter(Boolean).map((para, i) => (
@@ -328,38 +330,38 @@ export default async function ProductPage({
             {/* ---------------------------------------------------- specs */}
             <section className="mt-7">
               <h2 className="font-display text-lg font-extrabold tracking-tight">
-                {isBook ? 'Book details' : 'Specifications'}
+                {isBook ? t('detail.bookDetails') : t('detail.specifications')}
               </h2>
               <dl className="mt-3 rounded-2xl border border-border px-4 py-1">
                 {isBook ? (
                   <>
-                    {product.author && <SpecRow label="Author" value={product.author} />}
-                    {product.publisher && <SpecRow label="Publisher" value={product.publisher} />}
-                    {product.edition && <SpecRow label="Edition" value={product.edition} />}
+                    {product.author && <SpecRow label={t('detail.spec.author')} value={product.author} />}
+                    {product.publisher && <SpecRow label={t('detail.spec.publisher')} value={product.publisher} />}
+                    {product.edition && <SpecRow label={t('detail.spec.edition')} value={product.edition} />}
                     {product.isbn && (
-                      <SpecRow label="ISBN-13" value={<span className="tabular-nums">{product.isbn}</span>} />
+                      <SpecRow label={t('detail.spec.isbn')} value={<span className="tabular-nums">{product.isbn}</span>} />
                     )}
-                    {product.language && <SpecRow label="Language" value={product.language} />}
-                    {product.pages && <SpecRow label="Pages" value={`${product.pages} pages`} />}
-                    {product.binding && <SpecRow label="Binding" value={product.binding} />}
+                    {product.language && <SpecRow label={t('detail.spec.language')} value={product.language} />}
+                    {product.pages && <SpecRow label={t('detail.spec.pages')} value={t('detail.spec.pagesValue', { n: String(product.pages) })} />}
+                    {product.binding && <SpecRow label={t('detail.spec.binding')} value={product.binding} />}
                     {product.publishedYear && (
-                      <SpecRow label="Published" value={product.publishedYear} />
+                      <SpecRow label={t('detail.spec.published')} value={product.publishedYear} />
                     )}
                   </>
                 ) : (
                   <>
-                    {product.brand && <SpecRow label="Brand" value={product.brand} />}
+                    {product.brand && <SpecRow label={t('detail.spec.brand')} value={product.brand} />}
                     {specs.map((s) => {
                       // Specs are stored as "Label: value" so one column drives both.
                       const idx = s.indexOf(':')
-                      const label = idx > 0 ? s.slice(0, idx) : 'Detail'
+                      const label = idx > 0 ? s.slice(0, idx) : t('detail.spec.detail')
                       const value = idx > 0 ? s.slice(idx + 1).trim() : s
                       return <SpecRow key={s} label={label} value={value} />
                     })}
                   </>
                 )}
-                {product.sku && <SpecRow label="SKU" value={product.sku} />}
-                <SpecRow label="Category" value={categoryLabel(product.category)} />
+                {product.sku && <SpecRow label={t('detail.spec.sku')} value={product.sku} />}
+                <SpecRow label={t('detail.spec.category')} value={t(`category.${product.category}`)} />
               </dl>
             </section>
           </div>
@@ -370,13 +372,13 @@ export default async function ProductPage({
           <section className="mt-14">
             <div className="mb-4 flex items-end justify-between gap-3">
               <h2 className="font-display text-xl font-extrabold tracking-tight">
-                More in {categoryLabel(product.category)}
+                {t('detail.moreIn', { category: t(`category.${product.category}`) })}
               </h2>
               <Link
                 href={`/shop?category=${product.category}`}
                 className="text-[13px] font-bold text-primary-600 hover:underline"
               >
-                View all
+                {t('detail.viewAll')}
               </Link>
             </div>
             <div className="grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-4">

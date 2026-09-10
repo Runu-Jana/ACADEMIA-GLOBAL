@@ -2,6 +2,7 @@
 
 import * as React from 'react'
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 import { Minus, Plus, Trash2, ShoppingBag, AlertTriangle, Loader2, Truck } from 'lucide-react'
 import { ProductCover } from './product-cover'
 import { Button, buttonVariants } from '@/components/ui/button'
@@ -19,6 +20,7 @@ import type { PricedCart } from '@/lib/shop-pricing'
  * dropped) is corrected on load and the buyer is told what changed.
  */
 export function CartView() {
+  const t = useTranslations('shop.cart')
   const { lines, ready, setQty, remove } = useCart()
   const [priced, setPriced] = React.useState<PricedCart | null>(null)
   const [loading, setLoading] = React.useState(true)
@@ -73,12 +75,12 @@ export function CartView() {
     return (
       <div className="card-base grid place-items-center px-6 py-16 text-center">
         <ShoppingBag aria-hidden className="mb-3 h-10 w-10 text-muted-foreground" />
-        <p className="text-[15px] font-bold">Your cart is empty</p>
+        <p className="text-[15px] font-bold">{t('emptyTitle')}</p>
         <p className="mt-1 max-w-sm text-[13px] text-muted-foreground">
-          Books and stationery you add will appear here.
+          {t('emptyBody')}
         </p>
         <Link href="/shop" className={buttonVariants({ variant: 'primary', size: 'sm', className: 'mt-5' })}>
-          Browse the shop
+          {t('browse')}
         </Link>
       </div>
     )
@@ -97,14 +99,16 @@ export function CartView() {
           <div className="flex items-start gap-2.5 rounded-xl border border-amber-200 bg-amber-50 p-3.5 text-[13px] dark:border-amber-500/25 dark:bg-amber-500/10">
             <AlertTriangle aria-hidden className="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
             <div>
-              <p className="font-bold text-amber-800 dark:text-amber-200">Your cart changed</p>
+              <p className="font-bold text-amber-800 dark:text-amber-200">{t('changedTitle')}</p>
               <ul className="mt-1 space-y-0.5 text-amber-700 dark:text-amber-300/90">
                 {priced.removed.map((r) => (
                   <li key={r.productId}>
-                    {r.title} was removed — {r.reason === 'out_of_stock' ? 'now out of stock' : 'no longer available'}.
+                    {r.reason === 'out_of_stock'
+                      ? t('removedOut', { title: r.title })
+                      : t('removedGone', { title: r.title })}
                   </li>
                 ))}
-                {priced.adjusted && <li>Some quantities were reduced to match available stock.</li>}
+                {priced.adjusted && <li>{t('adjusted')}</li>}
               </ul>
             </div>
           </div>
@@ -149,7 +153,7 @@ export function CartView() {
 
               {line.qty >= line.stock && (
                 <p className="mt-1 text-[11.5px] font-semibold text-amber-600 dark:text-amber-400">
-                  Only {line.stock} available
+                  {t('onlyAvailable', { n: String(line.stock) })}
                 </p>
               )}
 
@@ -158,7 +162,7 @@ export function CartView() {
                   <button
                     type="button"
                     onClick={() => setQty(line.productId, line.qty - 1)}
-                    aria-label={`Decrease quantity of ${line.title}`}
+                    aria-label={t('decreaseOf', { title: line.title })}
                     className={stepBtn}
                   >
                     <Minus className="h-3.5 w-3.5" />
@@ -170,7 +174,7 @@ export function CartView() {
                     type="button"
                     onClick={() => setQty(line.productId, line.qty + 1)}
                     disabled={line.qty >= Math.min(MAX_QTY, line.stock)}
-                    aria-label={`Increase quantity of ${line.title}`}
+                    aria-label={t('increaseOf', { title: line.title })}
                     className={stepBtn}
                   >
                     <Plus className="h-3.5 w-3.5" />
@@ -183,7 +187,7 @@ export function CartView() {
                   className="inline-flex min-h-11 items-center gap-1 rounded-lg px-2.5 py-1.5 text-[12px] font-semibold text-muted-foreground transition-colors hover:bg-red-50 hover:text-red-600 sm:min-h-0 dark:hover:bg-red-500/10"
                 >
                   <Trash2 className="h-3.5 w-3.5" />
-                  Remove
+                  {t('remove')}
                 </button>
 
                 <span className="ml-auto text-[14px] font-extrabold tabular-nums">
@@ -197,21 +201,21 @@ export function CartView() {
 
       {/* ------------------------------------------------------------ summary */}
       <aside className="card-base p-4 lg:sticky lg:top-24">
-        <h2 className="text-[15px] font-extrabold tracking-tight">Order summary</h2>
+        <h2 className="text-[15px] font-extrabold tracking-tight">{t('summary')}</h2>
 
         <dl className="mt-3.5 space-y-2 text-[13.5px]">
           <div className="flex items-center justify-between">
-            <dt className="text-muted-foreground">Subtotal</dt>
+            <dt className="text-muted-foreground">{t('subtotal')}</dt>
             <dd className="font-bold tabular-nums">{formatPaise(priced.subtotal)}</dd>
           </div>
           <div className="flex items-center justify-between">
-            <dt className="text-muted-foreground">Delivery</dt>
+            <dt className="text-muted-foreground">{t('delivery')}</dt>
             <dd className={cn('font-bold tabular-nums', priced.shipping === 0 && 'text-emerald-600 dark:text-emerald-400')}>
-              {priced.shipping === 0 ? 'Free' : formatPaise(priced.shipping)}
+              {priced.shipping === 0 ? t('free') : formatPaise(priced.shipping)}
             </dd>
           </div>
           <div className="flex items-center justify-between border-t border-border pt-2.5">
-            <dt className="font-extrabold">Total</dt>
+            <dt className="font-extrabold">{t('total')}</dt>
             <dd className="text-lg font-extrabold tabular-nums text-primary-700 dark:text-primary-300">
               {formatPaise(priced.total)}
             </dd>
@@ -222,7 +226,10 @@ export function CartView() {
           <p className="mt-3 flex items-start gap-1.5 rounded-lg bg-muted/60 p-2.5 text-[12px] text-muted-foreground">
             <Truck aria-hidden className="mt-0.5 h-3.5 w-3.5 shrink-0" />
             <span>
-              Add {formatPaise(toFreeShipping)} more for <strong>free delivery</strong>.
+              {t.rich('addMore', {
+                amount: formatPaise(toFreeShipping),
+                b: (chunks) => <strong>{chunks}</strong>,
+              })}
             </span>
           </p>
         )}
@@ -231,18 +238,18 @@ export function CartView() {
           href="/shop/checkout"
           className={cn(buttonVariants({ variant: 'holo', size: 'md' }), 'mt-4 w-full')}
         >
-          Proceed to checkout
+          {t('checkout')}
         </Link>
 
         <Link
           href="/shop"
           className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'mt-2 w-full')}
         >
-          Continue shopping
+          {t('continue')}
         </Link>
 
         <p className="mt-3 text-center text-[11.5px] text-muted-foreground">
-          Inclusive of all taxes · 7-day replacement on damage
+          {t('fineprint')}
         </p>
       </aside>
     </div>

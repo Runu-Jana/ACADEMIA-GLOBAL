@@ -2,6 +2,7 @@
 
 import * as React from 'react'
 import { createPortal } from 'react-dom'
+import { useTranslations } from 'next-intl'
 import { ChevronLeft, ChevronRight, ZoomIn, X, Minus, Plus } from 'lucide-react'
 import { ProductCover } from './product-cover'
 import { cn } from '@/lib/utils'
@@ -37,6 +38,7 @@ export function ProductGallery({
   imageUrl: string | null
   images: string[]
 }) {
+  const t = useTranslations('shop.gallery')
   // Real photography only — the generated cover is a fallback, not a slide.
   const slides = React.useMemo(
     () => [imageUrl, ...images].filter((src): src is string => Boolean(src)),
@@ -88,14 +90,14 @@ export function ProductGallery({
             onScroll={onScroll}
             // no-scrollbar keeps the native swipe without the OS gutter showing
             className="no-scrollbar flex snap-x snap-mandatory overflow-x-auto scroll-smooth"
-            aria-label={`${title} images`}
+            aria-label={t('images', { title })}
           >
             {slides.map((src, i) => (
               <button
                 key={src}
                 type="button"
                 onClick={() => setLightbox(true)}
-                aria-label={`Zoom image ${i + 1} of ${slides.length}`}
+                aria-label={t('zoomImage', { i: String(i + 1), n: String(slides.length) })}
                 className="relative w-full shrink-0 snap-center cursor-zoom-in"
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -121,7 +123,7 @@ export function ProductGallery({
                 type="button"
                 onClick={() => scrollTo(Math.max(0, index - 1))}
                 disabled={index === 0}
-                aria-label="Previous image"
+                aria-label={t('prev')}
                 className={cn(
                   'absolute left-2 top-1/2 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-full bg-white/90 text-slate-700 shadow-card backdrop-blur transition-opacity',
                   'hover:bg-white disabled:pointer-events-none disabled:opacity-0',
@@ -135,7 +137,7 @@ export function ProductGallery({
                 type="button"
                 onClick={() => scrollTo(Math.min(slides.length - 1, index + 1))}
                 disabled={index === slides.length - 1}
-                aria-label="Next image"
+                aria-label={t('next')}
                 className={cn(
                   'absolute right-2 top-1/2 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-full bg-white/90 text-slate-700 shadow-card backdrop-blur transition-opacity',
                   'hover:bg-white disabled:pointer-events-none disabled:opacity-0',
@@ -167,7 +169,7 @@ export function ProductGallery({
                 key={src}
                 type="button"
                 onClick={() => scrollTo(i)}
-                aria-label={`Show image ${i + 1}`}
+                aria-label={t('showImage', { i: String(i + 1) })}
                 aria-current={i === index}
                 className={cn(
                   'shrink-0 overflow-hidden rounded-lg border-2 transition-colors',
@@ -212,6 +214,7 @@ function Lightbox({
   title: string
   onClose: (index: number) => void
 }) {
+  const t = useTranslations('shop.gallery')
   const [index, setIndex] = React.useState(startIndex)
   const [zoom, setZoom] = React.useState(0) // index into ZOOM_STEPS
   const [offset, setOffset] = React.useState({ x: 0, y: 0 })
@@ -280,7 +283,7 @@ function Lightbox({
     <div
       role="dialog"
       aria-modal="true"
-      aria-label={`${title} — image ${index + 1} of ${slides.length}`}
+      aria-label={t('dialog', { title, i: String(index + 1), n: String(slides.length) })}
       className="fixed inset-0 z-[100] flex flex-col bg-slate-950/95 backdrop-blur-sm"
     >
       {/* ---------------------------------------------------------- top bar */}
@@ -294,7 +297,7 @@ function Lightbox({
             type="button"
             onClick={() => setZoom((z) => Math.max(0, z - 1))}
             disabled={zoom === 0}
-            aria-label="Zoom out"
+            aria-label={t('zoomOut')}
             className={ctrl}
           >
             <Minus className="h-4 w-4" />
@@ -306,7 +309,7 @@ function Lightbox({
             type="button"
             onClick={() => setZoom((z) => Math.min(ZOOM_STEPS.length - 1, z + 1))}
             disabled={zoom === ZOOM_STEPS.length - 1}
-            aria-label="Zoom in"
+            aria-label={t('zoomIn')}
             className={ctrl}
           >
             <Plus className="h-4 w-4" />
@@ -315,7 +318,7 @@ function Lightbox({
             ref={closeRef}
             type="button"
             onClick={() => onClose(index)}
-            aria-label="Close"
+            aria-label={t('close')}
             className={ctrl}
           >
             <X className="h-4.5 w-4.5" />
@@ -359,7 +362,7 @@ function Lightbox({
             type="button"
             onClick={() => go(index - 1)}
             disabled={index === 0}
-            aria-label="Previous image"
+            aria-label={t('prev')}
             className={ctrl}
           >
             <ChevronLeft className="h-4.5 w-4.5" />
@@ -371,7 +374,7 @@ function Lightbox({
                 key={src}
                 type="button"
                 onClick={() => go(i)}
-                aria-label={`Show image ${i + 1}`}
+                aria-label={t('showImage', { i: String(i + 1) })}
                 aria-current={i === index}
                 className={cn(
                   'shrink-0 overflow-hidden rounded-lg border-2 transition-colors',
@@ -388,7 +391,7 @@ function Lightbox({
             type="button"
             onClick={() => go(index + 1)}
             disabled={index === slides.length - 1}
-            aria-label="Next image"
+            aria-label={t('next')}
             className={ctrl}
           >
             <ChevronRight className="h-4.5 w-4.5" />

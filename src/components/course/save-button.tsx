@@ -1,6 +1,7 @@
 'use client'
 
 import * as React from 'react'
+import { useTranslations } from 'next-intl'
 import { Heart } from 'lucide-react'
 import { useSaved, useSavedProducts } from '@/lib/use-saved'
 import { cn } from '@/lib/utils'
@@ -25,10 +26,13 @@ function HeartButton({
 }: {
   saved: boolean
   onToggle: () => void
-  noun: string
+  noun: 'course' | 'item'
   variant: 'icon' | 'chip'
   className?: string
 }) {
+  const t = useTranslations('save')
+  const saveLabel = noun === 'course' ? t('saveCourse') : t('saveItem')
+
   function onClick(e: React.MouseEvent) {
     e.preventDefault()
     e.stopPropagation()
@@ -50,7 +54,7 @@ function HeartButton({
         )}
       >
         <Heart className={cn('h-4 w-4', saved && 'fill-current')} />
-        {saved ? 'Saved' : 'Save'}
+        {saved ? t('saved') : t('save')}
       </button>
     )
   }
@@ -60,8 +64,8 @@ function HeartButton({
       type="button"
       onClick={onClick}
       aria-pressed={saved}
-      aria-label={saved ? 'Remove from saved' : `Save ${noun}`}
-      title={saved ? 'Saved' : `Save ${noun}`}
+      aria-label={saved ? t('removeSaved') : saveLabel}
+      title={saved ? t('saved') : saveLabel}
       className={cn(
         'grid h-9 w-9 place-items-center rounded-full backdrop-blur-sm transition-all duration-200',
         saved

@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
+import { getTranslations } from 'next-intl/server'
 import { CheckCircle2, Package, Truck, Home, ChevronRight, Clock } from 'lucide-react'
 import { prisma } from '@/lib/prisma'
 import { Badge } from '@/components/ui/badge'
@@ -16,12 +17,12 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 }
 
-/** The fulfilment ladder as a buyer sees it. */
+/** The fulfilment ladder as a buyer sees it. Labels come from `order.step.<key>`. */
 const STEPS = [
-  { key: 'PAID', label: 'Order confirmed', icon: CheckCircle2 },
-  { key: 'PACKED', label: 'Packed', icon: Package },
-  { key: 'SHIPPED', label: 'Shipped', icon: Truck },
-  { key: 'DELIVERED', label: 'Delivered', icon: Home },
+  { key: 'PAID', icon: CheckCircle2 },
+  { key: 'PACKED', icon: Package },
+  { key: 'SHIPPED', icon: Truck },
+  { key: 'DELIVERED', icon: Home },
 ] as const
 
 const STEP_ORDER = STEPS.map((s) => s.key) as string[]
@@ -45,6 +46,7 @@ export default async function OrderPage({
 }) {
   const { orderNumber } = await params
   const { just_paid } = await searchParams
+  const t = await getTranslations('shop')
 
   const order = await prisma.shopOrder.findUnique({
     where: { orderNumber: decodeURIComponent(orderNumber) },
@@ -60,11 +62,11 @@ export default async function OrderPage({
   return (
     <div className="container max-w-3xl py-6 sm:py-10">
       <nav aria-label="Breadcrumb" className="mb-5 flex items-center gap-1.5 text-[12.5px] text-muted-foreground">
-        <Link href="/" className="hover:text-primary-600">Home</Link>
+        <Link href="/" className="hover:text-primary-600">{t('home')}</Link>
         <ChevronRight aria-hidden className="h-3.5 w-3.5" />
-        <Link href="/shop" className="hover:text-primary-600">Shop</Link>
+        <Link href="/shop" className="hover:text-primary-600">{t('shop')}</Link>
         <ChevronRight aria-hidden className="h-3.5 w-3.5" />
-        <span className="font-semibold text-foreground">Order</span>
+        <span className="font-semibold text-foreground">{t('order.crumb')}</span>
       </nav>
 
       {justPaid && (
@@ -72,10 +74,10 @@ export default async function OrderPage({
           <CheckCircle2 aria-hidden className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600 dark:text-emerald-400" />
           <div>
             <p className="text-[15px] font-extrabold text-emerald-800 dark:text-emerald-200">
-              Payment successful
+              {t('order.paidTitle')}
             </p>
             <p className="mt-0.5 text-[13px] text-emerald-700 dark:text-emerald-300/90">
-              A confirmation has been emailed to {order.email}. We&apos;ll dispatch within two working days.
+              {t('order.paidBody', { email: order.email })}
             </p>
           </div>
         </div>
@@ -85,15 +87,17 @@ export default async function OrderPage({
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <p className="text-[11.5px] font-bold uppercase tracking-wider text-muted-foreground">
-              Order reference
+              {t('order.reference')}
             </p>
             <p className="font-display text-2xl font-extrabold tracking-tight">{order.orderNumber}</p>
             <p className="mt-1 flex items-center gap-1.5 text-[12.5px] text-muted-foreground">
               <Clock aria-hidden className="h-3.5 w-3.5" />
-              Placed {formatDate(order.createdAt)}
+              {t('order.placed', { date: formatDate(order.createdAt) })}
             </p>
           </div>
-          <Badge tone={STATUS_TONE[order.status] ?? 'default'}>{order.status}</Badge>
+          <Badge tone={STATUS_TONE[order.status] ?? 'default'}>
+            {t(`order.status.${order.status}`)}
+          </Badge>
         </div>
 
         {/* ------------------------------------------------------- progress */}
@@ -115,7 +119,7 @@ export default async function OrderPage({
                     <Icon aria-hidden className="h-4 w-4" />
                   </span>
                   <span className={cn('text-[10.5px] font-bold leading-tight', !done && 'text-muted-foreground')}>
-                    {step.label}
+                    {t(`order.step.${step.key}`)}
                   </span>
                 </li>
               )
@@ -125,7 +129,7 @@ export default async function OrderPage({
 
         {order.trackingNumber && (
           <div className="mt-5 rounded-xl bg-muted/50 p-3.5 text-[13px]">
-            <p className="font-bold">Tracking</p>
+            <p className="font-bold">{t('order.tracking')}</p>
             <p className="mt-0.5 text-muted-foreground">
               {order.courier ? `${order.courier} · ` : ''}
               <span className="font-mono font-semibold text-foreground">{order.trackingNumber}</span>
@@ -136,7 +140,7 @@ export default async function OrderPage({
         {/* ---------------------------------------------------------- items */}
         <div className="mt-6">
           <h2 className="text-[13px] font-extrabold uppercase tracking-wider text-muted-foreground">
-            Items
+            {t('order.items')}
           </h2>
           <ul className="mt-2.5 divide-y divide-border">
             {order.items.map((item) => (
@@ -164,23 +168,27 @@ export default async function OrderPage({
         {/* -------------------------------------------------------- totals */}
         <dl className="mt-4 space-y-1.5 border-t border-border pt-3.5 text-[13.5px]">
           <div className="flex justify-between">
-            <dt className="text-muted-foreground">Subtotal</dt>
+            <dt className="text-muted-foreground">{t('order.subtotal')}</dt>
             <dd className="font-bold tabular-nums">{formatPaise(order.subtotal)}</dd>
           </div>
           {order.discount > 0 && (
             <div className="flex justify-between text-emerald-600 dark:text-emerald-400">
-              <dt>Discount{order.couponCode ? ` (${order.couponCode})` : ''}</dt>
+              <dt>
+                {order.couponCode
+                  ? t('order.discountWith', { code: order.couponCode })
+                  : t('order.discount')}
+              </dt>
               <dd className="font-bold tabular-nums">−{formatPaise(order.discount)}</dd>
             </div>
           )}
           <div className="flex justify-between">
-            <dt className="text-muted-foreground">Delivery</dt>
+            <dt className="text-muted-foreground">{t('order.delivery')}</dt>
             <dd className="font-bold tabular-nums">
-              {order.shipping === 0 ? 'Free' : formatPaise(order.shipping)}
+              {order.shipping === 0 ? t('order.free') : formatPaise(order.shipping)}
             </dd>
           </div>
           <div className="flex justify-between border-t border-border pt-1.5">
-            <dt className="font-extrabold">Total</dt>
+            <dt className="font-extrabold">{t('order.total')}</dt>
             <dd className="text-base font-extrabold tabular-nums text-primary-700 dark:text-primary-300">
               {formatPaise(order.total)}
             </dd>
@@ -190,7 +198,7 @@ export default async function OrderPage({
         {/* ------------------------------------------------------- address */}
         <div className="mt-6">
           <h2 className="text-[13px] font-extrabold uppercase tracking-wider text-muted-foreground">
-            Delivering to
+            {t('order.deliveringTo')}
           </h2>
           <address className="mt-2 text-[13.5px] not-italic leading-relaxed">
             <span className="font-bold">{order.name}</span>
@@ -212,10 +220,10 @@ export default async function OrderPage({
 
       <div className="mt-5 flex flex-wrap gap-2">
         <Link href="/shop" className={buttonVariants({ variant: 'outline', size: 'sm' })}>
-          Continue shopping
+          {t('order.continue')}
         </Link>
         <Link href="/dashboard/support" className={buttonVariants({ variant: 'ghost', size: 'sm' })}>
-          Need help with this order?
+          {t('order.help')}
         </Link>
       </div>
     </div>

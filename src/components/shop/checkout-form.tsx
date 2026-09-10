@@ -3,6 +3,7 @@
 import * as React from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { AlertCircle, Loader2, Lock, ShoppingBag, Ticket, X } from 'lucide-react'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Field, Input, Select } from '@/components/ui/field'
@@ -35,6 +36,7 @@ const EMPTY: Address = {
  * that actually matters.
  */
 export function CheckoutForm({ signedInAs }: { signedInAs?: { name: string; email: string } | null }) {
+  const t = useTranslations('shop.checkout')
   const router = useRouter()
   const { lines, ready, count } = useCart()
 
@@ -102,10 +104,10 @@ export function CheckoutForm({ signedInAs }: { signedInAs?: { name: string; emai
         setCodeInput('')
       } else {
         setCoupon(null)
-        setCouponMsg(data.message ?? "That code isn't valid.")
+        setCouponMsg(data.message ?? t('err.couponInvalid'))
       }
     } catch {
-      setCouponMsg('Could not check that code. Please try again.')
+      setCouponMsg(t('err.couponCheck'))
     } finally {
       setCouponBusy(false)
     }
@@ -117,13 +119,13 @@ export function CheckoutForm({ signedInAs }: { signedInAs?: { name: string; emai
   }
 
   function validate(): string | null {
-    if (address.name.trim().length < 2) return 'Please enter your full name.'
-    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(address.email.trim())) return 'Please enter a valid email address.'
-    if (!PHONE_RE.test(address.phone.trim())) return 'Please enter a valid 10-digit Indian mobile number.'
-    if (address.line1.trim().length < 4) return 'Please enter your address.'
-    if (address.city.trim().length < 2) return 'Please enter your city.'
-    if (!address.state) return 'Please select your state.'
-    if (!PINCODE_RE.test(address.pincode.trim())) return 'Please enter a valid 6-digit PIN code.'
+    if (address.name.trim().length < 2) return t('err.name')
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(address.email.trim())) return t('err.email')
+    if (!PHONE_RE.test(address.phone.trim())) return t('err.phone')
+    if (address.line1.trim().length < 4) return t('err.address')
+    if (address.city.trim().length < 2) return t('err.city')
+    if (!address.state) return t('err.state')
+    if (!PINCODE_RE.test(address.pincode.trim())) return t('err.pincode')
     return null
   }
 
@@ -156,9 +158,9 @@ export function CheckoutForm({ signedInAs }: { signedInAs?: { name: string; emai
         // The coupon lapsed between applying and paying — drop it and say why.
         if (data.couponInvalid) {
           setCoupon(null)
-          setCouponMsg(data.error ?? 'That code is no longer valid.')
+          setCouponMsg(data.error ?? t('err.couponExpired'))
         }
-        setError(data.error ?? 'Something went wrong. Please try again.')
+        setError(data.error ?? t('err.generic'))
         setBusy(false)
         return
       }
@@ -175,18 +177,14 @@ export function CheckoutForm({ signedInAs }: { signedInAs?: { name: string; emai
         amount: data.amount,
         currency: 'INR',
         name: 'Shiksha Sarthi',
-        description: `Order ${data.orderNumber}`,
+        description: t('orderDesc', { number: data.orderNumber }),
         prefill: { name: address.name, email: address.email, contact: address.phone },
       })
 
       await confirm(data.orderId, result)
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Payment failed.'
-      setError(
-        message === CHECKOUT_CANCELLED
-          ? 'Payment was cancelled. Your cart is still here whenever you are ready.'
-          : message,
-      )
+      const message = err instanceof Error ? err.message : t('err.payFailed')
+      setError(message === CHECKOUT_CANCELLED ? t('err.cancelled') : message)
       setBusy(false)
     }
   }
@@ -212,7 +210,7 @@ export function CheckoutForm({ signedInAs }: { signedInAs?: { name: string; emai
     const data = await res.json()
 
     if (!res.ok) {
-      setError(data.error ?? 'We could not confirm your payment. Please contact support.')
+      setError(data.error ?? t('err.verifyFailed'))
       setBusy(false)
       return
     }
@@ -233,10 +231,10 @@ export function CheckoutForm({ signedInAs }: { signedInAs?: { name: string; emai
     return (
       <div className="card-base grid place-items-center px-6 py-16 text-center">
         <ShoppingBag aria-hidden className="mb-3 h-10 w-10 text-muted-foreground" />
-        <p className="text-[15px] font-bold">Nothing to check out</p>
-        <p className="mt-1 text-[13px] text-muted-foreground">Your cart is empty.</p>
+        <p className="text-[15px] font-bold">{t('emptyTitle')}</p>
+        <p className="mt-1 text-[13px] text-muted-foreground">{t('emptyBody')}</p>
         <Link href="/shop" className={buttonVariants({ variant: 'primary', size: 'sm', className: 'mt-5' })}>
-          Browse the shop
+          {t('browse')}
         </Link>
       </div>
     )
@@ -248,46 +246,46 @@ export function CheckoutForm({ signedInAs }: { signedInAs?: { name: string; emai
   return (
     <form onSubmit={onSubmit} className="grid gap-6 lg:grid-cols-[1fr_20rem] lg:items-start">
       <div className="card-base p-5">
-        <h2 className="text-[15px] font-extrabold tracking-tight">Delivery address</h2>
+        <h2 className="text-[15px] font-extrabold tracking-tight">{t('addressHeading')}</h2>
         <p className="mt-1 text-[12.5px] text-muted-foreground">
-          We deliver across India. Orders are dispatched within two working days.
+          {t('addressSub')}
         </p>
 
         <div className="mt-4 grid gap-3.5 sm:grid-cols-2">
-          <Field label="Full name" className="sm:col-span-2">
+          <Field label={t('fullName')} className="sm:col-span-2">
             <Input value={address.name} onChange={set('name')} autoComplete="name" maxLength={80} required />
           </Field>
 
-          <Field label="Email">
+          <Field label={t('email')}>
             <Input type="email" value={address.email} onChange={set('email')} autoComplete="email" maxLength={120} required />
           </Field>
 
-          <Field label="Mobile number">
-            <Input type="tel" value={address.phone} onChange={set('phone')} autoComplete="tel" maxLength={14} placeholder="10-digit mobile" required />
+          <Field label={t('mobile')}>
+            <Input type="tel" value={address.phone} onChange={set('phone')} autoComplete="tel" maxLength={14} placeholder={t('mobilePlaceholder')} required />
           </Field>
 
-          <Field label="Address" className="sm:col-span-2">
-            <Input value={address.line1} onChange={set('line1')} autoComplete="address-line1" maxLength={160} placeholder="House / flat, street" required />
+          <Field label={t('address')} className="sm:col-span-2">
+            <Input value={address.line1} onChange={set('line1')} autoComplete="address-line1" maxLength={160} placeholder={t('addressPlaceholder')} required />
           </Field>
 
-          <Field label="Landmark / area (optional)" className="sm:col-span-2">
+          <Field label={t('landmark')} className="sm:col-span-2">
             <Input value={address.line2} onChange={set('line2')} autoComplete="address-line2" maxLength={160} />
           </Field>
 
-          <Field label="City">
+          <Field label={t('city')}>
             <Input value={address.city} onChange={set('city')} autoComplete="address-level2" maxLength={80} required />
           </Field>
 
-          <Field label="State">
+          <Field label={t('state')}>
             <Select value={address.state} onChange={set('state')} required>
-              <option value="">Select state</option>
+              <option value="">{t('selectState')}</option>
               {INDIAN_STATES.map((s) => (
                 <option key={s} value={s}>{s}</option>
               ))}
             </Select>
           </Field>
 
-          <Field label="PIN code">
+          <Field label={t('pincode')}>
             <Input value={address.pincode} onChange={set('pincode')} autoComplete="postal-code" inputMode="numeric" maxLength={6} required />
           </Field>
         </div>
@@ -303,8 +301,8 @@ export function CheckoutForm({ signedInAs }: { signedInAs?: { name: string; emai
       {/* ------------------------------------------------------------ summary */}
       <aside className="card-base p-4 lg:sticky lg:top-24">
         <h2 className="text-[15px] font-extrabold tracking-tight">
-          Order summary
-          <span className="ml-1.5 font-semibold text-muted-foreground">({count} items)</span>
+          {t('summary')}
+          <span className="ml-1.5 font-semibold text-muted-foreground">{t('items', { count: String(count) })}</span>
         </h2>
 
         <ul className="mt-3 space-y-2 border-b border-border pb-3 text-[12.5px]">
@@ -334,7 +332,7 @@ export function CheckoutForm({ signedInAs }: { signedInAs?: { name: string; emai
               <button
                 type="button"
                 onClick={removeCoupon}
-                aria-label="Remove coupon"
+                aria-label={t('removeCoupon')}
                 className="shrink-0 text-emerald-700 transition-colors hover:text-emerald-900 dark:text-emerald-300 dark:hover:text-emerald-100"
               >
                 <X className="h-4 w-4" />
@@ -352,8 +350,8 @@ export function CheckoutForm({ signedInAs }: { signedInAs?: { name: string; emai
                     applyCoupon()
                   }
                 }}
-                placeholder="Promo code"
-                aria-label="Promo code"
+                placeholder={t('promoPlaceholder')}
+                aria-label={t('promoLabel')}
                 maxLength={40}
                 className="h-9 min-w-0 flex-1 rounded-lg border border-border bg-muted/50 px-3 text-[13px] font-semibold uppercase tracking-wide outline-none transition-colors placeholder:font-normal placeholder:normal-case placeholder:tracking-normal focus:border-primary-300 focus:bg-surface"
               />
@@ -363,7 +361,7 @@ export function CheckoutForm({ signedInAs }: { signedInAs?: { name: string; emai
                 disabled={couponBusy || !codeInput.trim()}
                 className="grid h-9 w-16 shrink-0 place-items-center rounded-lg border border-border text-[12.5px] font-bold text-primary-600 transition-colors hover:border-primary-300 disabled:opacity-50"
               >
-                {couponBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Apply'}
+                {couponBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : t('apply')}
               </button>
             </div>
           )}
@@ -374,26 +372,26 @@ export function CheckoutForm({ signedInAs }: { signedInAs?: { name: string; emai
 
         <dl className="mt-3 space-y-2 text-[13.5px]">
           <div className="flex items-center justify-between">
-            <dt className="text-muted-foreground">Subtotal</dt>
+            <dt className="text-muted-foreground">{t('subtotal')}</dt>
             <dd className="font-bold tabular-nums">{formatPaise(priced.subtotal)}</dd>
           </div>
           {discount > 0 && (
             <div className="flex items-center justify-between text-emerald-600 dark:text-emerald-400">
               <dt className="flex items-center gap-1 font-semibold">
                 <Ticket aria-hidden className="h-3.5 w-3.5" />
-                Discount
+                {t('discount')}
               </dt>
               <dd className="font-bold tabular-nums">−{formatPaise(discount)}</dd>
             </div>
           )}
           <div className="flex items-center justify-between">
-            <dt className="text-muted-foreground">Delivery</dt>
+            <dt className="text-muted-foreground">{t('delivery')}</dt>
             <dd className={cn('font-bold tabular-nums', priced.shipping === 0 && 'text-emerald-600 dark:text-emerald-400')}>
-              {priced.shipping === 0 ? 'Free' : formatPaise(priced.shipping)}
+              {priced.shipping === 0 ? t('free') : formatPaise(priced.shipping)}
             </dd>
           </div>
           <div className="flex items-center justify-between border-t border-border pt-2.5">
-            <dt className="font-extrabold">Total</dt>
+            <dt className="font-extrabold">{t('total')}</dt>
             <dd className="text-lg font-extrabold tabular-nums text-primary-700 dark:text-primary-300">
               {formatPaise(payable)}
             </dd>
@@ -402,15 +400,15 @@ export function CheckoutForm({ signedInAs }: { signedInAs?: { name: string; emai
 
         <Button type="submit" variant="holo" size="md" className="mt-4 w-full" loading={busy} disabled={busy}>
           <Lock className="h-4 w-4" />
-          Pay {formatPaise(payable)}
+          {t('pay', { amount: formatPaise(payable) })}
         </Button>
 
         <Link href="/shop/cart" className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'mt-2 w-full')}>
-          Back to cart
+          {t('backToCart')}
         </Link>
 
         <p className="mt-3 text-center text-[11.5px] text-muted-foreground">
-          Payments are processed securely by Razorpay. We never see your card details.
+          {t('secure')}
         </p>
       </aside>
     </form>

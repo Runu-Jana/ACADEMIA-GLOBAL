@@ -2,6 +2,7 @@
 
 import * as React from 'react'
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 import { ShoppingCart, Check, Minus, Plus, Truck } from 'lucide-react'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { useCart, MAX_QTY } from '@/lib/use-cart'
@@ -28,6 +29,7 @@ export function AddToCart({
   price: number
   stock: number
 }) {
+  const t = useTranslations('shop.addToCart')
   const { add, has, qtyOf, ready } = useCart()
   const [qty, setQty] = React.useState(1)
   const [justAdded, setJustAdded] = React.useState(false)
@@ -46,9 +48,9 @@ export function AddToCart({
   if (soldOut) {
     return (
       <div className="rounded-xl border border-dashed border-border bg-muted/40 p-4 text-center">
-        <p className="text-[14px] font-bold">Currently out of stock</p>
+        <p className="text-[14px] font-bold">{t('soldOutTitle')}</p>
         <p className="mt-1 text-[12.5px] text-muted-foreground">
-          This title is being restocked. Browse similar products below.
+          {t('soldOutBody')}
         </p>
       </div>
     )
@@ -67,7 +69,7 @@ export function AddToCart({
             type="button"
             onClick={() => setQty((q) => Math.max(1, q - 1))}
             disabled={qty <= 1}
-            aria-label="Decrease quantity"
+            aria-label={t('decrease')}
             className={stepBtn}
           >
             <Minus className="h-4 w-4" />
@@ -79,7 +81,7 @@ export function AddToCart({
             type="button"
             onClick={() => setQty((q) => Math.min(max, q + 1))}
             disabled={qty >= max}
-            aria-label="Increase quantity"
+            aria-label={t('increase')}
             className={stepBtn}
           >
             <Plus className="h-4 w-4" />
@@ -104,12 +106,12 @@ export function AddToCart({
           {justAdded ? (
             <>
               <Check className="h-5 w-5" />
-              Added to cart
+              {t('added')}
             </>
           ) : (
             <>
               <ShoppingCart className="h-5 w-5" />
-              Add to cart
+              {t('add')}
             </>
           )}
         </Button>
@@ -118,9 +120,9 @@ export function AddToCart({
       {inCart && (
         <p className="flex flex-wrap items-center gap-x-2 text-[12.5px] text-muted-foreground">
           <Check aria-hidden className="h-3.5 w-3.5 text-emerald-500" />
-          {cartQty} in your cart.
+          {t('inCart', { count: String(cartQty) })}
           <Link href="/shop/cart" className="font-bold text-primary-600 hover:underline">
-            View cart
+            {t('viewCart')}
           </Link>
         </p>
       )}
@@ -128,14 +130,12 @@ export function AddToCart({
       <p className="flex items-start gap-1.5 text-[12.5px] text-muted-foreground">
         <Truck aria-hidden className="mt-0.5 h-3.5 w-3.5 shrink-0" />
         <span>
-          {price >= FREE_SHIPPING_OVER ? (
-            <>Free delivery on this item.</>
-          ) : (
-            <>
-              {formatPaise(SHIPPING_FLAT)} delivery, or free on orders above{' '}
-              {formatPaise(FREE_SHIPPING_OVER)}.
-            </>
-          )}
+          {price >= FREE_SHIPPING_OVER
+            ? t('freeOnItem')
+            : t('flatDelivery', {
+                flat: formatPaise(SHIPPING_FLAT),
+                over: formatPaise(FREE_SHIPPING_OVER),
+              })}
         </span>
       </p>
 
@@ -145,7 +145,7 @@ export function AddToCart({
         href="/shop/cart"
         className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'w-full sm:w-60')}
       >
-        Go to cart
+        {t('goToCart')}
       </Link>
     </div>
   )
