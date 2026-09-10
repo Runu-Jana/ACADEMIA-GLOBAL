@@ -184,6 +184,93 @@
       "ctaButton": "Book Free Session"
     }
   },
+  "courses": {
+    "home": "Home",
+    "courses": "Courses",
+    "heroTitle": "Find the <accent>right program</accent> for you",
+    "heroSub": "{total} UGC-entitled programs from India's leading universities — filter by level, mode, duration, fees and rating.",
+    "allCourses": "All Courses",
+    "searchResults": "Search Results for “{q}”",
+    "found": "{count, plural, one {# Course} other {# Courses}} Found",
+    "pageOf": "Page {page} of {total}",
+    "emptyTitle": "No courses match your filters",
+    "emptyWithQuery": "We couldn't find anything for “{q}”. Try a broader search term or loosen a filter.",
+    "emptyNoQuery": "Try widening your fee range or removing a filter to see more programs.",
+    "clearAllFilters": "Clear All Filters",
+    "prev": "Previous",
+    "next": "Next",
+    "goToPage": "Go to page {n}",
+    "pagesLabel": "Course results pages",
+    "searchPlaceholder": "Search courses, streams or universities…",
+    "searchLabel": "Search courses",
+    "searchButton": "Search",
+    "refine": "Refine Your Search",
+    "filters": "Filters",
+    "showResults": "{count, plural, one {Show # Result} other {Show # Results}}",
+    "active": "Active",
+    "clearAll": "Clear all",
+    "sortLabel": "Sort courses",
+    "removeFilter": "Remove filter",
+    "closeFilters": "Close filters",
+    "groups": {
+      "level": "Course Level",
+      "mode": "Delivery Mode",
+      "duration": "Duration",
+      "fee": "Fees Range",
+      "rating": "Rating",
+      "stream": "Stream",
+      "minRating": "Minimum rating"
+    },
+    "sort": {
+      "relevance": "Most Relevant",
+      "fee-asc": "Fees: Low to High",
+      "fee-desc": "Fees: High to Low",
+      "rating": "Highest Rated",
+      "newest": "Newest First"
+    },
+    "level": {
+      "UG": "Undergraduate",
+      "PG": "Postgraduate",
+      "DIPLOMA": "Diploma",
+      "CERTIFICATE": "Certificate",
+      "INTEGRATED": "Integrated"
+    },
+    "mode": {
+      "ONLINE": "Online",
+      "DISTANCE": "Distance",
+      "HYBRID": "Hybrid",
+      "REGULAR": "Regular",
+      "PART_TIME": "Part-Time"
+    },
+    "duration": {
+      "1": "1 Year",
+      "2": "2 Years",
+      "3": "3 Years",
+      "4": "4+ Years"
+    },
+    "fee": {
+      "0-25000": "Under ₹25K",
+      "25000-50000": "₹25K – ₹50K",
+      "50000-100000": "₹50K – ₹1L",
+      "100000-": "Above ₹1L"
+    },
+    "rating": {
+      "4_5": "4.5 & above",
+      "4": "4.0 & above",
+      "3_5": "3.5 & above",
+      "3": "3.0 & above"
+    },
+    "stream": {
+      "MANAGEMENT": "Management",
+      "ENGINEERING": "Engineering",
+      "IT": "IT & Software",
+      "COMMERCE": "Commerce",
+      "MEDICAL": "Medical",
+      "LAW": "Law",
+      "ARTS": "Arts & Humanities",
+      "SCIENCE": "Science"
+    }
+  },
   "footer": {
     "tagline": "India's most trusted platform to continue your education journey from school to university and achieve your dreams.",
     "quickLinks": "Quick Links",

@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { getTranslations } from 'next-intl/server'
 import { ChevronRight, SearchX, ChevronLeft, Sparkles } from 'lucide-react'
 import { prisma } from '@/lib/prisma'
 import { CourseCard } from '@/components/course/course-card'
@@ -52,28 +53,29 @@ function pageWindow(current: number, total: number): (number | 'gap')[] {
   return out
 }
 
-function Pagination({ state, page, totalPages }: {
+async function Pagination({ state, page, totalPages }: {
   state: CourseFilterState
   page: number
   totalPages: number
 }) {
   if (totalPages <= 1) return null
+  const t = await getTranslations('courses')
 
   const href = (n: number) => `/courses${courseQueryString(state, { page: n })}`
   const stepClass =
     'inline-flex h-10 min-w-10 items-center justify-center gap-1 rounded-xl border border-border px-3 text-[13px] font-bold transition-all duration-300 ease-spring'
 
   return (
-    <nav aria-label="Course results pages" className="mt-10 flex flex-wrap items-center justify-center gap-1.5">
+    <nav aria-label={t('pagesLabel')} className="mt-10 flex flex-wrap items-center justify-center gap-1.5">
       {page > 1 ? (
         <Link href={href(page - 1)} rel="prev" className={cn(stepClass, 'bg-card hover:border-primary-300 hover:shadow-card')}>
           <ChevronLeft aria-hidden className="h-4 w-4" />
-          <span className="hidden sm:inline">Previous</span>
+          <span className="hidden sm:inline">{t('prev')}</span>
         </Link>
       ) : (
         <span aria-disabled className={cn(stepClass, 'cursor-not-allowed opacity-40')}>
           <ChevronLeft aria-hidden className="h-4 w-4" />
-          <span className="hidden sm:inline">Previous</span>
+          <span className="hidden sm:inline">{t('prev')}</span>
         </span>
       )}
 
@@ -94,7 +96,7 @@ function Pagination({ state, page, totalPages }: {
           <Link
             key={entry}
             href={href(entry)}
-            aria-label={`Go to page ${entry}`}
+            aria-label={t('goToPage', { n: entry })}
             className={cn(stepClass, 'bg-card hover:border-primary-300 hover:shadow-card')}
           >
             {entry}
@@ -104,12 +106,12 @@ function Pagination({ state, page, totalPages }: {
 
       {page < totalPages ? (
         <Link href={href(page + 1)} rel="next" className={cn(stepClass, 'bg-card hover:border-primary-300 hover:shadow-card')}>
-          <span className="hidden sm:inline">Next</span>
+          <span className="hidden sm:inline">{t('next')}</span>
           <ChevronRight aria-hidden className="h-4 w-4" />
         </Link>
       ) : (
         <span aria-disabled className={cn(stepClass, 'cursor-not-allowed opacity-40')}>
-          <span className="hidden sm:inline">Next</span>
+          <span className="hidden sm:inline">{t('next')}</span>
           <ChevronRight aria-hidden className="h-4 w-4" />
         </span>
       )}
@@ -124,6 +126,7 @@ export default async function CoursesPage({
 }) {
   const state = parseCourseFilters(await searchParams)
   const where = buildCourseWhere(state)
+  const t = await getTranslations('courses')
 
   // Each facet is counted against every filter *except its own*, so ticking
   // "Undergraduate" leaves the other level counts visible instead of zeroing
@@ -160,7 +163,7 @@ export default async function CoursesPage({
     take: PAGE_SIZE,
   })
 
-  const heading = state.q ? `Search Results for “${state.q}”` : 'All Courses'
+  const heading = state.q ? t('searchResults', { q: state.q }) : t('allCourses')
 
   // Empty on a bare /courses visit; a stable string per active filter set. Drives
   // the smart-scroll: arrive via a category link → glide to the results below.
@@ -179,22 +182,21 @@ export default async function CoursesPage({
             <ol className="flex items-center gap-1.5 text-[11px] font-semibold text-white/70 sm:text-xs">
               <li>
                 <Link href="/" className="transition-colors hover:text-white">
-                  Home
+                  {t('home')}
                 </Link>
               </li>
               <ChevronRight aria-hidden className="h-3 w-3" />
               <li aria-current="page" className="text-white">
-                Courses
+                {t('courses')}
               </li>
             </ol>
           </nav>
 
           <h1 className="mt-3 text-balance text-3xl font-extrabold leading-tight sm:text-4xl lg:text-[2.75rem]">
-            Find the <span className="holo-text-bright">right program</span> for you
+            {t.rich('heroTitle', { accent: (chunks) => <span className="holo-text-bright">{chunks}</span> })}
           </h1>
           <p className="mt-2.5 max-w-xl text-pretty text-sm text-white/80 sm:text-[15px]">
-            {total} UGC-entitled programs from India&rsquo;s leading universities — filter by level,
-            mode, duration, fees and rating.
+            {t('heroSub', { total })}
           </p>
 
           <CourseSearchBox className="mt-6 max-w-2xl" />
@@ -216,10 +218,9 @@ export default async function CoursesPage({
                   {heading}
                 </h2>
                 <p className="mt-0.5 text-[13px] text-muted-foreground">
-                  <strong className="font-bold text-foreground">{total}</strong>{' '}
-                  {total === 1 ? 'Course' : 'Courses'} Found
+                  {t('found', { count: total })}
                   {totalPages > 1 && (
-                    <span className="hidden sm:inline"> · Page {page} of {totalPages}</span>
+                    <span className="hidden sm:inline"> · {t('pageOf', { page, total: totalPages })}</span>
                   )}
                 </p>
               </div>
@@ -243,17 +244,15 @@ export default async function CoursesPage({
                   <SearchX className="h-8 w-8 text-white" />
                 </span>
                 <div>
-                  <h3 className="text-lg font-extrabold">No courses match your filters</h3>
+                  <h3 className="text-lg font-extrabold">{t('emptyTitle')}</h3>
                   <p className="mx-auto mt-1.5 max-w-sm text-pretty text-sm text-muted-foreground">
-                    {state.q
-                      ? `We couldn’t find anything for “${state.q}”. Try a broader search term or loosen a filter.`
-                      : 'Try widening your fee range or removing a filter to see more programs.'}
+                    {state.q ? t('emptyWithQuery', { q: state.q }) : t('emptyNoQuery')}
                   </p>
                 </div>
                 {hasAnyFilter(state) && (
                   <Link href="/courses" className={buttonVariants({ variant: 'holo' })}>
                     <Sparkles className="h-4 w-4" />
-                    Clear All Filters
+                    {t('clearAllFilters')}
                   </Link>
                 )}
               </div>

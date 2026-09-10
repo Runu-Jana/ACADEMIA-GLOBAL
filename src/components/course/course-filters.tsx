@@ -11,6 +11,7 @@
 
 import * as React from 'react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import {
   SlidersHorizontal, X, ChevronDown, RotateCcw, Search, Loader2,
 } from 'lucide-react'
@@ -28,12 +29,16 @@ import {
 type Option = { value: string; label: string }
 type CountedGroupKey = Extract<MultiFacetKey, CountedFacetKey>
 
-const GROUPS: { key: CountedGroupKey; title: string; options: readonly Option[] }[] = [
-  { key: 'level', title: 'Course Level', options: COURSE_LEVELS },
-  { key: 'mode', title: 'Delivery Mode', options: COURSE_MODES },
-  { key: 'duration', title: 'Duration', options: DURATION_BUCKETS },
-  { key: 'fee', title: 'Fees Range', options: FEE_BUCKETS },
+// Group titles + option labels are keyed into `courses.*` messages by value.
+const GROUPS: { key: CountedGroupKey; options: readonly Option[] }[] = [
+  { key: 'level', options: COURSE_LEVELS },
+  { key: 'mode', options: COURSE_MODES },
+  { key: 'duration', options: DURATION_BUCKETS },
+  { key: 'fee', options: FEE_BUCKETS },
 ]
+
+/** Rating values contain a dot ("4.5") which would read as a nested key path. */
+const ratingKey = (v: string) => v.replace('.', '_')
 
 // --------------------------------------------------------------- url plumbing
 
@@ -160,18 +165,19 @@ function FilterPanelBody({
   apply: (next: Partial<CourseFilterState>) => void
   clearAll: () => void
 }) {
+  const t = useTranslations('courses')
   const active = activeFilterCount(state)
 
   return (
     <div>
       {GROUPS.map((group) => (
-        <Group key={group.key} title={group.title}>
+        <Group key={group.key} title={t(`groups.${group.key}`)}>
           <fieldset>
-            <legend className="sr-only">{group.title}</legend>
+            <legend className="sr-only">{t(`groups.${group.key}`)}</legend>
             {group.options.map((option) => (
               <OptionRow
                 key={option.value}
-                label={option.label}
+                label={t(`${group.key}.${option.value}`)}
                 count={counts[group.key][option.value] ?? 0}
                 checked={state[group.key].includes(option.value)}
                 onToggle={() => toggle(group.key, option.value)}
@@ -181,14 +187,14 @@ function FilterPanelBody({
         </Group>
       ))}
 
-      <Group title="Rating">
+      <Group title={t('groups.rating')}>
         <fieldset>
-          <legend className="sr-only">Minimum rating</legend>
+          <legend className="sr-only">{t('groups.minRating')}</legend>
           {RATING_BUCKETS.map((bucket) => (
             <OptionRow
               key={bucket.value}
               radio
-              label={bucket.label}
+              label={t(`rating.${ratingKey(bucket.value)}`)}
               count={counts.rating[bucket.value] ?? 0}
               checked={state.rating === bucket.value}
               // Re-picking the active threshold clears it, so a radio group
@@ -199,13 +205,13 @@ function FilterPanelBody({
         </fieldset>
       </Group>
 
-      <Group title="Stream">
+      <Group title={t('groups.stream')}>
         <fieldset>
-          <legend className="sr-only">Stream</legend>
+          <legend className="sr-only">{t('groups.stream')}</legend>
           {STREAMS.map((option) => (
             <OptionRow
               key={option.value}
-              label={option.label}
+              label={t(`stream.${option.value}`)}
               checked={state.stream.includes(option.value)}
               onToggle={() => toggle('stream', option.value)}
             />
@@ -223,7 +229,7 @@ function FilterPanelBody({
           disabled={active === 0 && !state.q}
         >
           <RotateCcw className="h-3.5 w-3.5" />
-          Clear All Filters
+          {t('clearAllFilters')}
         </Button>
       </div>
     </div>
@@ -240,6 +246,7 @@ export function CourseFilterSidebar({
   className?: string
 }) {
   const { state, apply, toggle, clearAll, pending } = useFilterState()
+  const t = useTranslations('courses')
   const active = activeFilterCount(state)
 
   // The panel is taller than the pinned sidebar, so it scrolls internally. Track
@@ -265,7 +272,7 @@ export function CourseFilterSidebar({
 
   return (
     <aside
-      aria-label="Refine your search"
+      aria-label={t('refine')}
       aria-busy={pending}
       className={cn('hidden lg:block', className)}
     >
@@ -273,7 +280,7 @@ export function CourseFilterSidebar({
         <div className="flex items-center justify-between gap-2 border-b border-border bg-muted/50 px-4 py-3.5">
           <h2 className="flex items-center gap-2 text-sm font-extrabold tracking-tight">
             <SlidersHorizontal aria-hidden className="h-4 w-4 text-primary-600" />
-            Refine Your Search
+            {t('refine')}
           </h2>
           {pending ? (
             <Loader2 aria-hidden className="h-4 w-4 animate-spin text-primary-500" />
@@ -317,6 +324,7 @@ export function CourseFilterSidebar({
 
 export function CourseFilterDrawer({ counts, total }: { counts: FacetCounts; total: number }) {
   const { state, apply, toggle, clearAll, pending } = useFilterState()
+  const t = useTranslations('courses')
   const [open, setOpen] = React.useState(false)
   const [shown, setShown] = React.useState(false)
   const panelRef = React.useRef<HTMLDivElement>(null)
@@ -363,7 +371,7 @@ export function CourseFilterDrawer({ counts, total }: { counts: FacetCounts; tot
         )}
       >
         <SlidersHorizontal aria-hidden className="h-4 w-4 text-primary-600" />
-        Filters
+        {t('filters')}
         {active > 0 && (
           <span className="grid h-5 min-w-5 place-items-center rounded-full bg-primary-600 px-1 text-[10px] font-bold text-white">
             {active}
@@ -375,7 +383,7 @@ export function CourseFilterDrawer({ counts, total }: { counts: FacetCounts; tot
         <div className="fixed inset-0 z-50 lg:hidden">
           <button
             type="button"
-            aria-label="Close filters"
+            aria-label={t('closeFilters')}
             onClick={() => setOpen(false)}
             className={cn(
               'absolute inset-0 h-full w-full cursor-default bg-slate-950/50 backdrop-blur-sm',
@@ -388,7 +396,7 @@ export function CourseFilterDrawer({ counts, total }: { counts: FacetCounts; tot
             ref={panelRef}
             role="dialog"
             aria-modal="true"
-            aria-label="Refine your search"
+            aria-label={t('refine')}
             aria-busy={pending}
             tabIndex={-1}
             style={{ transform: shown ? 'translateY(0)' : 'translateY(100%)' }}
@@ -403,11 +411,11 @@ export function CourseFilterDrawer({ counts, total }: { counts: FacetCounts; tot
                 className="mx-auto mb-3 block h-1 w-10 rounded-full bg-border"
               />
               <div className="flex items-center justify-between gap-3">
-                <h2 className="text-base font-extrabold tracking-tight">Refine Your Search</h2>
+                <h2 className="text-base font-extrabold tracking-tight">{t('refine')}</h2>
                 <button
                   type="button"
                   onClick={() => setOpen(false)}
-                  aria-label="Close filters"
+                  aria-label={t('closeFilters')}
                   className="grid h-10 w-10 place-items-center rounded-xl text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                 >
                   <X className="h-5 w-5" />
@@ -433,7 +441,7 @@ export function CourseFilterDrawer({ counts, total }: { counts: FacetCounts; tot
                 loading={pending}
                 onClick={() => setOpen(false)}
               >
-                Show {total} {total === 1 ? 'Result' : 'Results'}
+                {t('showResults', { count: total })}
               </Button>
             </div>
           </div>
@@ -447,11 +455,12 @@ export function CourseFilterDrawer({ counts, total }: { counts: FacetCounts; tot
 
 export function CourseSortSelect() {
   const { state, apply, pending } = useFilterState()
+  const t = useTranslations('courses')
 
   return (
     <div className="relative">
       <label htmlFor="course-sort" className="sr-only">
-        Sort courses
+        {t('sortLabel')}
       </label>
       <select
         id="course-sort"
@@ -465,7 +474,7 @@ export function CourseSortSelect() {
       >
         {SORT_OPTIONS.map((o) => (
           <option key={o.value} value={o.value}>
-            {o.label}
+            {t(`sort.${o.value}`)}
           </option>
         ))}
       </select>
@@ -486,6 +495,7 @@ export function CourseSortSelect() {
 
 export function CourseSearchBox({ className }: { className?: string }) {
   const { state, apply, pending } = useFilterState()
+  const t = useTranslations('courses')
   const [draft, setDraft] = React.useState(state.q)
 
   // Keep the field honest when the query changes from elsewhere (chips, Back).
@@ -509,8 +519,8 @@ export function CourseSearchBox({ className }: { className?: string }) {
           type="search"
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
-          placeholder="Search courses, streams or universities…"
-          aria-label="Search courses"
+          placeholder={t('searchPlaceholder')}
+          aria-label={t('searchLabel')}
           className={cn(
             'h-10 w-full rounded-xl border border-white/25 bg-white/95 pl-10 pr-4 text-sm font-medium text-slate-900',
             'shadow-lift outline-none transition-all duration-200 placeholder:text-slate-400',
@@ -524,7 +534,7 @@ export function CourseSearchBox({ className }: { className?: string }) {
         className="h-10 shrink-0 px-5 !bg-none !bg-white !text-primary-700 shadow-lift hover:!bg-primary-50 hover:!text-primary-800"
         loading={pending}
       >
-        Search
+        {t('searchButton')}
       </Button>
     </form>
   )
@@ -542,6 +552,7 @@ const CHIP_LABELS: Record<MultiFacetKey, readonly Option[]> = {
 
 export function ActiveFilterChips() {
   const { state, apply, toggle, clearAll } = useFilterState()
+  const t = useTranslations('courses')
 
   const chips: { key: string; label: string; onRemove: () => void }[] = []
 
@@ -551,14 +562,12 @@ export function ActiveFilterChips() {
 
   for (const key of Object.keys(CHIP_LABELS) as MultiFacetKey[]) {
     for (const value of state[key]) {
-      const label = CHIP_LABELS[key].find((o) => o.value === value)?.label ?? value
-      chips.push({ key: `${key}:${value}`, label, onRemove: () => toggle(key, value) })
+      chips.push({ key: `${key}:${value}`, label: t(`${key}.${value}`), onRemove: () => toggle(key, value) })
     }
   }
 
   if (state.rating) {
-    const label = RATING_BUCKETS.find((b) => b.value === state.rating)?.label ?? state.rating
-    chips.push({ key: 'rating', label, onRemove: () => apply({ rating: '' }) })
+    chips.push({ key: 'rating', label: t(`rating.${ratingKey(state.rating)}`), onRemove: () => apply({ rating: '' }) })
   }
 
   if (chips.length === 0) return null
@@ -566,7 +575,7 @@ export function ActiveFilterChips() {
   return (
     <div className="flex flex-wrap items-center gap-2">
       <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-        Active
+        {t('active')}
       </span>
       {chips.map((chip) => (
         <button
@@ -581,7 +590,7 @@ export function ActiveFilterChips() {
         >
           {chip.label}
           <X aria-hidden className="h-3 w-3 transition-transform group-hover:rotate-90" />
-          <span className="sr-only">Remove filter</span>
+          <span className="sr-only">{t('removeFilter')}</span>
         </button>
       ))}
       <button
@@ -589,7 +598,7 @@ export function ActiveFilterChips() {
         onClick={clearAll}
         className="min-h-8 text-[11px] font-bold text-muted-foreground underline-offset-2 transition-colors hover:text-primary-600 hover:underline"
       >
-        Clear all
+        {t('clearAll')}
       </button>
     </div>
   )
