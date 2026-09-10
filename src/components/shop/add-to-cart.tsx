@@ -124,7 +124,7 @@ export function AddToCart({
       <Button
         variant="primary"
         size="lg"
-        className="w-full"
+        className="w-full sm:w-60"
         onClick={() => {
           add({ productId, qty, title, slug, price })
           router.push('/shop/checkout')

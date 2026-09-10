@@ -9,6 +9,7 @@ import { prisma } from '@/lib/prisma'
 import { ProductCard } from '@/components/shop/product-card'
 import { ProductGallery } from '@/components/shop/product-gallery'
 import { AddToCart } from '@/components/shop/add-to-cart'
+import { RecentlyViewed } from '@/components/shop/recently-viewed'
 import { ProductSaveButton } from '@/components/course/save-button'
 import { Badge } from '@/components/ui/badge'
 import { Stars } from '@/components/ui/stars'
@@ -102,6 +103,14 @@ export default async function ProductPage({
   const off = discountPct(product.price, product.mrp)
   const stock = stockState(product.stock)
   const saving = product.mrp && product.mrp > product.price ? product.mrp - product.price : 0
+
+  // The card-shaped slice the "recently viewed" rail caches and re-renders.
+  const cardData = {
+    id: product.id, slug: product.slug, title: product.title, subtitle: product.subtitle,
+    kind: product.kind, category: product.category, price: product.price, mrp: product.mrp,
+    stock: product.stock, rating: product.rating, reviews: product.reviews,
+    author: product.author, brand: product.brand, imageUrl: product.imageUrl,
+  }
 
   // Same shelf, excluding this item. Keeps a dead-end page from being a dead end.
   const related = await prisma.product.findMany({
@@ -367,6 +376,32 @@ export default async function ProductPage({
           </div>
         </div>
 
+        {/* -------------------------------------------- ratings & reviews */}
+        <section className="mt-14">
+          <h2 className="mb-4 font-display text-xl font-extrabold tracking-tight">
+            {t('reviews.heading')}
+          </h2>
+          <div className="card-base flex flex-col gap-5 p-6 sm:flex-row sm:items-center sm:gap-8">
+            {product.reviews > 0 && (
+              <div className="shrink-0 text-center">
+                <span className="block text-5xl font-extrabold leading-none text-primary-700 dark:text-primary-300">
+                  {product.rating.toFixed(1)}
+                </span>
+                <Stars rating={product.rating} showValue={false} className="mt-2 justify-center" />
+                <p className="mt-1.5 text-[12.5px] text-muted-foreground">
+                  {t('reviews.count', { count: product.reviews })}
+                </p>
+              </div>
+            )}
+            <div className="flex-1 border-t border-border pt-4 sm:border-l sm:border-t-0 sm:pl-8 sm:pt-0">
+              {product.reviews > 0 && (
+                <p className="text-[13px] text-muted-foreground">{t('reviews.basedOn')}</p>
+              )}
+              <p className="mt-2 text-[13.5px] font-semibold">{t('reviews.empty')}</p>
+            </div>
+          </div>
+        </section>
+
         {/* ------------------------------------------------------ related */}
         {related.length > 0 && (
           <section className="mt-14">
@@ -390,6 +425,9 @@ export default async function ProductPage({
             </div>
           </section>
         )}
+
+        {/* -------------------------------------------- recently viewed */}
+        <RecentlyViewed current={cardData} />
       </div>
     </>
   )

@@ -778,6 +778,15 @@
       "zoomIn": "Zoom in",
       "close": "Close",
       "dialog": "{title} — image {i} of {n}"
+    },
+    "reviews": {
+      "heading": "Ratings & reviews",
+      "count": "{count, plural, one {# rating} other {# ratings}}",
+      "basedOn": "Based on verified buyer ratings.",
+      "empty": "No written reviews yet — buy this item to share the first one."
+    },
+    "recentlyViewed": {
+      "heading": "Recently viewed"
     }
   },
   "footer": {
