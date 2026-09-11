@@ -222,7 +222,7 @@ export default async function ProductPage({
 
             {product.reviews > 0 && (
               <div className="mt-3 flex items-center gap-2">
-                <Stars rating={product.rating} size={15} />
+                <Stars rating={product.rating} size={15} showValue={false} />
                 <span className="text-[13px] font-bold">{product.rating.toFixed(1)}</span>
                 <span className="text-[13px] text-muted-foreground">
                   {t('detail.ratings', { count: product.reviews.toLocaleString('en-IN') })}
