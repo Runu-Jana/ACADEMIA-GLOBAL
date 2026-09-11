@@ -88,7 +88,7 @@ export function ProductCard({
         </button>
 
         {off > 0 && (
-          <Badge tone="holo" className="absolute left-3 top-3 shadow-sm">
+          <Badge tone="holo" className="absolute left-2 top-2 px-2 py-0 text-[10px] leading-4 shadow-sm">
             {t('card.off', { off })}
           </Badge>
         )}
