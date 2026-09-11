@@ -97,6 +97,11 @@
   [contenteditable]:not([contenteditable='false']) {
     caret-color: auto;
   }
+  /* The native "clear" (×) button inside a type=search input should read as
+     clickable, not as a text caret. */
+  input[type='search']::-webkit-search-cancel-button {
+    cursor: pointer;
+  }
 }
 
 @layer components {
