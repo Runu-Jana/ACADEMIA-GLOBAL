@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { markOrderPaid, refundOrder } from '@/lib/commission'
 import { verifyWebhookSignature } from '@/lib/payments/razorpay'
 import { markShopOrderPaid, refundShopOrder } from '@/lib/shop-orders'
+import { markMembershipPaid, refundMembership } from '@/lib/membership'
 import { captureError } from '@/lib/observability'
 
 export const dynamic = 'force-dynamic'
@@ -44,20 +45,27 @@ export async function POST(req: Request) {
     event.payload?.payment?.entity?.order_id ?? event.payload?.order?.entity?.id ?? null
 
   try {
-    // Course enrolments and shop purchases both open Razorpay orders, so an
-    // event could belong to either. Look in both tables rather than assuming.
+    // Course enrolments, shop purchases and memberships all open Razorpay
+    // orders, so an event could belong to any of them. Look in each table rather
+    // than assuming — the gatewayOrderId is unique across them.
     if ((type === 'payment.captured' || type === 'order.paid') && gatewayOrderId) {
       const order = await prisma.order.findUnique({ where: { gatewayOrderId } })
       if (order) await markOrderPaid(order.id, event.payload?.payment?.entity?.id)
 
       const shopOrder = await prisma.shopOrder.findUnique({ where: { gatewayOrderId } })
       if (shopOrder) await markShopOrderPaid(shopOrder.id, event.payload?.payment?.entity?.id)
+
+      const membership = await prisma.membership.findUnique({ where: { gatewayOrderId } })
+      if (membership) await markMembershipPaid(membership.id, event.payload?.payment?.entity?.id)
     } else if (type === 'refund.processed' && gatewayOrderId) {
       const order = await prisma.order.findUnique({ where: { gatewayOrderId } })
       if (order) await refundOrder(order.id)
 
       const shopOrder = await prisma.shopOrder.findUnique({ where: { gatewayOrderId } })
       if (shopOrder) await refundShopOrder(shopOrder.id)
+
+      const membership = await prisma.membership.findUnique({ where: { gatewayOrderId } })
+      if (membership) await refundMembership(membership.id)
     }
   } catch (err) {
     // Capture, then 500 so Razorpay retries — the handlers are idempotent, so a

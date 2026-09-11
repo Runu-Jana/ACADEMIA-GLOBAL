@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { getCurrentUser } from '@/lib/auth'
 import { isCourseLive } from '@/lib/visibility'
 import { openOrder, markOrderPaid } from '@/lib/commission'
+import { hasActiveMembership, grantMembershipEnrolment, membershipCoversSource } from '@/lib/membership'
 import { createRazorpayOrder, paymentsConfigured, razorpayKeyId } from '@/lib/payments/razorpay'
 
 export const dynamic = 'force-dynamic'
@@ -59,6 +60,17 @@ export async function POST(req: Request) {
     select: { id: true },
   })
   if (existing) return NextResponse.json({ ok: true, enrolled: true, already: true })
+
+  // Covered by an active all-access membership → enrol free, no order or
+  // commission. Only our own platform programmes are covered (see membership.ts).
+  if (
+    course.feePerYear > 0 &&
+    membershipCoversSource(course.source) &&
+    (await hasActiveMembership(user.id))
+  ) {
+    await grantMembershipEnrolment(user.id, courseId)
+    return NextResponse.json({ ok: true, enrolled: true, viaMembership: true })
+  }
 
   const order = await openOrder(user.id, courseId)
 

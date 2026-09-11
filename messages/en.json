@@ -526,7 +526,54 @@
       "recognitionA": "Our degree programmes are UGC-entitled, and every certificate we issue is verifiable online at <link>Verify Certificate</link>."
     },
     "noFees": "No hidden fees. Cancel an unpaid application any time.",
-    "exploreCourses": "Explore courses"
+    "exploreCourses": "Explore courses",
+    "membershipBand": {
+      "badge": "New",
+      "title": "Prefer one pass for everything?",
+      "body": "Skip per-course fees — unlock every platform course with an all-access membership from ₹499.",
+      "cta": "See membership"
+    }
+  },
+  "membership": {
+    "badge": "All-access membership",
+    "title": "One pass, <accent>every platform course</accent>",
+    "subtitle": "Unlimited enrolment in our platform courses — video lessons, live classes, mock tests and the AI tutor — for a simple fixed-term pass. No auto-renewal, cancel anytime.",
+    "mostPopular": "Most popular",
+    "perMonth": "Just {amount}/month",
+    "oneTime": "One-time payment · no auto-renewal",
+    "save": "Save {pct}%",
+    "cta": "Get all-access",
+    "signInCta": "Sign in to join",
+    "plans": {
+      "monthly": { "name": "Monthly", "term": "for 1 month" },
+      "quarterly": { "name": "Quarterly", "term": "for 3 months" },
+      "annual": { "name": "Annual", "term": "for 12 months" }
+    },
+    "active": {
+      "label": "Your membership is active",
+      "until": "Access to all platform courses until {date}",
+      "browse": "Browse courses"
+    },
+    "joined": {
+      "title": "You're all-access!",
+      "body": "Enrol in any platform course at no extra cost — it's already unlocked."
+    },
+    "included": {
+      "heading": "What every plan includes",
+      "f1": "Enrol in any platform course — no per-course fee",
+      "f2": "Full video lessons, live classes & mock tests",
+      "f3": "AI tutor and doubt support on every course",
+      "f4": "Completion certificates included",
+      "f5": "One-time payment — no auto-renewal, cancel anytime"
+    },
+    "notePlatform": "Covers our own platform programmes. Partner-university <link>online degrees</link> are enrolled separately and aren't part of the pass.",
+    "exploreCourses": "Explore courses",
+    "err": {
+      "generic": "Something went wrong. Please try again.",
+      "cancelled": "Payment cancelled.",
+      "payFailed": "Your payment could not be completed.",
+      "verifyFailed": "We couldn't confirm your payment. If you were charged, contact support."
+    }
   },
   "shop": {
     "home": "Home",

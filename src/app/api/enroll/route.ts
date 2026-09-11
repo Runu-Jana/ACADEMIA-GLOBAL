@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { prisma } from '@/lib/prisma'
 import { getSession } from '@/lib/auth'
 import { openOrder, markOrderPaid } from '@/lib/commission'
+import { hasActiveMembership, grantMembershipEnrolment, membershipCoversSource } from '@/lib/membership'
 import { isCourseLive } from '@/lib/visibility'
 
 const schema = z.object({
@@ -67,6 +68,20 @@ export async function POST(req: Request) {
   })
   if (existing) {
     return NextResponse.json({ ok: true, created: false, enrollment: existing })
+  }
+
+  // Covered by an active all-access membership → enrol free, no order or
+  // commission. Platform programmes only (see membership.ts).
+  if (
+    course.feePerYear > 0 &&
+    membershipCoversSource(course.source) &&
+    (await hasActiveMembership(session.userId))
+  ) {
+    await grantMembershipEnrolment(session.userId, courseId)
+    const enrollment = await prisma.enrollment.findUnique({
+      where: { userId_courseId: { userId: session.userId, courseId } },
+    })
+    return NextResponse.json({ ok: true, created: true, viaMembership: true, enrollment }, { status: 201 })
   }
 
   const order = await openOrder(session.userId, courseId)

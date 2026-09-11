@@ -44,6 +44,7 @@ model User {
   lessonProgress   LessonProgress[]
   reviews          Review[]
   productReviews   ProductReview[]
+  memberships      Membership[]
   uploadedMaterial Material[]       @relation("UploadedBy")
   counsellorChats  ChatMessage[]
   notifications    Notification[]
@@ -1220,4 +1221,45 @@ model LearningPathCourse {
   @@unique([pathId, courseId])
   @@index([pathId])
   @@index([courseId])
+}
+
+// --------------------------------------------------------------- membership
+
+/// A fixed-term all-access pass. Deliberately NOT Razorpay auto-debit: a student
+/// pays once for a block of months (plan config lives in src/lib/membership.ts),
+/// and renews by buying again — no surprise charges, no e-mandate lockouts. The
+/// pass waives the per-course fee on our own PLATFORM programmes; partner-
+/// university degrees stay per-course because they carry a commission per enrol.
+///
+/// Access is "active while `status = ACTIVE` and `expiresAt` is in the future",
+/// so a lapsed pass needs no cron to revoke it — the expiry check does. A row is
+/// kept per purchase (history + renewals stack onto unused time), and payment is
+/// confirmed the same way course orders are: signed verify endpoint + webhook,
+/// both funnelling into the idempotent markMembershipPaid.
+model Membership {
+  id       String @id @default(cuid())
+  /// Plan key — 'monthly' | 'quarterly' | 'annual'. Resolved against the config
+  /// in src/lib/membership.ts, which owns durations and prices.
+  planId   String
+  /// PENDING (order opened) -> ACTIVE (paid) -> EXPIRED | REFUNDED.
+  status   String @default("PENDING")
+  /// Price paid in paise, snapshotted so a later price change can't rewrite it.
+  amount   Int
+  currency String @default("INR")
+
+  startedAt DateTime?
+  expiresAt DateTime?
+
+  gatewayOrderId   String? @unique
+  gatewayPaymentId String?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  paidAt    DateTime?
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, status])
+  @@index([status, expiresAt])
 }

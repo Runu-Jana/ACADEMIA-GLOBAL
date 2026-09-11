@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { getTranslations } from 'next-intl/server'
 import {
-  Compass, Award, GraduationCap, Check, Minus, ArrowRight, HandCoins, ShieldCheck, HelpCircle,
+  Compass, Award, GraduationCap, Check, Minus, ArrowRight, HandCoins, ShieldCheck, HelpCircle, Sparkles,
 } from 'lucide-react'
 import { SectionTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -130,6 +130,27 @@ export default async function PricingPage() {
           })}
         </div>
         <p className="mt-6 text-center text-[12.5px] text-muted-foreground">{t('feesNote')}</p>
+      </section>
+
+      {/* ----------------------------------------------- all-access membership */}
+      <section className="container pb-4">
+        <div className="holo-ring relative overflow-hidden rounded-3xl border border-border bg-gradient-to-br from-holo-violet/10 via-primary-50 to-holo-cyan/10 p-6 dark:from-holo-violet/10 dark:via-primary-500/10 dark:to-transparent sm:p-8">
+          <div aria-hidden className="absolute -right-10 -top-10 h-44 w-44 rounded-full bg-holo-sweep opacity-20 blur-2xl" />
+          <div className="relative flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="max-w-xl">
+              <Badge tone="holo" className="mb-2">
+                <Sparkles className="h-3 w-3" />
+                {t('membershipBand.badge')}
+              </Badge>
+              <h2 className="font-display text-xl font-extrabold">{t('membershipBand.title')}</h2>
+              <p className="mt-2 text-[13.5px] leading-relaxed text-muted-foreground">{t('membershipBand.body')}</p>
+            </div>
+            <Link href="/membership" className={buttonVariants({ variant: 'holo' })}>
+              {t('membershipBand.cta')}
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+        </div>
       </section>
 
       {/* ----------------------------------------------------- EMI calculator */}
