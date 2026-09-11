@@ -2,10 +2,14 @@
   "name": "academia-global",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": "20.x"
+  },
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "prisma generate && next build --turbopack",
     "start": "next start",
+    "start:prod": "prisma db push --skip-generate && next start",
     "lint": "next lint",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -33,6 +37,7 @@
     "next-intl": "^4.14.2",
     "openai": "^6.48.0",
     "pdf-parse": "^2.4.5",
+    "prisma": "^6.19.3",
     "qrcode": "^1.5.4",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
@@ -50,7 +55,6 @@
     "@types/three": "^0.185.1",
     "autoprefixer": "^10.4.20",
     "postcss": "^8.4.49",
-    "prisma": "^6.19.3",
     "tailwindcss": "^3.4.17",
     "tailwindcss-animate": "^1.0.7",
     "tsx": "^4.19.2",
