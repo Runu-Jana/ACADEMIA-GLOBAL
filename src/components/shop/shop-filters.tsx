@@ -108,7 +108,7 @@ function OptionRow({
 
 function Group({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <details open className="group border-b border-border last:border-0">
+    <details className="group border-b border-border last:border-0">
       <summary
         className={cn(
           'flex min-h-11 cursor-pointer list-none items-center justify-between gap-2 px-4 py-3',
