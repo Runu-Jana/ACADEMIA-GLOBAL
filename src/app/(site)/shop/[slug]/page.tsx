@@ -3,12 +3,14 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getTranslations } from 'next-intl/server'
 import {
-  ChevronRight, BookOpen, Package, Truck, ShieldCheck, RefreshCcw, Check,
+  ChevronRight, BookOpen, Package, Truck, ShieldCheck, RefreshCcw, Check, MessageSquare,
 } from 'lucide-react'
 import { prisma } from '@/lib/prisma'
+import { getCurrentUser } from '@/lib/auth'
 import { ProductCard } from '@/components/shop/product-card'
 import { ProductGallery } from '@/components/shop/product-gallery'
 import { AddToCart } from '@/components/shop/add-to-cart'
+import { ProductReviewForm } from '@/components/shop/product-review-form'
 import { RecentlyViewed } from '@/components/shop/recently-viewed'
 import { Badge } from '@/components/ui/badge'
 import { Stars } from '@/components/ui/stars'
@@ -16,7 +18,7 @@ import { Reveal } from '@/components/fx/reveal'
 import { JsonLd } from '@/components/seo/json-ld'
 import { liveProducts, isProductLive } from '@/lib/visibility'
 import { breadcrumbLd, productLd } from '@/lib/seo'
-import { asList } from '@/lib/utils'
+import { asList, initials, formatDate } from '@/lib/utils'
 import {
   formatPaise, discountPct, stockState, categoryLabel,
   FREE_SHIPPING_OVER,
@@ -122,6 +124,39 @@ export default async function ProductPage({
     orderBy: [{ featured: 'desc' }, { rating: 'desc' }],
     take: 4,
   })
+
+  // Ratings & reviews. A buyer may review an item they have paid for — one
+  // review each, shown pre-filled for editing; both per-user reads are skipped
+  // entirely for a signed-out visitor.
+  const me = await getCurrentUser()
+  const [reviews, purchased, myReview] = await Promise.all([
+    prisma.productReview.findMany({
+      where: { productId: product.id },
+      orderBy: { createdAt: 'desc' },
+      take: 8,
+      select: {
+        id: true, rating: true, body: true, createdAt: true,
+        user: { select: { id: true, name: true } },
+      },
+    }),
+    me
+      ? prisma.shopOrder.findFirst({
+          where: {
+            userId: me.id,
+            status: { in: ['PAID', 'PACKED', 'SHIPPED', 'DELIVERED'] },
+            items: { some: { productId: product.id } },
+          },
+          select: { id: true },
+        })
+      : Promise.resolve(null),
+    me
+      ? prisma.productReview.findUnique({
+          where: { userId_productId: { userId: me.id, productId: product.id } },
+          select: { rating: true, body: true },
+        })
+      : Promise.resolve(null),
+  ])
+  const canReview = Boolean(purchased)
 
   // Delivery/authenticity promises. Defined once and placed differently per
   // breakpoint — see the two render slots below.
@@ -372,25 +407,79 @@ export default async function ProductPage({
           <h2 className="mb-4 font-display text-xl font-extrabold tracking-tight">
             {t('reviews.heading')}
           </h2>
-          <div className="card-base flex flex-col gap-5 p-6 sm:flex-row sm:items-center sm:gap-8">
-            {product.reviews > 0 && (
-              <div className="shrink-0 text-center">
-                <span className="block text-5xl font-extrabold leading-none text-primary-700 dark:text-primary-300">
+
+          {product.reviews > 0 && (
+            <div className="mb-6 flex flex-wrap items-center gap-4 rounded-xl border border-border bg-muted/40 p-4">
+              <div className="text-center">
+                <span className="block text-3xl font-extrabold leading-none text-primary-700 dark:text-primary-300">
                   {product.rating.toFixed(1)}
                 </span>
-                <Stars rating={product.rating} showValue={false} className="mt-2 justify-center" />
-                <p className="mt-1.5 text-[12.5px] text-muted-foreground">
-                  {t('reviews.count', { count: product.reviews })}
-                </p>
+                <Stars rating={product.rating} showValue={false} className="mt-1.5" />
               </div>
-            )}
-            <div className="flex-1 border-t border-border pt-4 sm:border-l sm:border-t-0 sm:pl-8 sm:pt-0">
-              {product.reviews > 0 && (
-                <p className="text-[13px] text-muted-foreground">{t('reviews.basedOn')}</p>
-              )}
-              <p className="mt-2 text-[13.5px] font-semibold">{t('reviews.empty')}</p>
+              <div className="text-[13px] text-muted-foreground">
+                <p className="font-bold text-foreground">{t('reviews.count', { count: product.reviews })}</p>
+                <p>{t('reviews.basedOn')}</p>
+              </div>
             </div>
-          </div>
+          )}
+
+          {canReview ? (
+            <ProductReviewForm productId={product.id} existing={myReview} />
+          ) : me ? (
+            <p className="mb-5 rounded-xl border border-dashed border-border bg-muted/40 p-4 text-[13px] text-muted-foreground">
+              {t('reviews.reviewBuy')}
+            </p>
+          ) : (
+            <p className="mb-5 rounded-xl border border-dashed border-border bg-muted/40 p-4 text-[13px] text-muted-foreground">
+              {t.rich('reviews.reviewSignin', {
+                link: (chunks) => (
+                  <Link
+                    href={`/login?returnTo=${encodeURIComponent(`/shop/${product.slug}`)}`}
+                    className="font-bold text-primary-600 hover:underline"
+                  >
+                    {chunks}
+                  </Link>
+                ),
+              })}
+            </p>
+          )}
+
+          {reviews.length > 0 ? (
+            <ul className="space-y-3">
+              {reviews.map((r) => (
+                <li key={r.id} className="rounded-xl border border-border p-4">
+                  <div className="flex items-center gap-3">
+                    <span
+                      aria-hidden
+                      className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-holo-sweep text-[11px] font-extrabold text-white"
+                    >
+                      {initials(r.user.name)}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="flex items-center gap-1.5 truncate text-[13px] font-bold">
+                        {r.user.name}
+                        {r.user.id === me?.id && (
+                          <span className="rounded-full bg-primary-100 px-1.5 py-0.5 text-[10px] font-bold text-primary-700 dark:bg-primary-500/20 dark:text-primary-300">
+                            {t('reviews.you')}
+                          </span>
+                        )}
+                      </p>
+                      <p className="text-[11px] text-muted-foreground">{formatDate(r.createdAt)}</p>
+                    </div>
+                    <Stars rating={r.rating} size={12} showValue={false} />
+                  </div>
+                  <p className="mt-2.5 text-pretty text-[13px] leading-relaxed text-muted-foreground">
+                    {r.body}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <div className="flex flex-col items-center gap-2 py-8 text-center">
+              <MessageSquare aria-hidden className="h-8 w-8 text-muted-foreground/50" />
+              <p className="text-[13.5px] font-semibold">{t('reviews.empty')}</p>
+            </div>
+          )}
         </section>
 
         {/* ------------------------------------------------------ related */}

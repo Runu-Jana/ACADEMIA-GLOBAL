@@ -783,7 +783,26 @@
       "heading": "Ratings & reviews",
       "count": "{count, plural, one {# rating} other {# ratings}}",
       "basedOn": "Based on verified buyer ratings.",
-      "empty": "No written reviews yet — buy this item to share the first one."
+      "empty": "No written reviews yet — buy this item to share the first one.",
+      "you": "You",
+      "reviewBuy": "Only verified buyers can review this item.",
+      "reviewSignin": "<link>Sign in</link> to review an item you've bought.",
+      "write": "Write a review",
+      "edit": "Edit your review",
+      "yourReview": "Your review",
+      "editLink": "Edit",
+      "rating": "Your rating",
+      "starLabel": "{n, plural, one {# star} other {# stars}}",
+      "placeholder": "How's the quality, and did it arrive in good condition? Share what would help another buyer decide.",
+      "post": "Post review",
+      "update": "Update review",
+      "cancel": "Cancel",
+      "delete": "Delete",
+      "outOf5": "{n} out of 5",
+      "errRating": "Please pick a star rating.",
+      "errBody": "Please write at least 10 characters.",
+      "errSave": "Could not save your review. Please try again.",
+      "errDelete": "Could not remove your review."
     },
     "recentlyViewed": {
       "heading": "Recently viewed"

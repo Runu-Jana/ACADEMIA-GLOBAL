@@ -43,6 +43,7 @@ model User {
   testAttempts     TestAttempt[]
   lessonProgress   LessonProgress[]
   reviews          Review[]
+  productReviews   ProductReview[]
   uploadedMaterial Material[]       @relation("UploadedBy")
   counsellorChats  ChatMessage[]
   notifications    Notification[]
@@ -1003,6 +1004,7 @@ model Product {
 
   orderItems ShopOrderItem[]
   savedBy    SavedProduct[]
+  reviewList ProductReview[]
 
   @@index([status, kind])
   @@index([status, category])
@@ -1090,6 +1092,27 @@ model ShopOrderItem {
   product   Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
 
   @@index([orderId])
+  @@index([productId])
+}
+
+/// A buyer's written review of a shop product — the store's answer to the
+/// course Review. Deliberately separate from Review (that one is welded to a
+/// courseId and gated on enrolment): a product review is gated on a PAID
+/// ShopOrder for the item, and the `@@unique([userId, productId])` keeps it to
+/// one per buyer. `product.rating` / `product.reviews` are the denormalised
+/// aggregates the cards read, kept as a running mean by /api/shop/reviews.
+model ProductReview {
+  id        String   @id @default(cuid())
+  rating    Int
+  body      String
+  createdAt DateTime @default(now())
+
+  userId    String
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
   @@index([productId])
 }
 
