@@ -10,22 +10,26 @@ const HeroScene = dynamic(() => import('./hero-scene').then((m) => m.HeroScene),
 })
 
 /**
- * Gates the WebGL hero behind a desktop media query. Because the import only
- * fires when the component actually renders, phones never download the
- * three.js chunk at all — which matters a lot more than it sounds on the
- * mid-range Android + patchy-network audience this platform targets.
+ * Mounts the WebGL hero on the client. The three.js chunk is dynamically
+ * imported so it stays out of the initial bundle and only loads after mount —
+ * on phones and desktop alike. On mobile we pass `mobile` so the scene runs a
+ * lighter build (fewer points, lower pixel ratio) to stay smooth on the
+ * mid-range Android devices this platform targets. The scene itself still bows
+ * out cleanly where WebGL is unavailable or reduced-motion is set.
  */
 export function HeroSceneMount({ className }: { className?: string }) {
-  const [enabled, setEnabled] = React.useState(false)
+  const [ready, setReady] = React.useState(false)
+  const [mobile, setMobile] = React.useState(false)
 
   React.useEffect(() => {
-    const mq = window.matchMedia('(min-width: 1024px)')
-    const update = () => setEnabled(mq.matches)
+    setReady(true)
+    const mq = window.matchMedia('(max-width: 1023px)')
+    const update = () => setMobile(mq.matches)
     update()
     mq.addEventListener('change', update)
     return () => mq.removeEventListener('change', update)
   }, [])
 
-  if (!enabled) return null
-  return <HeroScene className={className} />
+  if (!ready) return null
+  return <HeroScene className={className} mobile={mobile} />
 }

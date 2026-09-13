@@ -58,14 +58,17 @@ export const viewport: Viewport = {
   ],
 }
 
-// Applied before paint so a dark-mode reload never flashes white.
+// Applied before paint so a returning dark-mode user never flashes white.
+// Light is the default for everyone (desktop and mobile); we only go dark when
+// the visitor has explicitly chosen it via the toggle — we intentionally do NOT
+// follow the device's prefers-color-scheme, so a phone in system dark mode still
+// opens light until the user picks otherwise.
 const themeScript = `
 (function(){
   try {
-    var stored = localStorage.getItem('theme');
-    var dark = stored ? stored === 'dark'
-      : window.matchMedia('(prefers-color-scheme: dark)').matches;
-    if (dark) document.documentElement.classList.add('dark');
+    if (localStorage.getItem('theme') === 'dark') {
+      document.documentElement.classList.add('dark');
+    }
   } catch (e) {}
 })();
 `

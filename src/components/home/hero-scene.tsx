@@ -17,7 +17,7 @@ import * as THREE from 'three'
  *  - falls back to `null` if WebGL is unavailable; the HTML cards layered on
  *    top remain the actual content either way
  */
-export function HeroScene({ className }: { className?: string }) {
+export function HeroScene({ className, mobile = false }: { className?: string; mobile?: boolean }) {
   const mountRef = React.useRef<HTMLDivElement>(null)
 
   React.useEffect(() => {
@@ -37,7 +37,9 @@ export function HeroScene({ className }: { className?: string }) {
 
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+    // Cap the pixel ratio lower on phones — fewer pixels to shade keeps the
+    // frame budget comfortable on mid-range mobile GPUs.
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, mobile ? 1.5 : 2))
     renderer.setClearColor(0x000000, 0)
     mount.appendChild(renderer.domElement)
     renderer.domElement.style.width = '100%'
@@ -54,7 +56,7 @@ export function HeroScene({ className }: { className?: string }) {
     scene.add(globe)
 
     // ---- point sphere (Fibonacci distribution keeps spacing even) ----------
-    const COUNT = 1500
+    const COUNT = mobile ? 800 : 1500
     const positions = new Float32Array(COUNT * 3)
     const golden = Math.PI * (3 - Math.sqrt(5))
     for (let i = 0; i < COUNT; i++) {
@@ -180,7 +182,7 @@ export function HeroScene({ className }: { className?: string }) {
       renderer.dispose()
       renderer.domElement.remove()
     }
-  }, [])
+  }, [mobile])
 
   return <div ref={mountRef} className={className} aria-hidden />
 }
