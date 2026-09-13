@@ -60,7 +60,10 @@ You do **not** need `TEST_DATABASE_URL` (tests only).
 
 Railway builds automatically. On boot, the app runs `prisma db push`, which **creates all the
 tables on the fresh database the first time** — no manual migration step. (This is wired into
-the `start:prod` command in `package.json`; `railway.json` tells Railway to use it.)
+the `start:prod` command in `package.json`; `railway.json` tells Railway to use it.) The push is
+**retried for ~30s** (`scripts/prestart.mjs`) to ride out the few seconds Railway's private
+network to Postgres takes to become reachable — otherwise the first attempt can fail with
+`P1001: Can't reach database server` and crash-loop the container.
 
 When the deploy goes green, open the generated domain — the site should load.
 
