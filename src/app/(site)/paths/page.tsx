@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { getTranslations } from 'next-intl/server'
 import { ChevronRight, Layers, ArrowRight, Route, GraduationCap } from 'lucide-react'
 import { getLearningPaths } from '@/lib/paths'
 import { Reveal } from '@/components/fx/reveal'
@@ -7,28 +8,30 @@ import { Aurora, GridPattern } from '@/components/fx/aurora'
 import { Badge } from '@/components/ui/badge'
 import { JsonLd } from '@/components/seo/json-ld'
 import { breadcrumbLd } from '@/lib/seo'
-import { COURSE_LEVELS, STREAMS } from '@/lib/constants'
 
 export const dynamic = 'force-dynamic'
 
-export const metadata: Metadata = {
-  title: 'Learning Paths — Guided Course Tracks to a Career',
-  description:
-    'Curated, step-by-step course tracks that take you from the basics to a job-ready career — digital marketing, software & data, finance and more. Each path bundles Shiksha Sarthi programs in the order that builds a skill.',
-  alternates: { canonical: '/paths' },
-  openGraph: {
-    title: 'Learning Paths — Guided Course Tracks to a Career',
-    description: 'Step-by-step course tracks that build a career, one program at a time.',
-    url: '/paths',
-    type: 'website',
-  },
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('paths.meta')
+  return {
+    title: t('title'),
+    description: t('description'),
+    alternates: { canonical: '/paths' },
+    openGraph: {
+      title: t('title'),
+      description: t('ogDescription'),
+      url: '/paths',
+      type: 'website',
+    },
+  }
 }
 
-const levelLabel = (v: string) => COURSE_LEVELS.find((l) => l.value === v)?.label ?? v
-const streamLabel = (v: string) => STREAMS.find((s) => s.value === v)?.label ?? v
-
 export default async function PathsPage() {
-  const paths = await getLearningPaths()
+  const [paths, t, tc] = await Promise.all([
+    getLearningPaths(),
+    getTranslations('paths'),
+    getTranslations('courses'),
+  ])
 
   return (
     <>
@@ -47,14 +50,13 @@ export default async function PathsPage() {
           <div className="mx-auto max-w-2xl text-center">
             <Badge tone="holo" className="mb-4">
               <Route aria-hidden className="h-3 w-3" />
-              Learning Paths
+              {t('badge')}
             </Badge>
             <h1 className="text-balance font-display text-3xl font-extrabold text-white sm:text-4xl">
-              A guided route from <span className="holo-text">beginner to career</span>
+              {t.rich('hero.title', { accent: (chunks) => <span className="holo-text">{chunks}</span> })}
             </h1>
             <p className="mx-auto mt-3 max-w-xl text-pretty text-[15px] text-white/70">
-              Each path sequences our programs in the order that builds a real skill — so you always
-              know what to take next. Follow the whole track, or jump in at the right level for you.
+              {t('hero.subtitle')}
             </p>
           </div>
         </div>
@@ -63,20 +65,18 @@ export default async function PathsPage() {
       {/* --------------------------------------------------------- listing */}
       <section className="container py-8 sm:py-10">
         <nav aria-label="Breadcrumb" className="mb-6 flex items-center gap-1.5 text-[12.5px] text-muted-foreground">
-          <Link href="/" className="hover:text-primary-600">Home</Link>
+          <Link href="/" className="hover:text-primary-600">{t('home')}</Link>
           <ChevronRight aria-hidden className="h-3.5 w-3.5" />
-          <span className="font-semibold text-foreground">Learning Paths</span>
+          <span className="font-semibold text-foreground">{t('badge')}</span>
         </nav>
 
         {paths.length === 0 ? (
           <div className="card-base grid place-items-center px-6 py-16 text-center">
             <Layers aria-hidden className="mb-3 h-10 w-10 text-muted-foreground" />
-            <p className="text-[15px] font-bold">No learning paths yet</p>
-            <p className="mt-1 max-w-sm text-[13px] text-muted-foreground">
-              Guided tracks are on the way. In the meantime, browse the full catalog.
-            </p>
+            <p className="text-[15px] font-bold">{t('empty.title')}</p>
+            <p className="mt-1 max-w-sm text-[13px] text-muted-foreground">{t('empty.body')}</p>
             <Link href="/courses" className="mt-5 text-[13px] font-bold text-primary-600 hover:underline">
-              Browse all courses
+              {t('empty.cta')}
             </Link>
           </div>
         ) : (
@@ -88,8 +88,8 @@ export default async function PathsPage() {
                   className="group card-base holo-ring holo-ring-hover flex h-full flex-col p-5 transition-shadow hover:shadow-lift"
                 >
                   <div className="flex items-center justify-between gap-2">
-                    <Badge tone="primary">{streamLabel(p.stream)}</Badge>
-                    {p.featured && <Badge tone="holo">Popular</Badge>}
+                    <Badge tone="primary">{tc(`stream.${p.stream}`)}</Badge>
+                    {p.featured && <Badge tone="holo">{t('popular')}</Badge>}
                   </div>
 
                   <h2 className="mt-3 text-balance font-display text-lg font-extrabold leading-snug tracking-tight transition-colors group-hover:text-primary-600">
@@ -100,16 +100,16 @@ export default async function PathsPage() {
                   <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] font-semibold text-muted-foreground">
                     <span className="inline-flex items-center gap-1">
                       <Layers aria-hidden className="h-3.5 w-3.5" />
-                      {p.courseCount} courses
+                      {t('courseCount', { count: p.courseCount })}
                     </span>
                     <span className="inline-flex items-center gap-1">
                       <GraduationCap aria-hidden className="h-3.5 w-3.5" />
-                      {p.levels.map(levelLabel).join(' → ')}
+                      {p.levels.map((v) => tc(`level.${v}`)).join(' → ')}
                     </span>
                   </div>
 
                   <p className="mt-3 rounded-lg bg-muted/50 p-2.5 text-[12.5px] leading-relaxed text-foreground/80">
-                    <span className="font-bold text-foreground">Outcome: </span>
+                    <span className="font-bold text-foreground">{t('outcomeLabel')}</span>
                     {p.outcome}
                   </p>
 
@@ -127,7 +127,7 @@ export default async function PathsPage() {
                   )}
 
                   <span className="mt-auto inline-flex items-center gap-1.5 pt-4 text-[13px] font-bold text-primary-600 transition-all group-hover:gap-2.5">
-                    Explore path
+                    {t('explore')}
                     <ArrowRight aria-hidden className="h-4 w-4" />
                   </span>
                 </Link>

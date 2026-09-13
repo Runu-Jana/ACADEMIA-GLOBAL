@@ -575,6 +575,92 @@
       "verifyFailed": "We couldn't confirm your payment. If you were charged, contact support."
     }
   },
+  "paths": {
+    "meta": {
+      "title": "Learning Paths — Guided Course Tracks to a Career",
+      "description": "Curated, step-by-step course tracks that take you from the basics to a job-ready career — digital marketing, software & data, finance and more. Each path bundles Shiksha Sarthi programs in the order that builds a skill.",
+      "ogDescription": "Step-by-step course tracks that build a career, one program at a time."
+    },
+    "home": "Home",
+    "badge": "Learning Paths",
+    "hero": {
+      "title": "A guided route from <accent>beginner to career</accent>",
+      "subtitle": "Each path sequences our programs in the order that builds a real skill — so you always know what to take next. Follow the whole track, or jump in at the right level for you."
+    },
+    "empty": {
+      "title": "No learning paths yet",
+      "body": "Guided tracks are on the way. In the meantime, browse the full catalog.",
+      "cta": "Browse all courses"
+    },
+    "popular": "Popular",
+    "courseCount": "{count, plural, one {# course} other {# courses}}",
+    "outcomeLabel": "Outcome: ",
+    "explore": "Explore path",
+    "detail": {
+      "notFound": "Learning Path Not Found",
+      "metaTitle": "{title} — Learning Path",
+      "metaDescription": "{subtitle} A guided {count}-course track — {outcome}",
+      "popularTrack": "Popular track",
+      "years": "~{years, plural, one {# year of study} other {# years of study}}",
+      "stepsHeading": "The track, step by step",
+      "stepsNote": "Follow it end to end, or start at whichever level fits you. Each course is enrolled and paid for on its own page.",
+      "step": "Step {n} · {level}",
+      "whereHeading": "Where this gets you",
+      "skillsHeading": "Skills you build",
+      "helpTitle": "Not sure where to start?",
+      "helpBody": "A counsellor can map this track to your background and goals.",
+      "talkCounsellor": "Talk to a counsellor",
+      "allPaths": "All learning paths"
+    }
+  },
+  "dashboard": {
+    "nav": {
+      "dashboard": "Dashboard",
+      "myCourses": "My Courses",
+      "myLearning": "My Learning",
+      "live": "Live Classes",
+      "academics": "My Academics",
+      "materials": "Study Material",
+      "assignments": "Assignments",
+      "tests": "Tests & Exams",
+      "certificates": "Certificates",
+      "goals": "Goals",
+      "saved": "Saved",
+      "resume": "AI Resume",
+      "career": "AI Career Kit",
+      "profile": "Profile",
+      "support": "Support",
+      "browseCourses": "Browse Courses",
+      "backToSite": "Back to Site"
+    },
+    "shell": {
+      "navAria": "Student dashboard",
+      "menuAria": "Dashboard menu",
+      "openMenu": "Open menu",
+      "closeMenu": "Close menu",
+      "collapse": "Collapse",
+      "expandSidebar": "Expand sidebar",
+      "collapseSidebar": "Collapse sidebar",
+      "signOut": "Sign out",
+      "searchPlaceholder": "Search your material…",
+      "searchAria": "Search your study material",
+      "myProfile": "My Profile",
+      "goalsTitle": "Goals & Streaks"
+    },
+    "materialType": {
+      "PDF": "PDF / eBook",
+      "NOTES": "Study Notes",
+      "TEST_PAPER": "Test Paper",
+      "SYLLABUS": "Syllabus",
+      "ASSIGNMENT": "Assignment",
+      "RECORDING": "Recorded Class"
+    },
+    "lessonType": {
+      "VIDEO": "Video Lesson",
+      "READING": "Reading",
+      "LIVE": "Live Class"
+    }
+  },
   "shop": {
     "home": "Home",
     "shop": "Shop",

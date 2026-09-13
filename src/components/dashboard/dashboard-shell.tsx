@@ -3,6 +3,7 @@
 import * as React from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import {
   Video,
   LayoutDashboard, BookOpen, GraduationCap, FolderOpen, PenSquare, ClipboardList,
@@ -24,7 +25,8 @@ export type ShellUser = {
 }
 
 type NavItem = {
-  label: string
+  /** Message key under dashboard.nav.* for the label. */
+  key?: string
   href: string
   icon: React.ElementType
   /** Active only on an exact pathname match. */
@@ -34,47 +36,49 @@ type NavItem = {
 }
 
 const NAV: NavItem[] = [
-  { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, exact: true },
-  { label: 'My Courses', href: '/dashboard/learn', icon: BookOpen, exact: true },
-  { label: 'My Learning', href: '/dashboard/learn/continue', icon: GraduationCap, prefix: '/dashboard/learn/' },
-  { label: 'Live Classes', href: '/dashboard/live', icon: Video },
-  { label: 'My Academics', href: '/dashboard/academics', icon: GraduationCap },
-  { label: 'Study Material', href: '/dashboard/materials', icon: FolderOpen },
-  { label: 'Assignments', href: '/dashboard/assignments', icon: PenSquare },
-  { label: 'Tests & Exams', href: '/dashboard/tests', icon: ClipboardList },
-  { label: 'Certificates', href: '/dashboard/certificates', icon: Award },
-  { label: 'Goals', href: '/dashboard/goals', icon: Target },
-  { label: 'Saved', href: '/dashboard/saved', icon: Heart },
-  { label: 'AI Resume', href: '/dashboard/resume', icon: FileText },
-  { label: 'AI Career Kit', href: '/dashboard/career', icon: Rocket },
-  { label: 'Profile', href: '/dashboard/profile', icon: UserIcon },
-  { label: 'Support', href: '/dashboard/support', icon: LifeBuoy },
+  { key: 'dashboard', href: '/dashboard', icon: LayoutDashboard, exact: true },
+  { key: 'myCourses', href: '/dashboard/learn', icon: BookOpen, exact: true },
+  { key: 'myLearning', href: '/dashboard/learn/continue', icon: GraduationCap, prefix: '/dashboard/learn/' },
+  { key: 'live', href: '/dashboard/live', icon: Video },
+  { key: 'academics', href: '/dashboard/academics', icon: GraduationCap },
+  { key: 'materials', href: '/dashboard/materials', icon: FolderOpen },
+  { key: 'assignments', href: '/dashboard/assignments', icon: PenSquare },
+  { key: 'tests', href: '/dashboard/tests', icon: ClipboardList },
+  { key: 'certificates', href: '/dashboard/certificates', icon: Award },
+  { key: 'goals', href: '/dashboard/goals', icon: Target },
+  { key: 'saved', href: '/dashboard/saved', icon: Heart },
+  { key: 'resume', href: '/dashboard/resume', icon: FileText },
+  { key: 'career', href: '/dashboard/career', icon: Rocket },
+  { key: 'profile', href: '/dashboard/profile', icon: UserIcon },
+  { key: 'support', href: '/dashboard/support', icon: LifeBuoy },
 ]
 
-const TITLES: { prefix: string; title: string; exact?: boolean }[] = [
-  { prefix: '/dashboard', title: 'Dashboard', exact: true },
-  { prefix: '/dashboard/learn', title: 'My Courses', exact: true },
-  { prefix: '/dashboard/learn/', title: 'My Learning' },
-  { prefix: '/dashboard/live', title: 'Live Classes' },
-  { prefix: '/dashboard/academics', title: 'My Academics' },
-  { prefix: '/dashboard/materials', title: 'Study Material' },
-  { prefix: '/dashboard/assignments', title: 'Assignments' },
-  { prefix: '/dashboard/tests', title: 'Tests & Exams' },
-  { prefix: '/dashboard/certificates', title: 'Certificates' },
-  { prefix: '/dashboard/goals', title: 'Goals & Streaks' },
-  { prefix: '/dashboard/saved', title: 'Saved' },
-  { prefix: '/dashboard/resume', title: 'AI Resume' },
-  { prefix: '/dashboard/career', title: 'AI Career Kit' },
-  { prefix: '/dashboard/profile', title: 'Profile' },
-  { prefix: '/dashboard/support', title: 'Support' },
+// Header title per route. `tkey` is a path under the dashboard namespace; most
+// reuse the nav label, a few (Goals) differ.
+const TITLES: { prefix: string; tkey: string; exact?: boolean }[] = [
+  { prefix: '/dashboard', tkey: 'nav.dashboard', exact: true },
+  { prefix: '/dashboard/learn', tkey: 'nav.myCourses', exact: true },
+  { prefix: '/dashboard/learn/', tkey: 'nav.myLearning' },
+  { prefix: '/dashboard/live', tkey: 'nav.live' },
+  { prefix: '/dashboard/academics', tkey: 'nav.academics' },
+  { prefix: '/dashboard/materials', tkey: 'nav.materials' },
+  { prefix: '/dashboard/assignments', tkey: 'nav.assignments' },
+  { prefix: '/dashboard/tests', tkey: 'nav.tests' },
+  { prefix: '/dashboard/certificates', tkey: 'nav.certificates' },
+  { prefix: '/dashboard/goals', tkey: 'shell.goalsTitle' },
+  { prefix: '/dashboard/saved', tkey: 'nav.saved' },
+  { prefix: '/dashboard/resume', tkey: 'nav.resume' },
+  { prefix: '/dashboard/career', tkey: 'nav.career' },
+  { prefix: '/dashboard/profile', tkey: 'nav.profile' },
+  { prefix: '/dashboard/support', tkey: 'nav.support' },
 ]
 
-function pageTitle(pathname: string) {
+function pageTitleKey(pathname: string) {
   // Entries are ordered least → most specific, so the last match wins.
   const matches = TITLES.filter((t) =>
     t.exact ? pathname === t.prefix : pathname.startsWith(t.prefix),
   )
-  return matches.length ? matches[matches.length - 1].title : 'Dashboard'
+  return matches.length ? matches[matches.length - 1].tkey : 'nav.dashboard'
 }
 
 function isActive(item: NavItem, pathname: string) {
@@ -92,6 +96,7 @@ export function DashboardShell({
   initialUnread: number
   children: React.ReactNode
 }) {
+  const t = useTranslations('dashboard')
   const pathname = usePathname()
   const router = useRouter()
 
@@ -164,7 +169,7 @@ export function DashboardShell({
     router.push(term ? `/dashboard/materials?q=${encodeURIComponent(term)}` : '/dashboard/materials')
   }
 
-  const title = pageTitle(pathname)
+  const title = t(pageTitleKey(pathname))
 
   return (
     <div className="min-h-dvh bg-background">
@@ -180,11 +185,11 @@ export function DashboardShell({
           <Logo compact={collapsed} />
         </div>
 
-        <nav aria-label="Student dashboard" className="flex-1 overflow-y-auto p-3">
+        <nav aria-label={t('shell.navAria')} className="flex-1 overflow-y-auto p-3">
           <ul className="space-y-1">
             {NAV.map((item) => (
-              <li key={item.label}>
-                <SideLink item={item} active={isActive(item, pathname)} collapsed={collapsed} />
+              <li key={item.key}>
+                <SideLink item={item} label={t(`nav.${item.key}`)} active={isActive(item, pathname)} collapsed={collapsed} />
               </li>
             ))}
           </ul>
@@ -194,14 +199,16 @@ export function DashboardShell({
           <ul className="space-y-1">
             <li>
               <SideLink
-                item={{ label: 'Browse Courses', href: '/courses', icon: Compass }}
+                item={{ href: '/courses', icon: Compass }}
+                label={t('nav.browseCourses')}
                 active={false}
                 collapsed={collapsed}
               />
             </li>
             <li>
               <SideLink
-                item={{ label: 'Back to Site', href: '/', icon: Home }}
+                item={{ href: '/', icon: Home }}
+                label={t('nav.backToSite')}
                 active={false}
                 collapsed={collapsed}
               />
@@ -214,8 +221,8 @@ export function DashboardShell({
             type="button"
             onClick={toggleCollapsed}
             aria-expanded={!collapsed}
-            aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-            title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            aria-label={collapsed ? t('shell.expandSidebar') : t('shell.collapseSidebar')}
+            title={collapsed ? t('shell.expandSidebar') : t('shell.collapseSidebar')}
             className={cn(
               'flex h-10 items-center gap-2.5 rounded-xl px-3 text-[13px] font-semibold text-muted-foreground',
               'transition-colors hover:bg-muted hover:text-foreground',
@@ -223,7 +230,7 @@ export function DashboardShell({
             )}
           >
             {collapsed ? <PanelLeft className="h-4.5 w-4.5" /> : <PanelLeftClose className="h-4.5 w-4.5" />}
-            {!collapsed && 'Collapse'}
+            {!collapsed && t('shell.collapse')}
           </button>
         </div>
       </aside>
@@ -235,7 +242,7 @@ export function DashboardShell({
               on a plain non-interactive element, which breaks tap-to-close. */}
           <button
             type="button"
-            aria-label="Close menu"
+            aria-label={t('shell.closeMenu')}
             onClick={() => setDrawer(false)}
             className={cn(
               'absolute inset-0 h-full w-full cursor-pointer bg-slate-950/55 backdrop-blur-sm',
@@ -246,7 +253,7 @@ export function DashboardShell({
           <div
             role="dialog"
             aria-modal="true"
-            aria-label="Dashboard menu"
+            aria-label={t('shell.menuAria')}
             className={cn(
               'absolute inset-y-0 left-0 flex w-[84%] max-w-[300px] flex-col bg-background shadow-2xl',
               'transition-transform duration-300 ease-spring will-change-transform',
@@ -258,7 +265,7 @@ export function DashboardShell({
               <button
                 type="button"
                 onClick={() => setDrawer(false)}
-                aria-label="Close menu"
+                aria-label={t('shell.closeMenu')}
                 className="grid h-9 w-9 place-items-center rounded-lg border border-border"
               >
                 <X className="h-4 w-4" />
@@ -275,11 +282,11 @@ export function DashboardShell({
               </div>
             </div>
 
-            <nav aria-label="Student dashboard" className="flex-1 overflow-y-auto p-3">
+            <nav aria-label={t('shell.navAria')} className="flex-1 overflow-y-auto p-3">
               <ul className="space-y-1">
                 {NAV.map((item) => (
-                  <li key={item.label}>
-                    <SideLink item={item} active={isActive(item, pathname)} collapsed={false} />
+                  <li key={item.key}>
+                    <SideLink item={item} label={t(`nav.${item.key}`)} active={isActive(item, pathname)} collapsed={false} />
                   </li>
                 ))}
               </ul>
@@ -288,10 +295,10 @@ export function DashboardShell({
 
               <ul className="space-y-1">
                 <li>
-                  <SideLink item={{ label: 'Browse Courses', href: '/courses', icon: Compass }} active={false} collapsed={false} />
+                  <SideLink item={{ href: '/courses', icon: Compass }} label={t('nav.browseCourses')} active={false} collapsed={false} />
                 </li>
                 <li>
-                  <SideLink item={{ label: 'Back to Site', href: '/', icon: Home }} active={false} collapsed={false} />
+                  <SideLink item={{ href: '/', icon: Home }} label={t('nav.backToSite')} active={false} collapsed={false} />
                 </li>
               </ul>
             </nav>
@@ -302,7 +309,7 @@ export function DashboardShell({
                 className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-semibold text-red-600 transition-colors hover:bg-red-50 dark:hover:bg-red-500/10"
               >
                 <LogOut className="h-4 w-4" />
-                Sign out
+                {t('shell.signOut')}
               </button>
             </form>
           </div>
@@ -321,7 +328,7 @@ export function DashboardShell({
             <button
               type="button"
               onClick={() => setDrawer(true)}
-              aria-label="Open menu"
+              aria-label={t('shell.openMenu')}
               className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-border text-muted-foreground lg:hidden"
             >
               <Menu className="h-4.5 w-4.5" />
@@ -337,8 +344,8 @@ export function DashboardShell({
                 <input
                   value={q}
                   onChange={(e) => setQ(e.target.value)}
-                  placeholder="Search your material…"
-                  aria-label="Search your study material"
+                  placeholder={t('shell.searchPlaceholder')}
+                  aria-label={t('shell.searchAria')}
                   className="h-10 w-full rounded-xl border border-border bg-muted/60 pl-10 pr-3 text-sm outline-none transition-all duration-300 placeholder:text-muted-foreground/80 focus:border-primary-300 focus:bg-surface focus:ring-4 focus:ring-primary-500/10"
                 />
               </div>
@@ -377,9 +384,9 @@ export function DashboardShell({
                         <p className="truncate text-xs text-muted-foreground">{user.email}</p>
                       </div>
                       <div className="p-1.5">
-                        <MenuLink href="/dashboard/profile" icon={UserIcon}>My Profile</MenuLink>
-                        <MenuLink href="/dashboard/certificates" icon={Award}>Certificates</MenuLink>
-                        <MenuLink href="/" icon={Home}>Back to Site</MenuLink>
+                        <MenuLink href="/dashboard/profile" icon={UserIcon}>{t('shell.myProfile')}</MenuLink>
+                        <MenuLink href="/dashboard/certificates" icon={Award}>{t('nav.certificates')}</MenuLink>
+                        <MenuLink href="/" icon={Home}>{t('nav.backToSite')}</MenuLink>
                       </div>
                       <form action="/api/auth/logout" method="post" className="border-t border-border p-1.5">
                         <button
@@ -387,7 +394,7 @@ export function DashboardShell({
                           className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 dark:hover:bg-red-500/10"
                         >
                           <LogOut className="h-4 w-4" />
-                          Sign out
+                          {t('shell.signOut')}
                         </button>
                       </form>
                   </div>
@@ -414,10 +421,12 @@ export function DashboardShell({
 
 function SideLink({
   item,
+  label,
   active,
   collapsed,
 }: {
   item: NavItem
+  label: string
   active: boolean
   collapsed: boolean
 }) {
@@ -426,7 +435,7 @@ function SideLink({
     <Link
       href={item.href}
       aria-current={active ? 'page' : undefined}
-      title={collapsed ? item.label : undefined}
+      title={collapsed ? label : undefined}
       className={cn(
         'group relative flex h-11 items-center gap-3 rounded-xl px-3 text-[13.5px] font-semibold transition-all duration-300',
         collapsed && 'justify-center px-0',
@@ -442,7 +451,7 @@ function SideLink({
         />
       )}
       <Icon className={cn('h-4.5 w-4.5 shrink-0', active && 'text-primary-600 dark:text-primary-300')} />
-      {!collapsed && <span className="truncate">{item.label}</span>}
+      {!collapsed && <span className="truncate">{label}</span>}
     </Link>
   )
 }
