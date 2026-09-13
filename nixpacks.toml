@@ -1,0 +1,11 @@
+# Use `npm install` for the install phase instead of Nixpacks' default `npm ci`.
+#
+# `npm ci` is strict: it fails the whole build if package-lock.json is even
+# slightly out of step with what its npm version expects — which happens when
+# the lock was written by a newer npm than Railway's (Node 20 → npm 10). Locally
+# `npm ci` passes; on Railway it rejected the same lock. `npm install` reconciles
+# the lock instead of rejecting it, so the build is robust across npm versions.
+# `--include=dev` guarantees the build tools (next, tailwind, tsc) are installed
+# even if the builder sets NODE_ENV=production.
+[phases.install]
+cmds = ["npm install --include=dev"]
