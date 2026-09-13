@@ -33,6 +33,9 @@ export const metadata: Metadata = {
     'online education India', 'virtual learning',
   ],
   manifest: '/manifest.webmanifest',
+  icons: {
+    apple: '/icons/apple-touch-icon.png',
+  },
   appleWebApp: {
     capable: true,
     title: 'Shiksha Sarthi',
