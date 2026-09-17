@@ -104,7 +104,10 @@ export async function Hero() {
         </div>
 
         {/* --------------------------------------------------------- 3D scene */}
-        <Reveal delay={180} className="relative">
+        {/* Desktop-only: the whole graphic (globe + badge + cards) is decorative
+            and adds clutter + a three.js download on phones, so it only shows in
+            the lg two-column layout. Mobile gets the clean copy/CTA/stats. */}
+        <Reveal delay={180} className="relative hidden lg:block">
           <div className="relative mx-auto aspect-square w-full max-w-[480px]">
             {/* Soft glow anchoring the scene. */}
             <div
