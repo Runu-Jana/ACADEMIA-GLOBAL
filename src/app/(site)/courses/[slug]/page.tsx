@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 import { getTranslations } from 'next-intl/server'
 import {
   ChevronRight, ChevronDown, Clock, Monitor, ShieldCheck, Sparkles, Check,
@@ -233,6 +233,13 @@ export default async function CourseDetailPage({
       (viewer?.role === 'PARTNER' && viewer.universityId === course.universityId)
     if (!canPreview) notFound()
   }
+
+  // Browsing the catalogue is public, but opening a programme's page requires an
+  // account: a signed-out visitor is sent to sign up and returned here afterward.
+  if (!me) {
+    redirect(`/signup?next=${encodeURIComponent(`/courses/${slug}`)}`)
+  }
+
   const leadDefaults = viewer
     ? { name: viewer.name, email: viewer.email, phone: viewer.phone ?? undefined }
     : undefined

@@ -434,7 +434,7 @@ export default async function ProductPage({
               {t.rich('reviews.reviewSignin', {
                 link: (chunks) => (
                   <Link
-                    href={`/login?returnTo=${encodeURIComponent(`/shop/${product.slug}`)}`}
+                    href={`/login?next=${encodeURIComponent(`/shop/${product.slug}`)}`}
                     className="font-bold text-primary-600 hover:underline"
                   >
                     {chunks}

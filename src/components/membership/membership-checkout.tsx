@@ -34,7 +34,7 @@ export function MembershipCheckout({
   if (!signedIn) {
     return (
       <Link
-        href="/login?returnTo=/membership"
+        href="/login?next=/membership"
         className={buttonVariants({ variant: featured ? 'holo' : 'outline', className: 'mt-6 w-full' })}
       >
         {t('signInCta')}
