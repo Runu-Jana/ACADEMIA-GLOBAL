@@ -147,22 +147,21 @@ export async function Hero() {
               return (
                 <div
                   key={c.key}
-                  // Decorative float cards crowd the centre badge on a phone-sized
-                  // square, so they show from sm up; on phones the globe + centre
-                  // badge stand alone, which reads cleaner.
-                  className={`absolute ${positions[i]} z-10 hidden w-[44%] animate-float sm:block`}
+                  // Kept on phones too, but the inner card scales down below sm so
+                  // all four fit around the centre badge without crowding it.
+                  className={`absolute ${positions[i]} z-10 w-[42%] animate-float sm:w-[44%]`}
                   style={{ animationDelay: c.delay }}
                 >
                   <TiltCard intensity={14} scale={1.06}>
-                    <div className="glass flex items-center gap-2.5 rounded-2xl border-primary-200/70 p-3 shadow-card dark:border-white/20">
+                    <div className="glass flex items-center gap-2 rounded-xl border-primary-200/70 p-2 shadow-card dark:border-white/20 sm:gap-2.5 sm:rounded-2xl sm:p-3">
                       <span
-                        className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-gradient-to-br ${c.tone} shadow-sm`}
+                        className={`grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-gradient-to-br ${c.tone} shadow-sm sm:h-9 sm:w-9 sm:rounded-xl`}
                       >
-                        <c.icon className="h-4.5 w-4.5 text-white" />
+                        <c.icon className="h-4 w-4 text-white sm:h-4.5 sm:w-4.5" />
                       </span>
                       <span className="min-w-0">
-                        <span className="block text-[13px] font-extrabold leading-tight">{t(`journey.${c.key}`)}</span>
-                        <span className="block truncate text-[10px] text-muted-foreground">{t(`journey.${c.key}Sub`)}</span>
+                        <span className="block text-[11px] font-extrabold leading-tight sm:text-[13px]">{t(`journey.${c.key}`)}</span>
+                        <span className="block truncate text-[9px] text-muted-foreground sm:text-[10px]">{t(`journey.${c.key}Sub`)}</span>
                       </span>
                     </div>
                   </TiltCard>
