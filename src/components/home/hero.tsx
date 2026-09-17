@@ -147,7 +147,10 @@ export async function Hero() {
               return (
                 <div
                   key={c.key}
-                  className={`absolute ${positions[i]} z-10 w-[44%] animate-float`}
+                  // Decorative float cards crowd the centre badge on a phone-sized
+                  // square, so they show from sm up; on phones the globe + centre
+                  // badge stand alone, which reads cleaner.
+                  className={`absolute ${positions[i]} z-10 hidden w-[44%] animate-float sm:block`}
                   style={{ animationDelay: c.delay }}
                 >
                   <TiltCard intensity={14} scale={1.06}>
