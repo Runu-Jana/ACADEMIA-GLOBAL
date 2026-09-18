@@ -188,10 +188,24 @@ export function CoursePlayer({
     void markLesson(lessonId, !doneSet.has(lessonId))
   }
 
+  // A live, client-side mirror of each lesson's watch state. Seeded from the
+  // server on load, then kept current as the learner watches — so switching to
+  // another lesson and back within the same session resumes from where they
+  // just paused, not from where the page first loaded.
+  const watchRef = React.useRef(watch)
+
   // Fire-and-forget save of partial watch state; never surfaces an error to the
   // learner (it's best-effort resume data, not their completion). The player
   // keeps callbacks in a ref, so these don't need to be referentially stable.
   function saveWatch(data: WatchProgress) {
+    watchRef.current = {
+      ...watchRef.current,
+      [data.lessonId]: {
+        positionSec: data.positionSec,
+        segments: data.segments,
+        watchedPct: data.watchedPct,
+      },
+    }
     fetch('/api/progress/watch', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -580,9 +594,9 @@ export function CoursePlayer({
                 <LessonVideo
                   key={active.lesson.id}
                   lesson={active.lesson}
-                  initialPositionSec={watch[active.lesson.id]?.positionSec ?? 0}
-                  initialSegments={watch[active.lesson.id]?.segments ?? ''}
-                  initialWatchedPct={watch[active.lesson.id]?.watchedPct ?? 0}
+                  initialPositionSec={watchRef.current[active.lesson.id]?.positionSec ?? 0}
+                  initialSegments={watchRef.current[active.lesson.id]?.segments ?? ''}
+                  initialWatchedPct={watchRef.current[active.lesson.id]?.watchedPct ?? 0}
                   alreadyComplete={isDone}
                   onProgress={saveWatch}
                   onReachComplete={autoComplete}
