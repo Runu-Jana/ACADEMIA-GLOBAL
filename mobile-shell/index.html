@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Shiksha Sarthi</title>
+    <style>
+      :root { color-scheme: light dark; }
+      * { box-sizing: border-box; }
+      html, body { height: 100%; margin: 0; }
+      body {
+        display: grid;
+        place-items: center;
+        padding: 24px;
+        font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        color: #fff;
+        text-align: center;
+        background: linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 55%, #3b76f6 100%);
+      }
+      .badge {
+        width: 96px; height: 96px; margin: 0 auto 24px;
+        display: grid; place-items: center;
+        border-radius: 24px;
+        background: rgba(255, 255, 255, 0.12);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+      }
+      h1 { font-size: 24px; font-weight: 800; margin: 0 0 8px; }
+      p { margin: 0 auto; max-width: 22rem; font-size: 14px; line-height: 1.5; color: #dbeafe; }
+      button {
+        margin-top: 24px;
+        font: inherit; font-weight: 700; font-size: 15px;
+        color: #1d4ed8; background: #fff;
+        border: 0; border-radius: 12px;
+        padding: 12px 22px;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.18);
+      }
+      .spin { animation: s 1s linear infinite; }
+      @keyframes s { to { transform: rotate(360deg); } }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="badge" aria-hidden="true">
+        <svg width="52" height="52" viewBox="0 0 24 24" fill="none">
+          <path d="M12 3 3 7.5l9 4.5 9-4.5L12 3Z" fill="#fff" />
+          <path d="M6 10.5v4.2c0 .7.4 1.4 1.1 1.7 1.5.8 3.2 1.2 4.9 1.2s3.4-.4 4.9-1.2c.7-.3 1.1-1 1.1-1.7v-4.2" stroke="#fff" stroke-width="1.7" stroke-linecap="round" />
+          <path d="M21 7.5v5" stroke="#fff" stroke-width="1.7" stroke-linecap="round" />
+        </svg>
+      </div>
+      <h1>Shiksha Sarthi</h1>
+      <p id="msg">Starting up…</p>
+      <button id="retry" style="display: none" onclick="location.reload()">Try again</button>
+    </main>
+    <script>
+      // When the app is configured with a hosted server URL, Capacitor loads it
+      // directly and this shell is never shown. It only appears if that load
+      // fails (e.g. no connection), so it explains the state and offers a retry.
+      (function () {
+        var online = navigator.onLine
+        document.getElementById('msg').textContent = online
+          ? 'Loading your learning space…'
+          : "You're offline. Connect to the internet to continue learning."
+        if (!online) document.getElementById('retry').style.display = 'inline-block'
+        window.addEventListener('online', function () {
+          location.reload()
+        })
+      })()
+    </script>
+  </body>
+</html>

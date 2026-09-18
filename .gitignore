@@ -24,3 +24,9 @@ storage/
 # ts
 *.tsbuildinfo
 next-env.d.ts
+
+# capacitor — generated native projects (regenerate with `npx cap add <platform>`).
+# Once you customise native config (icons, splash, plugins, signing) you may
+# prefer to commit these; if so, remove the two lines below.
+/android
+/ios
