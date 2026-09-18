@@ -2,7 +2,7 @@
 
 import * as React from 'react'
 import { Play, Radio, MonitorPlay, Clock, FileText, Search, Copy, Check, ChevronDown, CheckCircle2, RotateCcw } from 'lucide-react'
-import { parseVideoUrl } from '@/lib/video'
+import { resolveLessonVideo } from '@/lib/video'
 import {
   WATCH_COMPLETE_THRESHOLD,
   encodeSegments,
@@ -20,6 +20,10 @@ export type MediaLesson = {
   type: string
   durationMin: number
   contentUrl: string | null
+  streamUrl?: string | null
+  downloadUrl?: string | null
+  posterUrl?: string | null
+  videoProvider?: string | null
 }
 
 /** What a lesson video reports upward as it's watched. */
@@ -64,7 +68,7 @@ const THRESHOLD_PCT = Math.round(WATCH_COMPLETE_THRESHOLD * 100)
  */
 export function LessonVideo(props: VideoProps) {
   const { lesson } = props
-  const parsed = lesson.type === 'LIVE' ? ({ kind: 'unknown' } as const) : parseVideoUrl(lesson.contentUrl)
+  const parsed = resolveLessonVideo(lesson)
 
   const tracker = useWatchTracker(props)
 
@@ -92,10 +96,22 @@ export function LessonVideo(props: VideoProps) {
     }
   }, [props.autoPlay, ready, showResume])
 
-  if (parsed.kind === 'youtube' || parsed.kind === 'vimeo' || parsed.kind === 'file') {
+  if (parsed.kind === 'hls' || parsed.kind === 'youtube' || parsed.kind === 'vimeo' || parsed.kind === 'file') {
     return (
       <div>
         <div className="relative">
+          {parsed.kind === 'hls' && (
+            <NativeVideoPlayer
+              src={parsed.src}
+              poster={parsed.poster}
+              hls
+              title={lesson.title}
+              controls={controls}
+              onReady={onReady}
+              onEnded={onEnded}
+              tracker={tracker}
+            />
+          )}
           {parsed.kind === 'youtube' && (
             <YouTubePlayer videoId={parsed.id} controls={controls} onReady={onReady} onEnded={onEnded} tracker={tracker} />
           )}
@@ -103,7 +119,15 @@ export function LessonVideo(props: VideoProps) {
             <VimeoPlayer videoId={parsed.id} controls={controls} onReady={onReady} onEnded={onEnded} tracker={tracker} />
           )}
           {parsed.kind === 'file' && (
-            <FilePlayer src={parsed.fileUrl} title={lesson.title} controls={controls} onReady={onReady} onEnded={onEnded} tracker={tracker} />
+            <NativeVideoPlayer
+              src={parsed.fileUrl}
+              poster={parsed.poster}
+              title={lesson.title}
+              controls={controls}
+              onReady={onReady}
+              onEnded={onEnded}
+              tracker={tracker}
+            />
           )}
           {showResume && (
             <ResumeOverlay
@@ -452,8 +476,10 @@ function WatchBar({ pct, complete, marks }: { pct: number; complete: boolean; ma
 
 /* ------------------------------------------------------------ file player */
 
-function FilePlayer({
+function NativeVideoPlayer({
   src,
+  poster,
+  hls = false,
   title,
   controls,
   onReady,
@@ -461,6 +487,9 @@ function FilePlayer({
   tracker,
 }: {
   src: string
+  poster?: string | null
+  /** Attach hls.js for an adaptive .m3u8 source (managed provider). */
+  hls?: boolean
   title: string
   controls: React.RefObject<PlayerControls | null>
   onReady: () => void
@@ -473,6 +502,29 @@ function FilePlayer({
   React.useEffect(() => {
     const v = ref.current
     if (!v) return
+
+    // Load the source. HLS plays natively on Safari/iOS; elsewhere hls.js drives
+    // the same <video> element (all the tracking/controls below are unchanged).
+    let hlsInstance: { destroy: () => void } | null = null
+    if (hls && !v.canPlayType('application/vnd.apple.mpegurl')) {
+      import('hls.js')
+        .then(({ default: Hls }) => {
+          if (!ref.current) return
+          if (Hls.isSupported()) {
+            const h = new Hls({ enableWorker: true })
+            h.loadSource(src)
+            h.attachMedia(v)
+            hlsInstance = h
+          } else {
+            v.src = src
+          }
+        })
+        .catch(() => {
+          v.src = src
+        })
+    } else {
+      v.src = src
+    }
 
     const onLoaded = () => onReady()
     const onPlay = () => {
@@ -515,6 +567,7 @@ function FilePlayer({
     if (v.readyState >= 1) onReady()
     return () => {
       controls.current = null
+      hlsInstance?.destroy()
       v.removeEventListener('loadedmetadata', onLoaded)
       v.removeEventListener('play', onPlay)
       v.removeEventListener('playing', onPlay)
@@ -522,14 +575,14 @@ function FilePlayer({
       v.removeEventListener('ended', onEndedEvt)
       v.removeEventListener('timeupdate', onTime)
     }
-  }, [tracker, controls, onReady, onEnded])
+  }, [tracker, controls, onReady, onEnded, src, hls])
 
   return (
     <div className="aspect-video w-full bg-black">
       {/* eslint-disable-next-line jsx-a11y/media-has-caption -- captions live in the transcript panel */}
       <video
         ref={ref}
-        src={src}
+        poster={poster ?? undefined}
         title={title}
         controls
         preload="metadata"

@@ -25,6 +25,10 @@ export type PlayerLesson = {
   body: string | null
   contentUrl: string | null
   transcript: string | null
+  streamUrl: string | null
+  downloadUrl: string | null
+  posterUrl: string | null
+  videoProvider: string | null
 }
 
 export type PlayerModule = {

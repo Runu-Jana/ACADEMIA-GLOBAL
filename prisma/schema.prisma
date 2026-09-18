@@ -403,6 +403,19 @@ model Lesson {
   /// panel in the player (accessibility + read-along) and, later, AI summaries.
   transcript  String?
 
+  // --- Managed video (provider-agnostic; the seam for offline + adaptive video) ---
+  /// Adaptive HLS playback URL (.m3u8) from a managed provider. When set it takes
+  /// precedence over `contentUrl` and plays via hls.js. Unlike a YouTube/Vimeo
+  /// embed, a managed source can be made downloadable for offline viewing.
+  streamUrl     String?
+  /// A progressive MP4 (or provider download URL) for OFFLINE download. Null for
+  /// sources that can't be downloaded (YouTube/Vimeo embeds).
+  downloadUrl   String?
+  /// Poster/thumbnail shown before playback and in the offline library.
+  posterUrl     String?
+  /// Provider tag for future signed-URL / DRM logic: "mux" | "cloudflare" | "bunny".
+  videoProvider String?
+
   moduleId String
   module   Module @relation(fields: [moduleId], references: [id], onDelete: Cascade)
 

@@ -61,3 +61,69 @@ export function parseVideoUrl(raw: string | null | undefined): ParsedVideo {
 
   return { kind: 'unknown' }
 }
+
+/* ------------------------------------------------------------------ managed */
+
+/**
+ * A lesson's playable video, resolved from either a managed provider (adaptive
+ * HLS, downloadable for offline) or the legacy `contentUrl` (YouTube/Vimeo/file).
+ * This is the seam the player and the offline layer both read, so swapping in a
+ * managed provider (Mux/Cloudflare/Bunny) never touches the player.
+ */
+export type LessonVideoSource =
+  | { kind: 'hls'; src: string; poster: string | null; downloadUrl: string | null; provider: string | null }
+  | { kind: 'youtube'; id: string; embedUrl: string }
+  | { kind: 'vimeo'; id: string; embedUrl: string }
+  | { kind: 'file'; fileUrl: string; poster: string | null; downloadUrl: string | null }
+  | { kind: 'unknown' }
+
+/** The lesson fields the resolver reads (a subset of the Prisma Lesson). */
+export type LessonVideoInput = {
+  type?: string | null
+  contentUrl?: string | null
+  streamUrl?: string | null
+  downloadUrl?: string | null
+  posterUrl?: string | null
+  videoProvider?: string | null
+}
+
+const clean = (v: string | null | undefined) => {
+  const t = (v ?? '').trim()
+  return t ? t : null
+}
+
+export function resolveLessonVideo(l: LessonVideoInput): LessonVideoSource {
+  if (l.type === 'LIVE') return { kind: 'unknown' }
+
+  const poster = clean(l.posterUrl)
+
+  // A managed HLS source wins over the legacy contentUrl.
+  const stream = clean(l.streamUrl)
+  if (stream) {
+    return { kind: 'hls', src: stream, poster, downloadUrl: clean(l.downloadUrl), provider: clean(l.videoProvider) }
+  }
+
+  const parsed = parseVideoUrl(l.contentUrl)
+  switch (parsed.kind) {
+    case 'youtube':
+      return { kind: 'youtube', id: parsed.id, embedUrl: parsed.embedUrl }
+    case 'vimeo':
+      return { kind: 'vimeo', id: parsed.id, embedUrl: parsed.embedUrl }
+    case 'file':
+      // A directly-hosted file is itself downloadable; an explicit downloadUrl wins.
+      return { kind: 'file', fileUrl: parsed.fileUrl, poster, downloadUrl: clean(l.downloadUrl) ?? parsed.fileUrl }
+    default:
+      return { kind: 'unknown' }
+  }
+}
+
+/** Whether this lesson can be saved for offline viewing (never for YT/Vimeo embeds). */
+export function isDownloadable(src: LessonVideoSource): boolean {
+  return (src.kind === 'hls' || src.kind === 'file') && !!src.downloadUrl
+}
+
+/** The single URL a native client fetches to store the lesson offline, or null. */
+export function downloadUrlOf(src: LessonVideoSource): string | null {
+  if (src.kind === 'hls' || src.kind === 'file') return src.downloadUrl
+  return null
+}

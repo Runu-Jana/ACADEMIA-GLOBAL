@@ -64,6 +64,10 @@ export default async function LearnCoursePage({ params, searchParams }: PageProp
                 body: true,
                 contentUrl: true,
                 transcript: true,
+                streamUrl: true,
+                downloadUrl: true,
+                posterUrl: true,
+                videoProvider: true,
               },
             },
             tests: {
