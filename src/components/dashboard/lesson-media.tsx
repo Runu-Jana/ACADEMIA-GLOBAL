@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { Play, Radio, MonitorPlay, Clock, FileText, Search, Copy, Check, ChevronDown, CheckCircle2 } from 'lucide-react'
+import { Play, Radio, MonitorPlay, Clock, FileText, Search, Copy, Check, ChevronDown, CheckCircle2, RotateCcw } from 'lucide-react'
 import { parseVideoUrl } from '@/lib/video'
 import {
   WATCH_COMPLETE_THRESHOLD,
@@ -62,29 +62,113 @@ export function LessonVideo(props: VideoProps) {
 
   const tracker = useWatchTracker(props)
 
+  // Imperative handle each player populates once it's ready to seek/play, so the
+  // resume prompt can drive it without silently jumping the video on load.
+  const controls = React.useRef<PlayerControls | null>(null)
+  const [ready, setReady] = React.useState(false)
+  const [dismissed, setDismissed] = React.useState(false)
+  const onReady = React.useCallback(() => setReady(true), [])
+
+  const resumeSec = props.alreadyComplete ? 0 : Math.floor(props.initialPositionSec ?? 0)
+  // Only offer a resume when there's a meaningful way in (more than a few
+  // seconds watched, and not already finished).
+  const showResume = resumeSec >= 5 && !dismissed
+
   if (parsed.kind === 'youtube' || parsed.kind === 'vimeo' || parsed.kind === 'file') {
     return (
       <div>
-        {parsed.kind === 'youtube' && (
-          <YouTubePlayer videoId={parsed.id} initialPositionSec={props.initialPositionSec ?? 0} tracker={tracker} />
-        )}
-        {parsed.kind === 'vimeo' && (
-          <VimeoPlayer videoId={parsed.id} initialPositionSec={props.initialPositionSec ?? 0} tracker={tracker} />
-        )}
-        {parsed.kind === 'file' && (
-          <FilePlayer
-            src={parsed.fileUrl}
-            title={lesson.title}
-            initialPositionSec={props.initialPositionSec ?? 0}
-            tracker={tracker}
-          />
-        )}
+        <div className="relative">
+          {parsed.kind === 'youtube' && (
+            <YouTubePlayer videoId={parsed.id} controls={controls} onReady={onReady} tracker={tracker} />
+          )}
+          {parsed.kind === 'vimeo' && (
+            <VimeoPlayer videoId={parsed.id} controls={controls} onReady={onReady} tracker={tracker} />
+          )}
+          {parsed.kind === 'file' && (
+            <FilePlayer src={parsed.fileUrl} title={lesson.title} controls={controls} onReady={onReady} tracker={tracker} />
+          )}
+          {showResume && (
+            <ResumeOverlay
+              seconds={resumeSec}
+              ready={ready}
+              onResume={() => {
+                controls.current?.seek(resumeSec)
+                controls.current?.play()
+                setDismissed(true)
+              }}
+              onStartOver={() => {
+                controls.current?.play()
+                setDismissed(true)
+              }}
+            />
+          )}
+        </div>
         <WatchBar pct={tracker.displayPct} complete={tracker.complete} />
       </div>
     )
   }
 
   return <VideoPlaceholder lesson={lesson} />
+}
+
+/** Imperative controls a player exposes once ready, for the resume prompt. */
+type PlayerControls = {
+  seek: (sec: number) => void
+  play: () => void
+}
+
+/** "272" → "4:32"; "3725" → "1:02:05". */
+function formatClock(totalSec: number): string {
+  const s = Math.max(0, Math.floor(totalSec))
+  const h = Math.floor(s / 3600)
+  const m = Math.floor((s % 3600) / 60)
+  const sec = s % 60
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return h > 0 ? `${h}:${pad(m)}:${pad(sec)}` : `${m}:${pad(sec)}`
+}
+
+/**
+ * Offered on load when a learner has watched part of this video before. Rather
+ * than silently jumping the playhead (disorienting), it asks: pick up where you
+ * left off, or start over.
+ */
+function ResumeOverlay({
+  seconds,
+  ready,
+  onResume,
+  onStartOver,
+}: {
+  seconds: number
+  ready: boolean
+  onResume: () => void
+  onStartOver: () => void
+}) {
+  return (
+    <div className="absolute inset-0 z-10 grid place-items-center bg-black/65 px-6 backdrop-blur-sm">
+      <div className="flex flex-col items-center gap-3.5 text-center">
+        <p className="text-[13px] font-medium text-white/80">You left off at {formatClock(seconds)}</p>
+        <div className="flex flex-wrap items-center justify-center gap-2.5">
+          <button
+            type="button"
+            onClick={onResume}
+            disabled={!ready}
+            className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-bold text-primary-800 shadow-lift transition hover:bg-white/90 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            <Play className="h-4 w-4 fill-current" />
+            Resume from {formatClock(seconds)}
+          </button>
+          <button
+            type="button"
+            onClick={onStartOver}
+            className="inline-flex items-center gap-2 rounded-xl border border-white/40 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-white/10"
+          >
+            <RotateCcw className="h-4 w-4" />
+            Start over
+          </button>
+        </div>
+      </div>
+    </div>
+  )
 }
 
 /* ---------------------------------------------------------- watch tracking */
@@ -216,12 +300,14 @@ function WatchBar({ pct, complete }: { pct: number; complete: boolean }) {
 function FilePlayer({
   src,
   title,
-  initialPositionSec,
+  controls,
+  onReady,
   tracker,
 }: {
   src: string
   title: string
-  initialPositionSec: number
+  controls: React.RefObject<PlayerControls | null>
+  onReady: () => void
   tracker: Tracker
 }) {
   const ref = React.useRef<HTMLVideoElement>(null)
@@ -231,15 +317,7 @@ function FilePlayer({
     const v = ref.current
     if (!v) return
 
-    const onLoaded = () => {
-      if (initialPositionSec > 0 && Number.isFinite(v.duration) && initialPositionSec < v.duration - 1) {
-        try {
-          v.currentTime = initialPositionSec
-        } catch {
-          /* seeking not ready — ignore */
-        }
-      }
-    }
+    const onLoaded = () => onReady()
     const onPlay = () => {
       playingRef.current = true
     }
@@ -253,13 +331,29 @@ function FilePlayer({
       else tracker.setPosition(v.currentTime, v.duration || 0)
     }
 
+    controls.current = {
+      seek: (sec) => {
+        try {
+          v.currentTime = sec
+        } catch {
+          /* not seekable yet — ignore */
+        }
+      },
+      play: () => {
+        v.play().catch(() => {})
+      },
+    }
+
     v.addEventListener('loadedmetadata', onLoaded)
     v.addEventListener('play', onPlay)
     v.addEventListener('playing', onPlay)
     v.addEventListener('pause', onPause)
     v.addEventListener('ended', onPause)
     v.addEventListener('timeupdate', onTime)
+    // Metadata may already be loaded by the time this effect runs.
+    if (v.readyState >= 1) onReady()
     return () => {
+      controls.current = null
       v.removeEventListener('loadedmetadata', onLoaded)
       v.removeEventListener('play', onPlay)
       v.removeEventListener('playing', onPlay)
@@ -267,7 +361,7 @@ function FilePlayer({
       v.removeEventListener('ended', onPause)
       v.removeEventListener('timeupdate', onTime)
     }
-  }, [tracker, initialPositionSec])
+  }, [tracker, controls, onReady])
 
   return (
     <div className="aspect-video w-full bg-black">
@@ -311,11 +405,13 @@ function loadYouTubeApi(): Promise<any> {
 
 function YouTubePlayer({
   videoId,
-  initialPositionSec,
+  controls,
+  onReady,
   tracker,
 }: {
   videoId: string
-  initialPositionSec: number
+  controls: React.RefObject<PlayerControls | null>
+  onReady: () => void
   tracker: Tracker
 }) {
   const hostRef = React.useRef<HTMLDivElement>(null)
@@ -333,10 +429,16 @@ function YouTubePlayer({
           rel: 0,
           playsinline: 1,
           modestbranding: 1,
-          start: initialPositionSec > 0 ? Math.floor(initialPositionSec) : undefined,
           origin: window.location.origin,
         },
         events: {
+          onReady: () => {
+            controls.current = {
+              seek: (sec) => player.seekTo(sec, true),
+              play: () => player.playVideo(),
+            }
+            onReady()
+          },
           onStateChange: (e: any) => {
             // Save immediately when the learner pauses or the video ends.
             if (e.data === YT.PlayerState.PAUSED || e.data === YT.PlayerState.ENDED) {
@@ -362,6 +464,7 @@ function YouTubePlayer({
 
     return () => {
       cancelled = true
+      controls.current = null
       if (poll) clearInterval(poll)
       try {
         player?.destroy?.()
@@ -369,7 +472,7 @@ function YouTubePlayer({
         /* ignore */
       }
     }
-  }, [videoId, initialPositionSec, tracker])
+  }, [videoId, controls, onReady, tracker])
 
   return (
     <div className="aspect-video w-full bg-black">
@@ -398,11 +501,13 @@ function loadVimeoApi(): Promise<any> {
 
 function VimeoPlayer({
   videoId,
-  initialPositionSec,
+  controls,
+  onReady,
   tracker,
 }: {
   videoId: string
-  initialPositionSec: number
+  controls: React.RefObject<PlayerControls | null>
+  onReady: () => void
   tracker: Tracker
 }) {
   const hostRef = React.useRef<HTMLDivElement>(null)
@@ -420,7 +525,12 @@ function VimeoPlayer({
       })
 
       player.ready().then(() => {
-        if (initialPositionSec > 0) player.setCurrentTime(initialPositionSec).catch(() => {})
+        if (cancelled) return
+        controls.current = {
+          seek: (sec) => player.setCurrentTime(sec).catch(() => {}),
+          play: () => player.play().catch(() => {}),
+        }
+        onReady()
       })
 
       player.on('play', () => {
@@ -444,13 +554,14 @@ function VimeoPlayer({
 
     return () => {
       cancelled = true
+      controls.current = null
       try {
         player?.destroy?.()
       } catch {
         /* ignore */
       }
     }
-  }, [videoId, initialPositionSec, tracker])
+  }, [videoId, controls, onReady, tracker])
 
   return (
     <div className="aspect-video w-full overflow-hidden bg-black [&_iframe]:absolute [&_iframe]:inset-0 [&_iframe]:h-full [&_iframe]:w-full">
