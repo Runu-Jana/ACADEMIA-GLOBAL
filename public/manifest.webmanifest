@@ -1,10 +1,14 @@
 {
+  "id": "/",
   "name": "Shiksha Sarthi — Virtual Learning",
-  "short_name": "Academia",
+  "short_name": "Shiksha Sarthi",
   "description": "Restart, continue and complete your education journey with UGC-entitled online and distance degrees.",
+  "lang": "en",
+  "dir": "ltr",
   "start_url": "/dashboard",
   "scope": "/",
   "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
   "orientation": "portrait-primary",
   "background_color": "#ffffff",
   "theme_color": "#1d4ed8",
@@ -23,16 +27,22 @@
       "purpose": "any"
     },
     {
+      "src": "/icons/icon-maskable-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
       "src": "/icons/icon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any"
-    },
-    {
-      "src": "/icons/icon-maskable.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "maskable"
     }
   ],
   "shortcuts": [

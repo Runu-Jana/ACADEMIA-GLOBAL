@@ -6,12 +6,19 @@
  * student's data to the next person who opens the app offline.
  */
 
-const VERSION = 'v1'
+const VERSION = 'v2'
 const SHELL_CACHE = `ag-shell-${VERSION}`
 const ASSET_CACHE = `ag-assets-${VERSION}`
 const OFFLINE_URL = '/offline'
 
-const SHELL_ASSETS = [OFFLINE_URL, '/icons/icon.svg', '/manifest.webmanifest']
+const SHELL_ASSETS = [
+  OFFLINE_URL,
+  '/manifest.webmanifest',
+  '/icons/icon.svg',
+  '/icons/icon-192.png',
+  '/icons/icon-512.png',
+  '/icons/icon-maskable-512.png',
+]
 
 // Paths whose responses must never touch the cache.
 const NEVER_CACHE = ['/api/', '/dashboard', '/admin', '/apply', '/login', '/signup']
