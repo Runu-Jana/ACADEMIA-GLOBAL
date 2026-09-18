@@ -13,6 +13,8 @@ import { Button, buttonVariants } from '@/components/ui/button'
 import { MaterialIcon, LessonTypeIcon, lessonTypeLabel } from './primitives'
 import { LessonVideo, LessonTranscript, type WatchProgress } from './lesson-media'
 import { TutorPanel } from './tutor-panel'
+import { OfflineDownloads } from './offline-downloads'
+import { resolveLessonVideo, isDownloadable } from '@/lib/video'
 import { MATERIAL_TYPES } from '@/lib/constants'
 import { cn, formatBytes, formatDate } from '@/lib/utils'
 
@@ -239,6 +241,16 @@ export function CoursePlayer({
     void markLesson(lessonId, true)
   }
 
+  // Whether anything in this course can be saved offline — downloadable lessons
+  // (managed/direct video with a download source) plus every study material.
+  // Drives the "Save offline" button's visibility.
+  const downloadableCount = React.useMemo(() => {
+    const lessons = modules
+      .flatMap((m) => m.lessons)
+      .filter((l) => isDownloadable(resolveLessonVideo(l))).length
+    return lessons + materials.length
+  }, [modules, materials])
+
   const materialsByType = React.useMemo(() => {
     const groups = new Map<string, PlayerMaterial[]>()
     for (const m of materials) {
@@ -275,7 +287,10 @@ export function CoursePlayer({
                   Certificate issued
                 </Badge>
               )}
-              <div className="ml-auto">
+              <div className="ml-auto flex items-center gap-2">
+                {downloadableCount > 0 && (
+                  <OfflineDownloads courseId={courseId} courseTitle={courseTitle} />
+                )}
                 <TutorPanel
                   courseId={courseId}
                   courseTitle={courseTitle}
