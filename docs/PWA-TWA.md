@@ -61,16 +61,30 @@ chrome — so the app store listing and the web app stay one codebase.
 
 ### Option B — Bubblewrap (CLI, more control)
 
+A ready-made config lives at repo root: **`twa-manifest.json`** (brand name,
+colours, `packageId` `in.shikshasarthi.app`, `startUrl` `/dashboard`, the three
+shortcuts, icon URLs). So you skip the interactive `init` and just point it at your
+domain:
+
 ```bash
 npm i -g @bubblewrap/cli
-bubblewrap init --manifest https://YOUR_DOMAIN/manifest.webmanifest
-# answer prompts: application id (e.g. in.shikshasarthi.app), name, launcher name,
-# start url, colours (theme #1d4ed8) — most are read from the manifest
-bubblewrap build          # produces app-release-signed.apk / .aab + prints the fingerprint
+
+# 1. Replace every "your-domain.example" in twa-manifest.json with your real domain
+#    (host, iconUrl, maskableIconUrl, webManifestUrl, fullScopeUrl, shortcut icons).
+# 2. From the folder holding twa-manifest.json:
+bubblewrap update          # pulls icons/manifest from the live site into the project
+bubblewrap build           # produces app-release-bundle.aab (+ .apk) and prints the
+                           # SHA-256 fingerprint you need for assetlinks.json
 ```
 
-Keep `applicationId` in sync with `package_name` in `assetlinks.json`
-(currently `in.shikshasarthi.app` — change both together if you pick another).
+First run creates the Android signing keystore at `./android-signing.keystore`
+(alias `shiksha`) — **back it up; it signs every future update.** Keep `packageId`
+in `twa-manifest.json` in sync with `package_name` in `assetlinks.json` (both
+`in.shikshasarthi.app` — change together if you pick another).
+
+> Requirements for Bubblewrap: JDK 17 and the Android SDK (Bubblewrap can install a
+> bundled JDK/SDK on first run). PWABuilder (Option A) needs neither — it's the
+> faster route if you don't already have Android tooling.
 
 ## Step 3 — Digital Asset Links (drops the address bar)
 
@@ -89,11 +103,34 @@ Keep `applicationId` in sync with `package_name` in `assetlinks.json`
    <https://developers.google.com/digital-asset-links/tools/generator>
 4. Reinstall the app — the address bar should be gone.
 
+## Play Store listing assets
+
+| Asset | Requirement | Status |
+|---|---|---|
+| App icon | 512×512 PNG | ✅ `public/icons/icon-512.png` |
+| Feature graphic | 1024×500 PNG | ✅ `store-assets/play-feature-graphic.png` (edit the `.svg` to restyle) |
+| Phone screenshots | 2–8, min 320px, 16:9 or 9:16 | ⬜ capture from the running app (Chrome DevTools device mode, or a phone) |
+| Short description | ≤ 80 chars | ⬜ e.g. "UGC-entitled online & distance degrees, courses, and exam prep." |
+| Full description | ≤ 4000 chars | ⬜ |
+| Privacy policy URL | public HTTPS page | ⬜ real policy required (current copy is placeholder) |
+| Data safety form | in Play Console | ⬜ declare what you collect (name, email, payments) |
+| Content rating | questionnaire | ⬜ |
+
 ## Publish
 
 - Google Play Developer account: **$25** one-time.
-- Upload the **.aab**, fill the store listing (screenshots, description, the privacy
-  policy URL), complete the data-safety form, submit for review.
+- Upload the **.aab**, attach the assets above, complete the data-safety +
+  content-rating forms, add the privacy policy URL, and submit for review
+  (first review typically a few days).
+
+## Where things live
+
+- `public/manifest.webmanifest` — web manifest
+- `public/sw.js` + `src/components/pwa-register.tsx` — service worker + registration
+- `public/icons/` — all icons (incl. PNG maskables)
+- `public/.well-known/assetlinks.json` — Digital Asset Links (fill the fingerprint)
+- `twa-manifest.json` — Bubblewrap build config
+- `store-assets/` — Play listing art (feature graphic + its source SVG)
 
 ## Updating
 

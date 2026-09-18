@@ -1,0 +1,52 @@
+{
+  "packageId": "in.shikshasarthi.app",
+  "host": "your-domain.example",
+  "name": "Shiksha Sarthi — Virtual Learning",
+  "launcherName": "Shiksha Sarthi",
+  "display": "standalone",
+  "orientation": "portrait",
+  "themeColor": "#1d4ed8",
+  "themeColorDark": "#0a0f1e",
+  "navigationColor": "#1d4ed8",
+  "navigationColorDark": "#0a0f1e",
+  "navigationDividerColor": "#1e3a8a",
+  "navigationDividerColorDark": "#000000",
+  "backgroundColor": "#ffffff",
+  "enableNotifications": false,
+  "startUrl": "/dashboard",
+  "iconUrl": "https://your-domain.example/icons/icon-512.png",
+  "maskableIconUrl": "https://your-domain.example/icons/icon-maskable-512.png",
+  "webManifestUrl": "https://your-domain.example/manifest.webmanifest",
+  "fallbackType": "customtabs",
+  "fullScopeUrl": "https://your-domain.example/",
+  "minSdkVersion": 21,
+  "appVersionName": "1.0.0",
+  "appVersionCode": 1,
+  "shortcuts": [
+    {
+      "name": "My Learning",
+      "shortName": "Learning",
+      "url": "/dashboard/learn",
+      "chosenIconUrl": "https://your-domain.example/icons/icon-192.png"
+    },
+    {
+      "name": "Browse Courses",
+      "shortName": "Courses",
+      "url": "/courses",
+      "chosenIconUrl": "https://your-domain.example/icons/icon-192.png"
+    },
+    {
+      "name": "Study Material",
+      "shortName": "Material",
+      "url": "/dashboard/materials",
+      "chosenIconUrl": "https://your-domain.example/icons/icon-192.png"
+    }
+  ],
+  "signingKey": {
+    "path": "./android-signing.keystore",
+    "alias": "shiksha"
+  },
+  "enableSiteSettingsShortcut": true,
+  "isChromeOSOnly": false,
+  "isMetaQuest": false
+}

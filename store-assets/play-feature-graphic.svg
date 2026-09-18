@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="500" viewBox="0 0 1024 500">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#1e3a8a"/>
+      <stop offset="55%" stop-color="#1d4ed8"/>
+      <stop offset="100%" stop-color="#3b76f6"/>
+    </linearGradient>
+    <linearGradient id="holo" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#22d3ee"/>
+      <stop offset="50%" stop-color="#818cf8"/>
+      <stop offset="100%" stop-color="#e879f9"/>
+    </linearGradient>
+  </defs>
+  <rect width="1024" height="500" fill="url(#bg)"/>
+  <circle cx="880" cy="90" r="230" fill="url(#holo)" opacity=".22"/>
+  <circle cx="120" cy="470" r="180" fill="url(#holo)" opacity=".14"/>
+
+  <!-- logo badge -->
+  <rect x="96" y="170" width="160" height="160" rx="38" fill="#ffffff" fill-opacity="0.12" stroke="#ffffff" stroke-opacity="0.35" stroke-width="2"/>
+  <g transform="translate(176 250) scale(4.6) translate(-12 -12)" fill="none">
+    <path d="M12 3 3 7.5l9 4.5 9-4.5L12 3Z" fill="#fff"/>
+    <path d="M6 10.5v4.2c0 .7.4 1.4 1.1 1.7 1.5.8 3.2 1.2 4.9 1.2s3.4-.4 4.9-1.2c.7-.3 1.1-1 1.1-1.7v-4.2" stroke="#fff" stroke-width="1.7" stroke-linecap="round"/>
+    <path d="M21 7.5v5" stroke="#fff" stroke-width="1.7" stroke-linecap="round"/>
+  </g>
+
+  <!-- wordmark -->
+  <text x="300" y="235" font-family="Arial, Helvetica, sans-serif" font-size="76" font-weight="800" fill="#ffffff">Shiksha Sarthi</text>
+  <text x="302" y="292" font-family="Arial, Helvetica, sans-serif" font-size="34" font-weight="600" fill="#dbeafe">Learn Today, Lead Tomorrow</text>
+  <text x="302" y="340" font-family="Arial, Helvetica, sans-serif" font-size="26" font-weight="500" fill="#bfdbfe" fill-opacity="0.92">UGC-entitled online &amp; distance degrees</text>
+</svg>
