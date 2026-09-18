@@ -42,6 +42,12 @@ type VideoProps = {
   onProgress?: (data: WatchProgress) => void
   /** Fires once when the watched fraction first crosses the completion threshold. */
   onReachComplete?: (lessonId: string) => void
+  /** Title of the next lesson, for the "Up next" end card (null if this is last). */
+  nextLabel?: string | null
+  /** Advance to the next lesson (from the end card / auto-advance countdown). */
+  onPlayNext?: () => void
+  /** Start playing as soon as ready — set when this lesson was auto-advanced into. */
+  autoPlay?: boolean
 }
 
 const THRESHOLD_PCT = Math.round(WATCH_COMPLETE_THRESHOLD * 100)
@@ -67,25 +73,37 @@ export function LessonVideo(props: VideoProps) {
   const controls = React.useRef<PlayerControls | null>(null)
   const [ready, setReady] = React.useState(false)
   const [dismissed, setDismissed] = React.useState(false)
+  const [ended, setEnded] = React.useState(false)
   const onReady = React.useCallback(() => setReady(true), [])
+  const onEnded = React.useCallback(() => setEnded(true), [])
 
   const resumeSec = props.alreadyComplete ? 0 : Math.floor(props.initialPositionSec ?? 0)
   // Only offer a resume when there's a meaningful way in (more than a few
   // seconds watched, and not already finished).
-  const showResume = resumeSec >= 5 && !dismissed
+  const showResume = resumeSec >= 5 && !dismissed && !ended
+
+  // Auto-advanced into this lesson → start playing once ready (and there's no
+  // resume choice to make first).
+  const autoPlayedRef = React.useRef(false)
+  React.useEffect(() => {
+    if (props.autoPlay && ready && !showResume && !autoPlayedRef.current) {
+      autoPlayedRef.current = true
+      controls.current?.play()
+    }
+  }, [props.autoPlay, ready, showResume])
 
   if (parsed.kind === 'youtube' || parsed.kind === 'vimeo' || parsed.kind === 'file') {
     return (
       <div>
         <div className="relative">
           {parsed.kind === 'youtube' && (
-            <YouTubePlayer videoId={parsed.id} controls={controls} onReady={onReady} tracker={tracker} />
+            <YouTubePlayer videoId={parsed.id} controls={controls} onReady={onReady} onEnded={onEnded} tracker={tracker} />
           )}
           {parsed.kind === 'vimeo' && (
-            <VimeoPlayer videoId={parsed.id} controls={controls} onReady={onReady} tracker={tracker} />
+            <VimeoPlayer videoId={parsed.id} controls={controls} onReady={onReady} onEnded={onEnded} tracker={tracker} />
           )}
           {parsed.kind === 'file' && (
-            <FilePlayer src={parsed.fileUrl} title={lesson.title} controls={controls} onReady={onReady} tracker={tracker} />
+            <FilePlayer src={parsed.fileUrl} title={lesson.title} controls={controls} onReady={onReady} onEnded={onEnded} tracker={tracker} />
           )}
           {showResume && (
             <ResumeOverlay
@@ -102,13 +120,105 @@ export function LessonVideo(props: VideoProps) {
               }}
             />
           )}
+          {ended && (
+            <EndCard
+              nextLabel={props.nextLabel ?? null}
+              onPlayNext={props.onPlayNext}
+              onReplay={() => {
+                setEnded(false)
+                controls.current?.seek(0)
+                controls.current?.play()
+              }}
+            />
+          )}
         </div>
-        <WatchBar pct={tracker.displayPct} complete={tracker.complete} />
+        <WatchBar pct={tracker.displayPct} complete={tracker.complete} marks={tracker.marks} />
       </div>
     )
   }
 
   return <VideoPlaceholder lesson={lesson} />
+}
+
+/**
+ * Shown when a video finishes. If there's a next lesson it counts down and
+ * auto-advances (Coursera-style), with the learner able to jump now, cancel, or
+ * replay. On the last lesson it just offers a replay.
+ */
+function EndCard({
+  nextLabel,
+  onPlayNext,
+  onReplay,
+}: {
+  nextLabel: string | null
+  onPlayNext?: () => void
+  onReplay: () => void
+}) {
+  const canAdvance = Boolean(nextLabel && onPlayNext)
+  const [countdown, setCountdown] = React.useState<number | null>(canAdvance ? 5 : null)
+
+  React.useEffect(() => {
+    if (countdown === null) return
+    if (countdown <= 0) {
+      onPlayNext?.()
+      return
+    }
+    const t = setTimeout(() => setCountdown((c) => (c === null ? null : c - 1)), 1000)
+    return () => clearTimeout(t)
+  }, [countdown, onPlayNext])
+
+  return (
+    <div className="absolute inset-0 z-10 grid place-items-center bg-black/70 px-6 backdrop-blur-sm">
+      <div className="flex w-full max-w-sm flex-col items-center gap-3.5 text-center">
+        {canAdvance ? (
+          <>
+            <p className="text-[11px] font-bold uppercase tracking-wider text-white/60">Up next</p>
+            <p className="line-clamp-2 text-balance text-sm font-bold text-white">{nextLabel}</p>
+            <div className="flex flex-wrap items-center justify-center gap-2.5">
+              <button
+                type="button"
+                onClick={() => onPlayNext?.()}
+                className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-bold text-primary-800 shadow-lift transition hover:bg-white/90"
+              >
+                <Play className="h-4 w-4 fill-current" />
+                {countdown !== null ? `Play now (${countdown})` : 'Play next'}
+              </button>
+              <button
+                type="button"
+                onClick={onReplay}
+                className="inline-flex items-center gap-2 rounded-xl border border-white/40 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-white/10"
+              >
+                <RotateCcw className="h-4 w-4" />
+                Replay
+              </button>
+            </div>
+            {countdown !== null && (
+              <button
+                type="button"
+                onClick={() => setCountdown(null)}
+                className="text-[12px] font-semibold text-white/60 underline-offset-2 transition hover:text-white/90 hover:underline"
+              >
+                Cancel auto-play
+              </button>
+            )}
+          </>
+        ) : (
+          <>
+            <CheckCircle2 className="h-8 w-8 text-emerald-400" />
+            <p className="text-sm font-bold text-white">You&rsquo;ve finished this lesson</p>
+            <button
+              type="button"
+              onClick={onReplay}
+              className="inline-flex items-center gap-2 rounded-xl border border-white/40 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-white/10"
+            >
+              <RotateCcw className="h-4 w-4" />
+              Replay
+            </button>
+          </>
+        )}
+      </div>
+    </div>
+  )
 }
 
 /** Imperative controls a player exposes once ready, for the resume prompt. */
@@ -173,6 +283,9 @@ function ResumeOverlay({
 
 /* ---------------------------------------------------------- watch tracking */
 
+/** A watched stretch of the timeline, positioned as percentages of duration. */
+type WatchMark = { start: number; width: number }
+
 type Tracker = {
   /** Credit the currently-playing second and recompute progress. */
   tick: (currentTime: number, duration: number) => void
@@ -182,6 +295,31 @@ type Tracker = {
   flush: (force?: boolean) => void
   displayPct: number
   complete: boolean
+  /** Watched stretches, for the watched-vs-unwatched timeline. */
+  marks: WatchMark[]
+}
+
+/** Merge watched integer-seconds into positioned timeline stretches. */
+function computeMarks(watched: Set<number>, durationSec: number): WatchMark[] {
+  if (!durationSec || durationSec <= 0 || watched.size === 0) return []
+  const dur = Math.floor(durationSec)
+  const secs = [...watched].filter((n) => n >= 0 && n <= dur).sort((a, b) => a - b)
+  const marks: WatchMark[] = []
+  let start = secs[0]
+  let prev = secs[0]
+  const push = (a: number, b: number) => {
+    marks.push({ start: (a / dur) * 100, width: ((b - a + 1) / dur) * 100 })
+  }
+  for (let i = 1; i < secs.length; i++) {
+    if (secs[i] === prev + 1) {
+      prev = secs[i]
+      continue
+    }
+    push(start, prev)
+    start = prev = secs[i]
+  }
+  push(start, prev)
+  return marks
 }
 
 /**
@@ -212,6 +350,7 @@ function useWatchTracker(props: VideoProps): Tracker {
     props.alreadyComplete ? 100 : Math.min(100, props.initialWatchedPct ?? 0),
   )
   const [complete, setComplete] = React.useState(Boolean(props.alreadyComplete))
+  const [marks, setMarks] = React.useState<WatchMark[]>([])
 
   const flush = React.useCallback((force = false) => {
     const now = Date.now()
@@ -234,6 +373,7 @@ function useWatchTracker(props: VideoProps): Tracker {
 
       const pct = computeWatchedPct(watchedRef.current.size, durationRef.current)
       setDisplayPct((prev) => (pct > prev ? pct : prev))
+      setMarks(computeMarks(watchedRef.current, durationRef.current))
 
       if (!completedRef.current && durationRef.current > 0 && pct >= THRESHOLD_PCT) {
         completedRef.current = true
@@ -265,21 +405,36 @@ function useWatchTracker(props: VideoProps): Tracker {
     }
   }, [flush])
 
-  return { tick, setPosition, flush, displayPct, complete }
+  return { tick, setPosition, flush, displayPct, complete, marks }
 }
 
-/** A slim progress bar showing how much of the video has been watched. */
-function WatchBar({ pct, complete }: { pct: number; complete: boolean }) {
+/**
+ * A slim timeline showing which parts of the video have been watched. Once the
+ * duration is known it renders the actual watched stretches (so gaps a learner
+ * skipped are visible); before then it falls back to a cumulative fill of the
+ * restored percentage.
+ */
+function WatchBar({ pct, complete, marks }: { pct: number; complete: boolean; marks: WatchMark[] }) {
+  const fill = complete
+    ? 'bg-emerald-500'
+    : 'bg-gradient-to-r from-primary-500 to-holo-violet'
   return (
     <div className="flex items-center gap-2.5 border-t border-border bg-muted/30 px-3.5 py-2">
-      <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
-        <div
-          className={cn(
-            'h-full rounded-full transition-[width] duration-500',
-            complete ? 'bg-emerald-500' : 'bg-gradient-to-r from-primary-500 to-holo-violet',
-          )}
-          style={{ width: `${Math.min(100, pct)}%` }}
-        />
+      <div className="relative h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
+        {marks.length > 0 ? (
+          marks.map((m, i) => (
+            <div
+              key={i}
+              className={cn('absolute inset-y-0 rounded-full', fill)}
+              style={{ left: `${m.start}%`, width: `${Math.max(0.5, m.width)}%` }}
+            />
+          ))
+        ) : (
+          <div
+            className={cn('h-full rounded-full transition-[width] duration-500', fill)}
+            style={{ width: `${Math.min(100, pct)}%` }}
+          />
+        )}
       </div>
       {complete ? (
         <span className="inline-flex shrink-0 items-center gap-1 text-[11.5px] font-bold text-emerald-600 dark:text-emerald-400">
@@ -302,12 +457,14 @@ function FilePlayer({
   title,
   controls,
   onReady,
+  onEnded,
   tracker,
 }: {
   src: string
   title: string
   controls: React.RefObject<PlayerControls | null>
   onReady: () => void
+  onEnded: () => void
   tracker: Tracker
 }) {
   const ref = React.useRef<HTMLVideoElement>(null)
@@ -325,6 +482,10 @@ function FilePlayer({
       playingRef.current = false
       tracker.setPosition(v.currentTime, v.duration || 0)
       tracker.flush(true)
+    }
+    const onEndedEvt = () => {
+      onPause()
+      onEnded()
     }
     const onTime = () => {
       if (playingRef.current) tracker.tick(v.currentTime, v.duration || 0)
@@ -348,7 +509,7 @@ function FilePlayer({
     v.addEventListener('play', onPlay)
     v.addEventListener('playing', onPlay)
     v.addEventListener('pause', onPause)
-    v.addEventListener('ended', onPause)
+    v.addEventListener('ended', onEndedEvt)
     v.addEventListener('timeupdate', onTime)
     // Metadata may already be loaded by the time this effect runs.
     if (v.readyState >= 1) onReady()
@@ -358,10 +519,10 @@ function FilePlayer({
       v.removeEventListener('play', onPlay)
       v.removeEventListener('playing', onPlay)
       v.removeEventListener('pause', onPause)
-      v.removeEventListener('ended', onPause)
+      v.removeEventListener('ended', onEndedEvt)
       v.removeEventListener('timeupdate', onTime)
     }
-  }, [tracker, controls, onReady])
+  }, [tracker, controls, onReady, onEnded])
 
   return (
     <div className="aspect-video w-full bg-black">
@@ -407,11 +568,13 @@ function YouTubePlayer({
   videoId,
   controls,
   onReady,
+  onEnded,
   tracker,
 }: {
   videoId: string
   controls: React.RefObject<PlayerControls | null>
   onReady: () => void
+  onEnded: () => void
   tracker: Tracker
 }) {
   const hostRef = React.useRef<HTMLDivElement>(null)
@@ -449,6 +612,7 @@ function YouTubePlayer({
               }
               tracker.flush(true)
             }
+            if (e.data === YT.PlayerState.ENDED) onEnded()
           },
         },
       })
@@ -472,7 +636,7 @@ function YouTubePlayer({
         /* ignore */
       }
     }
-  }, [videoId, controls, onReady, tracker])
+  }, [videoId, controls, onReady, onEnded, tracker])
 
   return (
     <div className="aspect-video w-full bg-black">
@@ -503,11 +667,13 @@ function VimeoPlayer({
   videoId,
   controls,
   onReady,
+  onEnded,
   tracker,
 }: {
   videoId: string
   controls: React.RefObject<PlayerControls | null>
   onReady: () => void
+  onEnded: () => void
   tracker: Tracker
 }) {
   const hostRef = React.useRef<HTMLDivElement>(null)
@@ -549,6 +715,7 @@ function VimeoPlayer({
         playing = false
         tracker.setPosition(d.seconds, d.duration)
         tracker.flush(true)
+        onEnded()
       })
     })
 
@@ -561,7 +728,7 @@ function VimeoPlayer({
         /* ignore */
       }
     }
-  }, [videoId, controls, onReady, tracker])
+  }, [videoId, controls, onReady, onEnded, tracker])
 
   return (
     <div className="aspect-video w-full overflow-hidden bg-black [&_iframe]:absolute [&_iframe]:inset-0 [&_iframe]:h-full [&_iframe]:w-full">

@@ -140,6 +140,21 @@ export function CoursePlayer({
     return Object.fromEntries(modules.map((m) => [m.id, m.id === activeModuleId]))
   })
 
+  // The lesson to auto-play once mounted — set only when we advanced into it from
+  // the end-of-video "Up next" card, so manual selections never autoplay.
+  const [autoPlayLessonId, setAutoPlayLessonId] = React.useState<string | null>(null)
+
+  // Manual navigation (sidebar, prev/next) clears any pending autoplay.
+  function selectLesson(lessonId: string) {
+    setActiveId(lessonId)
+    setAutoPlayLessonId(null)
+  }
+
+  function playNextLesson(lessonId: string) {
+    setActiveId(lessonId)
+    setAutoPlayLessonId(lessonId)
+  }
+
   const doneSet = React.useMemo(() => new Set(done), [done])
   const activeIndex = flat.findIndex((f) => f.lesson.id === activeId)
   const active = activeIndex >= 0 ? flat[activeIndex] : null
@@ -456,7 +471,7 @@ export function CoursePlayer({
 
                                   <button
                                     type="button"
-                                    onClick={() => setActiveId(l.id)}
+                                    onClick={() => selectLesson(l.id)}
                                     aria-current={selected ? 'true' : undefined}
                                     className="flex min-w-0 flex-1 items-center gap-2 py-2.5 text-left"
                                   >
@@ -600,6 +615,9 @@ export function CoursePlayer({
                   alreadyComplete={isDone}
                   onProgress={saveWatch}
                   onReachComplete={autoComplete}
+                  nextLabel={next?.lesson.title ?? null}
+                  onPlayNext={next ? () => playNextLesson(next.lesson.id) : undefined}
+                  autoPlay={autoPlayLessonId === active.lesson.id}
                 />
               )}
 
@@ -648,7 +666,7 @@ export function CoursePlayer({
                       variant="outline"
                       size="sm"
                       disabled={!prev}
-                      onClick={() => prev && setActiveId(prev.lesson.id)}
+                      onClick={() => prev && selectLesson(prev.lesson.id)}
                       className="flex-1 sm:flex-none"
                     >
                       <ChevronLeft className="h-3.5 w-3.5" />
@@ -659,7 +677,7 @@ export function CoursePlayer({
                       variant="outline"
                       size="sm"
                       disabled={!next}
-                      onClick={() => next && setActiveId(next.lesson.id)}
+                      onClick={() => next && selectLesson(next.lesson.id)}
                       className="flex-1 sm:flex-none"
                     >
                       Next
