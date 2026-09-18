@@ -39,7 +39,7 @@ export default async function LearnCoursePage({ params, searchParams }: PageProp
   })
   if (!enrollment) notFound()
 
-  const [course, progressRows, materials, attempts] = await Promise.all([
+  const [course, progressRows, watchRows, materials, attempts] = await Promise.all([
     prisma.course.findUnique({
       where: { id: courseId },
       select: {
@@ -84,6 +84,10 @@ export default async function LearnCoursePage({ params, searchParams }: PageProp
     prisma.lessonProgress.findMany({
       where: { userId: user.id, lesson: { module: { courseId } } },
       select: { lessonId: true },
+    }),
+    prisma.lessonWatch.findMany({
+      where: { userId: user.id, lesson: { module: { courseId } } },
+      select: { lessonId: true, positionSec: true, segments: true, watchedPct: true },
     }),
     prisma.material.findMany({
       where: { courseId },
@@ -142,6 +146,13 @@ export default async function LearnCoursePage({ params, searchParams }: PageProp
     }),
   )
 
+  const watchMap = Object.fromEntries(
+    watchRows.map((w) => [
+      w.lessonId,
+      { positionSec: w.positionSec, segments: w.segments, watchedPct: w.watchedPct },
+    ]),
+  )
+
   const initialLessonId = Array.isArray(lesson) ? (lesson[0] ?? null) : (lesson ?? null)
 
   // All lessons finished, but a course test is still unpassed and no certificate
@@ -169,6 +180,7 @@ export default async function LearnCoursePage({ params, searchParams }: PageProp
       materials={materialProps}
       tests={testProps}
       completedLessonIds={progressRows.map((p) => p.lessonId)}
+      watch={watchMap}
       initialProgressPct={enrollment.progressPct}
       initialLessonId={initialLessonId}
       certificateSerial={enrollment.certificate?.serial ?? null}

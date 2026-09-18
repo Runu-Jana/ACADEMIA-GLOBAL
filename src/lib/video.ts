@@ -10,8 +10,8 @@
  */
 
 export type ParsedVideo =
-  | { kind: 'youtube'; embedUrl: string }
-  | { kind: 'vimeo'; embedUrl: string }
+  | { kind: 'youtube'; id: string; embedUrl: string }
+  | { kind: 'vimeo'; id: string; embedUrl: string }
   | { kind: 'file'; fileUrl: string }
   | { kind: 'unknown' }
 
@@ -35,23 +35,23 @@ export function parseVideoUrl(raw: string | null | undefined): ParsedVideo {
   // ----- YouTube -----
   if (host === 'youtu.be') {
     const id = u.pathname.slice(1).split('/')[0]
-    if (YT_ID.test(id)) return { kind: 'youtube', embedUrl: ytEmbed(id) }
+    if (YT_ID.test(id)) return { kind: 'youtube', id, embedUrl: ytEmbed(id) }
   }
   if (host === 'youtube.com' || host === 'm.youtube.com' || host === 'youtube-nocookie.com') {
     const v = u.searchParams.get('v')
-    if (v && YT_ID.test(v)) return { kind: 'youtube', embedUrl: ytEmbed(v) }
+    if (v && YT_ID.test(v)) return { kind: 'youtube', id: v, embedUrl: ytEmbed(v) }
     const m = u.pathname.match(/^\/(?:embed|shorts|live|v)\/([A-Za-z0-9_-]{11})/)
-    if (m) return { kind: 'youtube', embedUrl: ytEmbed(m[1]) }
+    if (m) return { kind: 'youtube', id: m[1], embedUrl: ytEmbed(m[1]) }
   }
 
   // ----- Vimeo -----
   if (host === 'vimeo.com') {
     const m = u.pathname.match(/^\/(\d+)/)
-    if (m) return { kind: 'vimeo', embedUrl: `https://player.vimeo.com/video/${m[1]}` }
+    if (m) return { kind: 'vimeo', id: m[1], embedUrl: `https://player.vimeo.com/video/${m[1]}` }
   }
   if (host === 'player.vimeo.com') {
     const m = u.pathname.match(/^\/video\/(\d+)/)
-    if (m) return { kind: 'vimeo', embedUrl: `https://player.vimeo.com/video/${m[1]}` }
+    if (m) return { kind: 'vimeo', id: m[1], embedUrl: `https://player.vimeo.com/video/${m[1]}` }
   }
 
   // ----- Direct media file -----

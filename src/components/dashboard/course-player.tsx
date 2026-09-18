@@ -11,7 +11,7 @@ import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { MaterialIcon, LessonTypeIcon, lessonTypeLabel } from './primitives'
-import { LessonVideo, LessonTranscript } from './lesson-media'
+import { LessonVideo, LessonTranscript, type WatchProgress } from './lesson-media'
 import { TutorPanel } from './tutor-panel'
 import { MATERIAL_TYPES } from '@/lib/constants'
 import { cn, formatBytes, formatDate } from '@/lib/utils'
@@ -84,6 +84,7 @@ export function CoursePlayer({
   materials,
   tests,
   completedLessonIds,
+  watch,
   initialProgressPct,
   initialLessonId,
   certificateSerial,
@@ -98,6 +99,8 @@ export function CoursePlayer({
   materials: PlayerMaterial[]
   tests: PlayerTest[]
   completedLessonIds: string[]
+  /** Restored partial watch state per lesson, keyed by lesson id (for resume). */
+  watch: Record<string, { positionSec: number; segments: string; watchedPct: number }>
   initialProgressPct: number
   initialLessonId: string | null
   certificateSerial: string | null
@@ -151,9 +154,8 @@ export function CoursePlayer({
     setOpen((o) => (o[entry.moduleId] ? o : { ...o, [entry.moduleId]: true }))
   }, [activeId, flat])
 
-  async function toggleLesson(lessonId: string) {
+  async function markLesson(lessonId: string, completed: boolean) {
     if (pending) return
-    const completed = !doneSet.has(lessonId)
     const snapshot = done
 
     setPending(lessonId)
@@ -180,6 +182,28 @@ export function CoursePlayer({
     } finally {
       setPending(null)
     }
+  }
+
+  function toggleLesson(lessonId: string) {
+    void markLesson(lessonId, !doneSet.has(lessonId))
+  }
+
+  // Fire-and-forget save of partial watch state; never surfaces an error to the
+  // learner (it's best-effort resume data, not their completion). The player
+  // keeps callbacks in a ref, so these don't need to be referentially stable.
+  function saveWatch(data: WatchProgress) {
+    fetch('/api/progress/watch', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+      keepalive: true,
+    }).catch(() => {})
+  }
+
+  // The video crossed the watch threshold — mark it complete if it isn't already.
+  function autoComplete(lessonId: string) {
+    if (doneSet.has(lessonId)) return
+    void markLesson(lessonId, true)
   }
 
   const materialsByType = React.useMemo(() => {
@@ -553,7 +577,16 @@ export function CoursePlayer({
               {active.lesson.type === 'READING' ? (
                 <ReadingHeader lesson={active.lesson} moduleTitle={active.moduleTitle} />
               ) : (
-                <LessonVideo lesson={active.lesson} />
+                <LessonVideo
+                  key={active.lesson.id}
+                  lesson={active.lesson}
+                  initialPositionSec={watch[active.lesson.id]?.positionSec ?? 0}
+                  initialSegments={watch[active.lesson.id]?.segments ?? ''}
+                  initialWatchedPct={watch[active.lesson.id]?.watchedPct ?? 0}
+                  alreadyComplete={isDone}
+                  onProgress={saveWatch}
+                  onReachComplete={autoComplete}
+                />
               )}
 
               <div className="p-4 sm:p-5">

@@ -42,6 +42,7 @@ model User {
   certificates     Certificate[]
   testAttempts     TestAttempt[]
   lessonProgress   LessonProgress[]
+  lessonWatches    LessonWatch[]
   reviews          Review[]
   productReviews   ProductReview[]
   memberships      Membership[]
@@ -406,6 +407,7 @@ model Lesson {
   module   Module @relation(fields: [moduleId], references: [id], onDelete: Cascade)
 
   progress LessonProgress[]
+  watches  LessonWatch[]
 
   @@index([moduleId, order])
 }
@@ -515,6 +517,28 @@ model Enrollment {
 model LessonProgress {
   id          String   @id @default(cuid())
   completedAt DateTime @default(now())
+
+  userId   String
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lessonId String
+  lesson   Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, lessonId])
+  @@index([userId])
+}
+
+/// Per-learner partial watch state for a video lesson: how much has actually
+/// been PLAYED (watched-segments, so scrubbing to the end can't fake it), where
+/// to resume, and a compact range encoding of the seconds watched so progress
+/// accumulates across sessions and devices. Deliberately separate from
+/// LessonProgress — whose mere existence means the lesson is COMPLETE — because
+/// partial watch state must never be counted as a completion.
+model LessonWatch {
+  id          String   @id @default(cuid())
+  watchedPct  Int      @default(0) // 0–100, the max watched fraction reached
+  positionSec Int      @default(0) // last playback position, for resume
+  segments    String   @default("") // RLE of watched second-ranges, e.g. "0-83,90-94"
+  updatedAt   DateTime @updatedAt
 
   userId   String
   user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
