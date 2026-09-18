@@ -6,6 +6,8 @@ import { requireAdminApi, zodMessage, badRequest, notFound, readJson } from '../
 
 export const dynamic = 'force-dynamic'
 
+const PROVIDERS = ['', 'mux', 'cloudflare', 'bunny'] as const
+
 const updateSchema = z.object({
   title: z.string().trim().min(2, 'Lesson title must be at least 2 characters').max(160).optional(),
   type: z.enum(LESSON_TYPES).optional(),
@@ -13,6 +15,11 @@ const updateSchema = z.object({
   description: z.string().trim().max(500).optional(),
   contentUrl: z.string().trim().max(500).optional(),
   transcript: z.string().trim().max(50000).optional(),
+  // Managed video (offline-capable). Blank strings clear the field.
+  streamUrl: z.string().trim().max(1000).optional(),
+  downloadUrl: z.string().trim().max(1000).optional(),
+  posterUrl: z.string().trim().max(1000).optional(),
+  videoProvider: z.enum(PROVIDERS).optional(),
 })
 
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -27,6 +34,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   if (!existing) return notFound('That lesson no longer exists.')
 
   const { title, type, durationMin, description, contentUrl, transcript } = parsed.data
+  const { streamUrl, downloadUrl, posterUrl, videoProvider } = parsed.data
 
   const lesson = await prisma.lesson.update({
     where: { id },
@@ -37,6 +45,10 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
       ...(description !== undefined && { description: description || null }),
       ...(contentUrl !== undefined && { contentUrl: contentUrl || null }),
       ...(transcript !== undefined && { transcript: transcript || null }),
+      ...(streamUrl !== undefined && { streamUrl: streamUrl || null }),
+      ...(downloadUrl !== undefined && { downloadUrl: downloadUrl || null }),
+      ...(posterUrl !== undefined && { posterUrl: posterUrl || null }),
+      ...(videoProvider !== undefined && { videoProvider: videoProvider || null }),
     },
     select: { id: true, title: true, type: true, durationMin: true, order: true },
   })

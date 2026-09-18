@@ -17,6 +17,7 @@ import {
   Radio,
   GripVertical,
   FileText,
+  Download,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -32,6 +33,10 @@ export type LessonNode = {
   description: string | null
   contentUrl: string | null
   transcript: string | null
+  streamUrl: string | null
+  downloadUrl: string | null
+  posterUrl: string | null
+  videoProvider: string | null
 }
 
 export type ModuleNode = {
@@ -431,9 +436,10 @@ function ModuleRow({
                   <div className="flex items-center gap-2 px-2.5 py-2">
                     <Icon className="h-3.5 w-3.5 shrink-0 text-primary-500" aria-hidden />
                     <span className="min-w-0 flex-1 truncate text-[13px] font-medium">{l.title}</span>
-                    {(l.contentUrl || l.transcript) && (
+                    {(l.contentUrl || l.streamUrl || l.transcript) && (
                       <span className="hidden shrink-0 items-center gap-1 sm:flex" title="Content attached">
-                        {l.contentUrl && <Video className="h-3 w-3 text-emerald-500" aria-label="Video attached" />}
+                        {(l.contentUrl || l.streamUrl) && <Video className="h-3 w-3 text-emerald-500" aria-label="Video attached" />}
+                        {l.downloadUrl && <Download className="h-3 w-3 text-emerald-500" aria-label="Offline download available" />}
                         {l.transcript && <FileText className="h-3 w-3 text-emerald-500" aria-label="Transcript attached" />}
                       </span>
                     )}
@@ -583,6 +589,10 @@ function LessonEditForm({
   const [contentUrl, setContentUrl] = React.useState(lesson.contentUrl ?? '')
   const [description, setDescription] = React.useState(lesson.description ?? '')
   const [transcript, setTranscript] = React.useState(lesson.transcript ?? '')
+  const [streamUrl, setStreamUrl] = React.useState(lesson.streamUrl ?? '')
+  const [downloadUrl, setDownloadUrl] = React.useState(lesson.downloadUrl ?? '')
+  const [posterUrl, setPosterUrl] = React.useState(lesson.posterUrl ?? '')
+  const [videoProvider, setVideoProvider] = React.useState(lesson.videoProvider ?? '')
   const [saving, setSaving] = React.useState(false)
 
   const isVideo = lesson.type === 'VIDEO'
@@ -593,7 +603,15 @@ function LessonEditForm({
     const ok = await onSave(lesson.id, {
       contentUrl: contentUrl.trim(),
       description: description.trim(),
-      ...(isVideo ? { transcript: transcript.trim() } : {}),
+      ...(isVideo
+        ? {
+            transcript: transcript.trim(),
+            streamUrl: streamUrl.trim(),
+            downloadUrl: downloadUrl.trim(),
+            posterUrl: posterUrl.trim(),
+            videoProvider,
+          }
+        : {}),
     })
     setSaving(false)
     if (ok) onClose()
@@ -636,6 +654,66 @@ function LessonEditForm({
             className="min-h-[120px] text-[13px]"
           />
         </label>
+      )}
+
+      {isVideo && (
+        <div className="rounded-xl border border-dashed border-border p-3">
+          <p className="mb-1 text-[11.5px] font-bold text-foreground">
+            Managed video <span className="font-normal text-muted-foreground">— adaptive streaming + offline download</span>
+          </p>
+          <p className="mb-2.5 text-[11px] leading-relaxed text-muted-foreground">
+            Upload the video to your provider (Bunny / Cloudflare / Mux), then paste its URLs here. A
+            streaming URL takes precedence over the Video URL above and, with a download URL, lets
+            learners save the lesson for offline viewing. Leave blank to keep using the Video URL.
+          </p>
+          <div className="grid gap-2.5 sm:grid-cols-2">
+            <label className="block sm:col-span-2">
+              <span className="mb-1 block text-[11px] font-bold text-muted-foreground">Streaming URL (HLS .m3u8)</span>
+              <Input
+                value={streamUrl}
+                onChange={(e) => setStreamUrl(e.target.value)}
+                placeholder="https://…/playlist.m3u8"
+                maxLength={1000}
+                className="h-9"
+              />
+            </label>
+            <label className="block sm:col-span-2">
+              <span className="mb-1 block text-[11px] font-bold text-muted-foreground">
+                Download URL (MP4) <span className="font-normal">— enables offline</span>
+              </span>
+              <Input
+                value={downloadUrl}
+                onChange={(e) => setDownloadUrl(e.target.value)}
+                placeholder="https://…/video.mp4"
+                maxLength={1000}
+                className="h-9"
+              />
+            </label>
+            <label className="block">
+              <span className="mb-1 block text-[11px] font-bold text-muted-foreground">Poster image URL</span>
+              <Input
+                value={posterUrl}
+                onChange={(e) => setPosterUrl(e.target.value)}
+                placeholder="https://…/thumb.jpg"
+                maxLength={1000}
+                className="h-9"
+              />
+            </label>
+            <label className="block">
+              <span className="mb-1 block text-[11px] font-bold text-muted-foreground">Provider</span>
+              <Select
+                value={videoProvider}
+                onChange={(e) => setVideoProvider(e.target.value)}
+                className="h-9"
+              >
+                <option value="">— none —</option>
+                <option value="bunny">Bunny Stream</option>
+                <option value="cloudflare">Cloudflare Stream</option>
+                <option value="mux">Mux</option>
+              </Select>
+            </label>
+          </div>
+        </div>
       )}
 
       <div className="flex justify-end gap-2">
