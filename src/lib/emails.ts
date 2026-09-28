@@ -42,6 +42,46 @@ function button(href: string, label: string): string {
   return `<a href="${href}" style="display:inline-block;background:#2563eb;color:#ffffff;text-decoration:none;font-weight:700;font-size:14px;padding:11px 22px;border-radius:10px;">${label}</a>`
 }
 
+/** Sent when a learner requests a password reset. */
+export function passwordResetEmail(opts: {
+  name: string
+  resetUrl: string
+  expiresMinutes: number
+}): AdminMail {
+  const hi = firstName(opts.name)
+  return {
+    subject: `Reset your ${BRAND} password`,
+    text: [
+      `Hi ${hi},`,
+      ``,
+      `We received a request to reset your ${BRAND} password.`,
+      `Use the link below to choose a new one — it expires in ${opts.expiresMinutes} minutes:`,
+      ``,
+      opts.resetUrl,
+      ``,
+      `If you didn't request this, you can safely ignore this email — your password won't change.`,
+      ``,
+      `— The ${BRAND} team`,
+    ].join('\n'),
+    html: shell(
+      `Reset your ${BRAND} password.`,
+      `<h1 style="margin:0 0 12px;font-size:20px;font-weight:800;">Reset your password</h1>
+       <p style="margin:0 0 16px;font-size:14px;line-height:1.65;color:#334155;">
+         Hi ${hi}, we received a request to reset your ${BRAND} password. Choose a new one using
+         the button below — this link expires in <strong>${opts.expiresMinutes} minutes</strong>.
+       </p>
+       <p style="margin:0 0 22px;">${button(opts.resetUrl, 'Choose a new password')}</p>
+       <p style="margin:0 0 8px;font-size:12px;line-height:1.6;color:#64748b;">
+         Or paste this link into your browser:<br>
+         <a href="${opts.resetUrl}" style="color:#2563eb;word-break:break-all;">${opts.resetUrl}</a>
+       </p>
+       <p style="margin:16px 0 0;font-size:13px;line-height:1.6;color:#64748b;">
+         Didn't request this? You can safely ignore this email — your password won't change.
+       </p>`,
+    ),
+  }
+}
+
 /** Sent right after a student creates their account. */
 export function welcomeEmail(name: string): AdminMail {
   const hi = firstName(name)

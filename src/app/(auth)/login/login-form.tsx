@@ -116,6 +116,12 @@ export function LoginForm() {
           </div>
         </Field>
 
+        <div className="-mt-1 flex justify-end">
+          <Link href="/forgot-password" className="text-[13px] font-semibold text-primary-600 hover:underline">
+            Forgot password?
+          </Link>
+        </div>
+
         <Button type="submit" variant="holo" size="lg" loading={loading} className="w-full">
           {loading ? 'Signing in…' : 'Sign In'}
         </Button>

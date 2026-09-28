@@ -43,6 +43,7 @@ model User {
   testAttempts     TestAttempt[]
   lessonProgress   LessonProgress[]
   lessonWatches    LessonWatch[]
+  passwordResetTokens PasswordResetToken[]
   reviews          Review[]
   productReviews   ProductReview[]
   memberships      Membership[]
@@ -559,6 +560,22 @@ model LessonWatch {
   lesson   Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
 
   @@unique([userId, lessonId])
+  @@index([userId])
+}
+
+/// A single-use, expiring token for the "forgot password" flow. Only the SHA-256
+/// hash of the token is stored — the raw token lives only in the emailed link —
+/// so a database read can't be used to reset anyone's password.
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@index([userId])
 }
 
