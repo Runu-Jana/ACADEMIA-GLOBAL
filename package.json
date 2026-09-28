@@ -19,6 +19,7 @@
     "db:demo": "tsx scripts/add-demo-data.ts",
     "db:activity": "tsx scripts/add-demo-activity.ts",
     "db:extras": "tsx scripts/add-demo-extras.ts",
+    "db:admin": "tsx scripts/ensure-admin.ts",
     "db:studio": "prisma studio",
     "db:reset": "prisma db push --force-reset && npm run db:seed",
     "setup": "prisma generate && prisma db push && npm run db:seed",
