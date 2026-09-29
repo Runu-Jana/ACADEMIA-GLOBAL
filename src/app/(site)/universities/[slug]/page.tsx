@@ -149,6 +149,24 @@ export default async function UniversityProfilePage({
     ? `NAAC ${university.naacGrade}`
     : (approvals[0] ?? 'Recognised')
 
+  // Curated "at a glance" bullets, or sensible ones derived from the facts.
+  const curatedHighlights = asList(university.highlights)
+  const highlights = curatedHighlights.length
+    ? curatedHighlights
+    : ([
+        approvals.includes('UGC Entitled') || approvals.some((a) => /ugc/i.test(a))
+          ? 'UGC-entitled — recognised for jobs, higher study and government exams'
+          : null,
+        university.naacGrade ? `NAAC ${university.naacGrade} accredited` : null,
+        `Established in ${university.estYear}, based in ${university.city}`,
+        university.students ? `${formatCount(university.students)} learners` : null,
+        university.programs ? `${university.programs}+ programmes offered` : null,
+        'Online learning with live and recorded classes',
+      ].filter(Boolean) as string[])
+
+  // Paragraphs for the About write-up (supports multi-paragraph copy).
+  const aboutParagraphs = university.about.split(/\n{2,}/).map((p) => p.trim()).filter(Boolean)
+
   const tabs: UniversityTabItem[] = [
     {
       id: 'about',
@@ -177,54 +195,73 @@ export default async function UniversityProfilePage({
           )}
 
           <Panel title={`About ${university.shortName}`}>
-            <p className="text-pretty text-sm leading-relaxed text-muted-foreground">
-              {university.about}
-            </p>
+            <div className="space-y-3.5 text-pretty text-sm leading-relaxed text-muted-foreground">
+              {aboutParagraphs.map((para, i) => (
+                <p key={i}>{para}</p>
+              ))}
+            </div>
 
             <dl className="mt-5 grid gap-3 sm:grid-cols-2">
               {[
                 { icon: CalendarDays, label: 'Established', value: String(university.estYear) },
-                { icon: MapPin, label: 'Campus', value: `${university.city}, ${university.state}` },
-                { icon: BookOpen, label: 'Programs on Shiksha Sarthi', value: String(courses.length) },
-                { icon: Users, label: 'Learners Enrolled', value: formatCount(university.students) },
-              ].map((row) => (
-                <div
-                  key={row.label}
-                  className="flex items-start gap-3 rounded-xl border border-border bg-muted/40 p-3.5"
-                >
-                  <row.icon aria-hidden className="mt-0.5 h-4 w-4 shrink-0 text-primary-500" />
-                  <div className="min-w-0">
-                    <dt className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                      {row.label}
-                    </dt>
-                    <dd className="mt-0.5 text-[13px] font-bold">{row.value}</dd>
-                  </div>
-                </div>
-              ))}
+                { icon: MapPin, label: 'Location', value: `${university.city}, ${university.state}` },
+                university.naacGrade
+                  ? { icon: Award, label: 'NAAC Grade', value: university.naacGrade }
+                  : null,
+                university.programs
+                  ? { icon: BookOpen, label: 'Programmes Offered', value: `${university.programs}+` }
+                  : null,
+                { icon: Users, label: 'Learners', value: formatCount(university.students) },
+                { icon: BookOpen, label: 'On Shiksha Sarthi', value: `${courses.length} programme${courses.length === 1 ? '' : 's'}` },
+              ]
+                .filter((r): r is { icon: typeof CalendarDays; label: string; value: string } => r !== null)
+                .map((row) => {
+                  const Icon = row.icon
+                  return (
+                    <div
+                      key={row.label}
+                      className="flex items-start gap-3 rounded-xl border border-border bg-muted/40 p-3.5"
+                    >
+                      <Icon aria-hidden className="mt-0.5 h-4 w-4 shrink-0 text-primary-500" />
+                      <div className="min-w-0">
+                        <dt className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                          {row.label}
+                        </dt>
+                        <dd className="mt-0.5 text-[13px] font-bold">{row.value}</dd>
+                      </div>
+                    </div>
+                  )
+                })}
             </dl>
+
+            {university.website && (
+              <a
+                href={university.website}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-3 inline-flex items-center gap-1.5 text-[12.5px] font-bold text-primary-600 hover:underline"
+              >
+                <Globe aria-hidden className="h-3.5 w-3.5" />
+                Visit the official website
+              </a>
+            )}
           </Panel>
 
-          {/* Enrolment-benefit copy implies you can join through us — true only for
-              partner universities, so it's hidden on not-affiliated directory listings. */}
-          {!isDirectory && (
-            <Panel title="Why Students Choose It">
-              <ul className="grid gap-2.5 sm:grid-cols-2">
-                {[
-                  'Degrees recognised on par with on-campus programs',
-                  'Learn entirely online with recorded and live sessions',
-                  'Dedicated academic mentors and doubt-clearing support',
-                  'Flexible examination slots with online proctoring',
-                  'Digital library, e-journals and case-study repositories',
-                  'Placement and career services for enrolled learners',
-                ].map((item) => (
-                  <li key={item} className="flex items-start gap-2.5 text-[13px]">
-                    <BadgeCheck aria-hidden className="mt-0.5 h-4 w-4 shrink-0 text-accent-green" />
-                    <span className="font-medium leading-snug">{item}</span>
-                  </li>
-                ))}
-              </ul>
-            </Panel>
-          )}
+          <Panel title="Highlights">
+            <ul className="grid gap-2.5 sm:grid-cols-2">
+              {highlights.map((item) => (
+                <li key={item} className="flex items-start gap-2.5 text-[13px]">
+                  <BadgeCheck aria-hidden className="mt-0.5 h-4 w-4 shrink-0 text-accent-green" />
+                  <span className="font-medium leading-snug">{item}</span>
+                </li>
+              ))}
+            </ul>
+            {isDirectory && (
+              <p className="mt-3 text-[11.5px] text-muted-foreground">
+                Compiled from public information. Confirm current details with {university.shortName}.
+              </p>
+            )}
+          </Panel>
         </div>
       ),
     },

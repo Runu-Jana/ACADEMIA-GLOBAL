@@ -31,6 +31,13 @@ export type CourseSeed = {
 export const UNIVERSITIES = [
   {
     slug: 'amity-university-online',
+    highlights: [
+      'UGC-entitled degrees — valid for jobs, higher study and government exams',
+      'NAAC A+ accredited, with a QS-ranked online MBA',
+      'AICTE-approved and WES-recognised for study abroad',
+      '50,000+ online learners across 200+ programmes',
+      'Live and recorded classes, e-library and placement support',
+    ],
     name: 'Amity University Online',
     shortName: 'Amity',
     about:
@@ -48,6 +55,13 @@ export const UNIVERSITIES = [
   },
   {
     slug: 'manipal-university-online',
+    highlights: [
+      'Seven decades of academic legacy (established 1953)',
+      'UGC-entitled, NAAC A+ and AICTE-approved online degrees',
+      'Taught by the same faculty as the on-campus programmes',
+      '42,000+ online learners across 160+ programmes',
+      'Dedicated placement cell and industry-aligned curriculum',
+    ],
     name: 'Manipal University Online',
     shortName: 'Manipal',
     about:
@@ -65,6 +79,13 @@ export const UNIVERSITIES = [
   },
   {
     slug: 'chandigarh-university-online',
+    highlights: [
+      'UGC-entitled, NAAC A+ and AICTE-approved online degrees',
+      'Industry-designed curriculum with live projects',
+      '35,000+ online learners across 120+ programmes',
+      'Strong placement record with 900+ recruiting partners',
+      'Flexible online examinations with remote proctoring',
+    ],
     name: 'Chandigarh University Online',
     shortName: 'Chandigarh',
     about:
@@ -82,6 +103,13 @@ export const UNIVERSITIES = [
   },
   {
     slug: 'lpu-online',
+    highlights: [
+      'NAAC A++ accredited and UGC-entitled',
+      'Among the largest placement drives in North India',
+      'Global exposure with industry-led projects',
+      '48,000+ online learners across 140+ programmes',
+      'AICTE-approved, with live and recorded classes',
+    ],
     name: 'LPU Online',
     shortName: 'LPU',
     about:
@@ -99,6 +127,13 @@ export const UNIVERSITIES = [
   },
   {
     slug: 'jain-university-online',
+    highlights: [
+      'NAAC A++ accredited and UGC-entitled degrees',
+      'Strong focus on management and entrepreneurship',
+      '28,000+ online learners across 95+ programmes',
+      'Bengaluru-based, with startup and industry links',
+      'Live classes, mentorship and placement support',
+    ],
     name: 'Jain University Online',
     shortName: 'Jain',
     about:
@@ -116,6 +151,13 @@ export const UNIVERSITIES = [
   },
   {
     slug: 'dy-patil-university-online',
+    highlights: [
+      'UGC-entitled and NAAC A+ accredited',
+      'Management and healthcare-focused online programmes',
+      '21,000+ online learners across 70+ programmes',
+      'Industry-aligned curriculum with live sessions',
+      'Dedicated academic and career support',
+    ],
     name: 'DY Patil University Online',
     shortName: 'DY Patil',
     about:
@@ -133,6 +175,13 @@ export const UNIVERSITIES = [
   },
   {
     slug: 'ignou',
+    highlights: [
+      'India’s largest university — 3 lakh+ learners',
+      'UGC-DEB approved and NAAC A++ accredited',
+      '250+ programmes across nearly every discipline',
+      'Among the most affordable recognised degrees',
+      'Nationwide network of regional and exam centres',
+    ],
     name: 'IGNOU',
     shortName: 'IGNOU',
     about:

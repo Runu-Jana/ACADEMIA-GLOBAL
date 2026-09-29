@@ -153,6 +153,9 @@ model University {
   estYear   Int
   naacGrade String?
   approvals Json // ["UGC", "NAAC A+", "AICTE"]
+  /// Curated "at a glance" bullet points for the About panel. Empty → the detail
+  /// page derives neutral highlights from the facts (approvals, learners, etc.).
+  highlights Json @default("[]") // string[]
   rating    Float   @default(4.5)
   reviews   Int     @default(0)
   students  Int     @default(0)

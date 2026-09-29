@@ -132,7 +132,7 @@ export function UniversityGrid({ universities }: { universities: UniversityCardD
           Filters
         </div>
 
-        <div className="mt-2 grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-6">
+        <div className="mt-2 grid grid-cols-1 gap-2.5 min-[420px]:grid-cols-2 sm:grid-cols-3 lg:grid-cols-6">
           <FilterSelect label="Discipline" value={f.stream} onChange={set('stream')} options={opts.streams} anyLabel="All disciplines" />
           <FilterSelect label="Course level" value={f.level} onChange={set('level')} options={opts.levels} anyLabel="Any level" />
           <FilterSelect label="Mode" value={f.mode} onChange={set('mode')} options={opts.modes} anyLabel="Any mode" />
@@ -147,7 +147,7 @@ export function UniversityGrid({ universities }: { universities: UniversityCardD
           />
         </div>
 
-        <div className="mt-2.5 grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-6">
+        <div className="mt-2.5 grid grid-cols-1 gap-2.5 min-[420px]:grid-cols-2 sm:grid-cols-3 lg:grid-cols-6">
           <FilterSelect
             label="Minimum rating"
             value={f.minRating}
