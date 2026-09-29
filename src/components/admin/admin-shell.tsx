@@ -20,7 +20,6 @@ import {
   Inbox,
   Wallet,
   PhoneCall,
-  Sparkles,
   Import,
   RefreshCw,
   ShoppingBag,
@@ -73,7 +72,6 @@ const NAV: {
   { href: '/admin/shop/orders', label: 'Shop Orders', icon: PackageCheck },
   { href: '/admin/promotions', label: 'Promotions', icon: Ticket },
   { href: '/admin/finance', label: 'Finance', icon: Wallet },
-  { href: '/admin/ai-usage', label: 'AI Usage', icon: Sparkles },
 ]
 
 function isActive(pathname: string, href: string, exact?: boolean) {

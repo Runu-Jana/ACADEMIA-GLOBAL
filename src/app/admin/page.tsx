@@ -14,7 +14,6 @@ import {
   Wallet,
   PhoneCall,
   BadgeCheck,
-  Sparkles,
 } from 'lucide-react'
 import { prisma } from '@/lib/prisma'
 import { commissionSummary } from '@/lib/commission'
@@ -93,12 +92,11 @@ export default async function AdminDashboardPage() {
   ])
 
   // Money & operations signals — what an operator opens the panel to check.
-  const [finance, newLeads, wantsAgent, pendingReviews, aiSpend] = await Promise.all([
+  const [finance, newLeads, wantsAgent, pendingReviews] = await Promise.all([
     commissionSummary(),
     prisma.lead.count({ where: { status: 'NEW' } }),
     prisma.lead.count({ where: { wantsAgent: true, status: { in: ['NEW', 'CONTACTED'] } } }),
     prisma.course.count({ where: { reviewStatus: 'PENDING' } }),
-    prisma.aiUsageLog.aggregate({ _sum: { costPaise: true } }),
   ])
 
   const rupees = (paise: number) =>
@@ -109,7 +107,6 @@ export default async function AdminDashboardPage() {
     { label: 'Claimable now', value: rupees(finance.claimable.amount), sub: `${finance.claimable.count} to invoice`, icon: Wallet, tone: 'text-primary-600', href: '/admin/finance' },
     { label: 'New leads', value: String(newLeads), sub: wantsAgent > 0 ? `${wantsAgent} want a callback` : 'in the funnel', icon: PhoneCall, tone: 'text-amber-600', href: '/admin/leads' },
     { label: 'Reviews to approve', value: String(pendingReviews), sub: 'partner programmes', icon: BadgeCheck, tone: 'text-violet-600', href: '/admin/reviews' },
-    { label: 'AI spend', value: rupees(aiSpend._sum.costPaise ?? 0), sub: 'metered total', icon: Sparkles, tone: 'text-cyan-600', href: '/admin/ai-usage' },
   ]
 
   const maxEnrol = Math.max(1, ...topCourses.map((c) => c._count.enrollments))
