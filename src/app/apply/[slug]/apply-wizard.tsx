@@ -10,7 +10,8 @@ import {
 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button, buttonVariants } from '@/components/ui/button'
-import { Field, Input, Select, Checkbox } from '@/components/ui/field'
+import { Field, Input, Checkbox } from '@/components/ui/field'
+import { SelectMenu } from '@/components/ui/select-menu'
 import { CourseThumb, UniversityMark } from '@/components/course/course-thumb'
 import { cn, formatINR } from '@/lib/utils'
 import { openRazorpayCheckout, CHECKOUT_CANCELLED } from '@/lib/payments/checkout'
@@ -176,6 +177,19 @@ export function ApplyWizard({
       setEducation((f) => ({ ...f, [key]: e.target.value }))
       setError('')
     }
+
+  const setPv = (key: keyof Personal) => (value: string) => {
+    setPersonal((f) => ({ ...f, [key]: value }))
+    setError('')
+  }
+  const setEv = (key: keyof Education) => (value: string) => {
+    setEducation((f) => ({ ...f, [key]: value }))
+    setError('')
+  }
+  const setProgramV = (key: keyof Program) => (value: string) => {
+    setProgram((p) => ({ ...p, [key]: value }))
+    setError('')
+  }
 
   function validate(target: number) {
     if (target === 1) {
@@ -427,10 +441,14 @@ export function ApplyWizard({
                 <Input type="date" value={personal.dob} onChange={setP('dob')} autoComplete="bday" />
               </Field>
               <Field label={t('gender')}>
-                <Select value={personal.gender} onChange={setP('gender')}>
-                  <option value="">{t('genderNotSpecified')}</option>
-                  {GENDERS.map((g) => <option key={g.value} value={g.value}>{t(`gen.${g.key}`)}</option>)}
-                </Select>
+                <SelectMenu
+                  value={personal.gender}
+                  onChange={setPv('gender')}
+                  buttonClassName="h-11"
+                  placeholder={t('genderNotSpecified')}
+                  aria-label={t('gender')}
+                  options={GENDERS.map((g) => ({ value: g.value, label: t(`gen.${g.key}`) }))}
+                />
               </Field>
               <Field label={t('address')} className="sm:col-span-2">
                 <Input value={personal.address} onChange={setP('address')} placeholder={t('addressPlaceholder')} autoComplete="street-address" />
@@ -464,10 +482,14 @@ export function ApplyWizard({
 
             <div className="grid gap-4 sm:grid-cols-2">
               <Field label={t('qualification')} required>
-                <Select value={education.qualification} onChange={setE('qualification')}>
-                  <option value="">{t('selectQualification')}</option>
-                  {QUALIFICATIONS.map((q) => <option key={q.value} value={q.value}>{t(`qual.${q.key}`)}</option>)}
-                </Select>
+                <SelectMenu
+                  value={education.qualification}
+                  onChange={setEv('qualification')}
+                  buttonClassName="h-11"
+                  placeholder={t('selectQualification')}
+                  aria-label={t('qualification')}
+                  options={QUALIFICATIONS.map((q) => ({ value: q.value, label: t(`qual.${q.key}`) }))}
+                />
               </Field>
               <Field label={t('board')}>
                 <Input value={education.board} onChange={setE('board')} placeholder={t('boardPlaceholder')} />
@@ -515,23 +537,25 @@ export function ApplyWizard({
 
             <div className="mt-4 grid gap-4 sm:grid-cols-2">
               <Field label={t('preferredIntake')} required>
-                <Select
+                <SelectMenu
                   value={program.intake}
-                  onChange={(e) => setProgram((p) => ({ ...p, intake: e.target.value }))}
-                >
-                  {INTAKES.map((i) => <option key={i.value} value={i.value}>{t(`intake.${i.key}`)}</option>)}
-                </Select>
+                  onChange={setProgramV('intake')}
+                  buttonClassName="h-11"
+                  aria-label={t('preferredIntake')}
+                  options={INTAKES.map((i) => ({ value: i.value, label: t(`intake.${i.key}`) }))}
+                />
               </Field>
 
               <Field label={t('specialisation')} hint={t('specialisationHint')}>
-                <Select
+                <SelectMenu
                   value={program.specialisation}
-                  onChange={(e) => setProgram((p) => ({ ...p, specialisation: e.target.value }))}
-                >
-                  {(course.skills.length ? course.skills : ['Core specialisation'])
+                  onChange={setProgramV('specialisation')}
+                  buttonClassName="h-11"
+                  aria-label={t('specialisation')}
+                  options={(course.skills.length ? course.skills : ['Core specialisation'])
                     .slice(0, 8)
-                    .map((s) => <option key={s} value={s}>{s}</option>)}
-                </Select>
+                    .map((s) => ({ value: s, label: s }))}
+                />
               </Field>
             </div>
 
