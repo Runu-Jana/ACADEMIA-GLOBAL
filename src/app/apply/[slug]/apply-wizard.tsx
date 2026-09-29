@@ -12,6 +12,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Field, Input, Checkbox } from '@/components/ui/field'
 import { SelectMenu } from '@/components/ui/select-menu'
+import { DatePicker } from '@/components/ui/date-picker'
 import { CourseThumb, UniversityMark } from '@/components/course/course-thumb'
 import { cn, formatINR } from '@/lib/utils'
 import { openRazorpayCheckout, CHECKOUT_CANCELLED } from '@/lib/payments/checkout'
@@ -438,7 +439,13 @@ export function ApplyWizard({
                 <Input type="tel" value={personal.mobile} onChange={setP('mobile')} placeholder="+91 98765 43210" autoComplete="tel" />
               </Field>
               <Field label={t('dob')}>
-                <Input type="date" value={personal.dob} onChange={setP('dob')} autoComplete="bday" />
+                <DatePicker
+                  value={personal.dob}
+                  onChange={setPv('dob')}
+                  max={new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10)}
+                  aria-label={t('dob')}
+                  buttonClassName="h-11"
+                />
               </Field>
               <Field label={t('gender')}>
                 <SelectMenu
