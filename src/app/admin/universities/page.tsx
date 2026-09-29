@@ -1,10 +1,11 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { ExternalLink, MapPin } from 'lucide-react'
+import { ExternalLink, MapPin, Plus, Pencil } from 'lucide-react'
 import type { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { requireAdmin } from '@/lib/auth'
 import { Badge } from '@/components/ui/badge'
+import { buttonVariants } from '@/components/ui/button'
 import { Stars } from '@/components/ui/stars'
 import { UniversityMark } from '@/components/course/course-thumb'
 import {
@@ -71,6 +72,12 @@ export default async function AdminUniversitiesPage({ searchParams }: { searchPa
       <PageHeader
         title="Universities"
         sub="Partner institutions and the programmes they run on the platform."
+        actions={
+          <Link href="/admin/universities/new" className={buttonVariants({ variant: 'holo', size: 'sm' })}>
+            <Plus className="h-4 w-4" />
+            Add university
+          </Link>
+        }
       />
 
       <FilterBar
@@ -99,7 +106,7 @@ export default async function AdminUniversitiesPage({ searchParams }: { searchPa
               <Th className="text-center">Courses</Th>
               <Th className="text-center">Students</Th>
               <Th>Rating</Th>
-              <Th className="text-right">Site</Th>
+              <Th className="text-right">Actions</Th>
             </Thead>
             <Tbody>
               {universities.length === 0 && (
@@ -163,7 +170,15 @@ export default async function AdminUniversitiesPage({ searchParams }: { searchPa
                       <Stars rating={u.rating} count={u.reviews} size={12} />
                     </Td>
                     <Td>
-                      <span className="flex justify-end">
+                      <span className="flex justify-end gap-1.5">
+                        <Link
+                          href={`/admin/universities/${u.id}`}
+                          aria-label={`Edit ${u.name}`}
+                          title="Edit"
+                          className="grid h-8 w-8 place-items-center rounded-lg border border-border text-muted-foreground transition-colors hover:border-primary-300 hover:text-primary-600"
+                        >
+                          <Pencil className="h-3.5 w-3.5" />
+                        </Link>
                         <Link
                           href={`/universities/${u.slug}`}
                           target="_blank"
