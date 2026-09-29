@@ -25,9 +25,16 @@ export default async function UniversitiesPage() {
       id: true, slug: true, name: true, shortName: true, city: true, state: true,
       estYear: true, rating: true, reviews: true, students: true, naacGrade: true,
       approvals: true, partnerStatus: true,
-      _count: { select: { courses: { where: listedCourseWhere } } },
+      // The programmes each institution offers drive the discipline / level /
+      // mode / duration filters, so pull just those facets per listed course.
+      courses: {
+        where: listedCourseWhere,
+        select: { stream: true, level: true, mode: true, durationYears: true },
+      },
     },
   })
+
+  const uniq = <T,>(xs: T[]) => [...new Set(xs)]
 
   // `approvals` is a Json column, so it arrives as `unknown` — narrow it before
   // it crosses into the client grid.
@@ -44,7 +51,12 @@ export default async function UniversitiesPage() {
     students: u.students,
     naacGrade: u.naacGrade,
     approvals: asList(u.approvals),
-    courseCount: u._count.courses,
+    courseCount: u.courses.length,
+    streams: uniq(u.courses.map((c) => c.stream)),
+    levels: uniq(u.courses.map((c) => c.level)),
+    modes: uniq(u.courses.map((c) => c.mode)),
+    // Bucket duration to whole years; anything 4y+ collapses into the "4+" bucket.
+    durations: uniq(u.courses.map((c) => (c.durationYears >= 4 ? 4 : Math.max(1, Math.round(c.durationYears))))),
   }))
 
   const totalLearners = universities.reduce((n, u) => n + u.students, 0)
