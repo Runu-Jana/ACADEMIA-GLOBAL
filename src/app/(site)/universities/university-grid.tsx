@@ -7,7 +7,6 @@ import { UniversityMark } from '@/components/course/course-thumb'
 import { Badge } from '@/components/ui/badge'
 import { Stars } from '@/components/ui/stars'
 import { Button } from '@/components/ui/button'
-import { Select } from '@/components/ui/field'
 import { SelectMenu } from '@/components/ui/select-menu'
 import { TiltCard } from '@/components/fx/tilt-card'
 import { Reveal } from '@/components/fx/reveal'
@@ -168,11 +167,14 @@ export function UniversityGrid({ universities }: { universities: UniversityCardD
           </div>
           <label className="flex shrink-0 items-center gap-2 text-[13px] font-semibold text-muted-foreground">
             Sort
-            <Select value={f.sort} onChange={set('sort')} aria-label="Sort universities" className="h-11 sm:w-40">
-              {SORTS.map((s) => (
-                <option key={s.value} value={s.value}>{s.label}</option>
-              ))}
-            </Select>
+            <SelectMenu
+              value={f.sort}
+              onChange={setVal('sort')}
+              options={SORTS}
+              aria-label="Sort universities"
+              className="sm:w-44"
+              buttonClassName="h-11"
+            />
           </label>
         </div>
 

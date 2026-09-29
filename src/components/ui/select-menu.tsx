@@ -18,7 +18,7 @@ export function SelectMenu({
   value,
   onChange,
   options,
-  placeholder = 'Select',
+  placeholder,
   className,
   buttonClassName,
   'aria-label': ariaLabel,
@@ -26,6 +26,7 @@ export function SelectMenu({
   value: string
   onChange: (value: string) => void
   options: readonly SelectOption[]
+  /** When set, adds a leading "clear" option with an empty value (e.g. "All states"). */
   placeholder?: string
   className?: string
   buttonClassName?: string
@@ -36,9 +37,9 @@ export function SelectMenu({
   const rootRef = React.useRef<HTMLDivElement>(null)
   const listRef = React.useRef<HTMLUListElement>(null)
 
-  // placeholder occupies index 0 so "clear" is reachable by keyboard too
+  // when a placeholder is given it occupies index 0 so "clear" stays keyboard-reachable
   const items = React.useMemo<SelectOption[]>(
-    () => [{ value: '', label: placeholder }, ...options],
+    () => (placeholder != null ? [{ value: '', label: placeholder }, ...options] : [...options]),
     [options, placeholder],
   )
   const selected = items.find((o) => o.value === value) ?? items[0]
