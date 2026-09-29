@@ -98,10 +98,56 @@ export function UniversityGrid({ universities }: { universities: UniversityCardD
     (f.accred ? 1 : 0) + (f.state ? 1 : 0) + (f.minRating ? 1 : 0)
 
   return (
-    <div>
-      {/* -------------------------------------------------------- filter bar */}
-      <div className="card-base mb-6 p-4 sm:p-5">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+    <div className="lg:grid lg:grid-cols-[15rem_minmax(0,1fr)] lg:items-start lg:gap-6">
+      {/* ---------------------------------------------- left sidebar: filters */}
+      <aside className="mb-5 lg:mb-0">
+        <div className="card-base p-4 lg:sticky lg:top-20">
+          <div className="mb-3 flex items-center justify-between gap-2">
+            <span className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+              <SlidersHorizontal className="h-3.5 w-3.5" />
+              Filters
+            </span>
+            {activeCount > 0 && (
+              <button
+                type="button"
+                onClick={() => setF(EMPTY)}
+                className="text-[12px] font-semibold text-primary-600 hover:underline"
+              >
+                Clear ({activeCount})
+              </button>
+            )}
+          </div>
+          <div className="grid grid-cols-1 gap-3 min-[420px]:grid-cols-2 lg:grid-cols-1">
+            <FilterSelect label="Discipline" value={f.stream} onChange={set('stream')} options={opts.streams} anyLabel="All disciplines" />
+            <FilterSelect label="Course level" value={f.level} onChange={set('level')} options={opts.levels} anyLabel="Any level" />
+            <FilterSelect label="Mode" value={f.mode} onChange={set('mode')} options={opts.modes} anyLabel="Any mode" />
+            <FilterSelect label="Duration" value={f.duration} onChange={set('duration')} options={opts.durations} anyLabel="Any duration" />
+            <FilterSelect label="Accreditation" value={f.accred} onChange={set('accred')} options={opts.accreds} anyLabel="Any accreditation" />
+            <FilterSelect
+              label="Location"
+              value={f.state}
+              onChange={set('state')}
+              options={opts.states.map((s) => ({ value: s, label: s }))}
+              anyLabel="All states"
+            />
+            <FilterSelect
+              label="Minimum rating"
+              value={f.minRating}
+              onChange={set('minRating')}
+              options={[
+                { value: '4.5', label: '4.5 & up' },
+                { value: '4', label: '4.0 & up' },
+                { value: '3.5', label: '3.5 & up' },
+              ]}
+              anyLabel="Any rating"
+            />
+          </div>
+        </div>
+      </aside>
+
+      {/* --------------------------------------------- main: search + results */}
+      <div className="min-w-0">
+        <div className="card-base mb-5 flex flex-col gap-3 p-3.5 sm:flex-row sm:items-center">
           <div role="search" className="relative w-full flex-1">
             <Search aria-hidden className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <input
@@ -126,41 +172,6 @@ export function UniversityGrid({ universities }: { universities: UniversityCardD
             </Select>
           </label>
         </div>
-
-        <div className="mt-3 flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-          <SlidersHorizontal className="h-3.5 w-3.5" />
-          Filters
-        </div>
-
-        <div className="mt-2 grid grid-cols-1 gap-2.5 min-[420px]:grid-cols-2 sm:grid-cols-3 lg:grid-cols-6">
-          <FilterSelect label="Discipline" value={f.stream} onChange={set('stream')} options={opts.streams} anyLabel="All disciplines" />
-          <FilterSelect label="Course level" value={f.level} onChange={set('level')} options={opts.levels} anyLabel="Any level" />
-          <FilterSelect label="Mode" value={f.mode} onChange={set('mode')} options={opts.modes} anyLabel="Any mode" />
-          <FilterSelect label="Duration" value={f.duration} onChange={set('duration')} options={opts.durations} anyLabel="Any duration" />
-          <FilterSelect label="Accreditation" value={f.accred} onChange={set('accred')} options={opts.accreds} anyLabel="Any accreditation" />
-          <FilterSelect
-            label="Location"
-            value={f.state}
-            onChange={set('state')}
-            options={opts.states.map((s) => ({ value: s, label: s }))}
-            anyLabel="All states"
-          />
-        </div>
-
-        <div className="mt-2.5 grid grid-cols-1 gap-2.5 min-[420px]:grid-cols-2 sm:grid-cols-3 lg:grid-cols-6">
-          <FilterSelect
-            label="Minimum rating"
-            value={f.minRating}
-            onChange={set('minRating')}
-            options={[
-              { value: '4.5', label: '4.5 & up' },
-              { value: '4', label: '4.0 & up' },
-              { value: '3.5', label: '3.5 & up' },
-            ]}
-            anyLabel="Any rating"
-          />
-        </div>
-      </div>
 
       {/* --------------------------------------------------- result summary */}
       <div className="mb-5 flex flex-wrap items-center justify-between gap-2">
@@ -269,6 +280,7 @@ export function UniversityGrid({ universities }: { universities: UniversityCardD
           })}
         </div>
       )}
+      </div>
     </div>
   )
 }
