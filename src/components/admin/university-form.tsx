@@ -3,7 +3,7 @@
 import * as React from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { AlertCircle, CheckCircle2, Save, ExternalLink } from 'lucide-react'
+import { AlertCircle, CheckCircle2, Save, ExternalLink, Copy, Check, KeyRound, Mail } from 'lucide-react'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Checkbox, Field, Input, Select, Textarea } from '@/components/ui/field'
 import { slugify } from '@/lib/utils'
@@ -29,6 +29,9 @@ export type UniversityFormValues = {
   listed: boolean
   partnerStatus: string
   commissionPct: string
+  contactName: string
+  contactEmail: string
+  contactPhone: string
 }
 
 export const EMPTY_UNIVERSITY: UniversityFormValues = {
@@ -52,6 +55,9 @@ export const EMPTY_UNIVERSITY: UniversityFormValues = {
   listed: true,
   partnerStatus: 'PROSPECT',
   commissionPct: '0',
+  contactName: '',
+  contactEmail: '',
+  contactPhone: '',
 }
 
 const PARTNER_STATUSES = [
@@ -64,11 +70,14 @@ export function UniversityForm({
   initial,
   universityId,
   viewSlug,
+  partnerLoginEmail,
 }: {
   initial?: UniversityFormValues
   /** Present ⇒ edit mode (PATCH); absent ⇒ create mode (POST). */
   universityId?: string
   viewSlug?: string
+  /** Edit mode: the email of the partner login already attached, if any. */
+  partnerLoginEmail?: string | null
 }) {
   const router = useRouter()
   const editing = Boolean(universityId)
@@ -78,6 +87,44 @@ export function UniversityForm({
   const [saving, setSaving] = React.useState(false)
   const [error, setError] = React.useState('')
   const [saved, setSaved] = React.useState(false)
+
+  // Partner-login provisioning: the returned set-password link + UI state.
+  const [inviteLink, setInviteLink] = React.useState('')
+  const [inviteEmailed, setInviteEmailed] = React.useState(false)
+  const [inviteErr, setInviteErr] = React.useState('')
+  const [inviting, setInviting] = React.useState(false)
+  const [copied, setCopied] = React.useState(false)
+  const [createdId, setCreatedId] = React.useState('')
+  const [hasLogin, setHasLogin] = React.useState(Boolean(partnerLoginEmail))
+
+  function copyLink() {
+    navigator.clipboard?.writeText(inviteLink).then(
+      () => { setCopied(true); setTimeout(() => setCopied(false), 2000) },
+      () => {},
+    )
+  }
+
+  async function regenerateInvite() {
+    if (!universityId) return
+    setInviting(true)
+    setInviteErr('')
+    try {
+      const res = await fetch(`/api/admin/universities/${universityId}/partner-invite`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(values.contactEmail ? { email: values.contactEmail } : {}),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) { setInviteErr(data.error ?? 'Could not create the partner login.'); return }
+      setInviteLink(data.setupUrl)
+      setInviteEmailed(Boolean(data.emailed))
+      setHasLogin(true)
+    } catch {
+      setInviteErr('Network error — check your connection and try again.')
+    } finally {
+      setInviting(false)
+    }
+  }
 
   function set<K extends keyof UniversityFormValues>(key: K, value: UniversityFormValues[K]) {
     setValues((v) => ({ ...v, [key]: value }))
@@ -111,7 +158,16 @@ export function UniversityForm({
       if (editing) {
         setSaved(true)
         router.refresh()
+      } else if (data.partnerInvite?.setupUrl) {
+        // Keep the admin on the page so they can copy the one-time link.
+        setCreatedId(data.university.id)
+        setInviteLink(data.partnerInvite.setupUrl)
+        setInviteEmailed(Boolean(data.partnerInvite.emailed))
+        setHasLogin(true)
+        setSaved(true)
+        if (data.partnerInviteError) setInviteErr(data.partnerInviteError)
       } else {
+        if (data.partnerInviteError) setInviteErr(data.partnerInviteError)
         router.push(`/admin/universities/${data.university.id}`)
         router.refresh()
       }
@@ -341,15 +397,135 @@ export function UniversityForm({
         </p>
       </section>
 
+      {/* ------------------------------------------ partner contact & login */}
+      <section className="card-base p-4 sm:p-5">
+        <h3 className="text-[15px] font-bold">Partner contact &amp; login</h3>
+        <p className="mb-4 mt-1 text-[12.5px] text-muted-foreground">
+          Set an ACTIVE partner status and a contact email to give the institution a portal login, so it
+          can add and submit its own programmes — the same access an approved partner sign-up gets.
+        </p>
+
+        <div className="grid gap-3.5 sm:grid-cols-2">
+          <Field label="Contact name">
+            <Input
+              value={values.contactName}
+              onChange={(e) => set('contactName', e.target.value)}
+              placeholder="e.g. Admissions Office"
+              maxLength={80}
+            />
+          </Field>
+          <Field label="Contact email" hint="Used for the partner login & set-password link.">
+            <Input
+              type="email"
+              value={values.contactEmail}
+              onChange={(e) => set('contactEmail', e.target.value)}
+              placeholder="admissions@example.edu"
+              maxLength={160}
+            />
+          </Field>
+          <Field label="Contact phone">
+            <Input
+              value={values.contactPhone}
+              onChange={(e) => set('contactPhone', e.target.value)}
+              placeholder="+91 …"
+              maxLength={30}
+            />
+          </Field>
+        </div>
+
+        {!editing && !createdId && (
+          <p className="mt-3 flex items-start gap-2 rounded-xl bg-muted/40 px-3 py-2.5 text-[12.5px] text-muted-foreground">
+            <KeyRound className="mt-0.5 h-4 w-4 shrink-0" />
+            With an ACTIVE partner status and a contact email, saving will create the partner login and
+            show you a set-password link to share.
+          </p>
+        )}
+
+        {editing && (
+          <div className="mt-3 rounded-xl border border-border p-3.5">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-2 text-[13px]">
+                {hasLogin ? (
+                  <>
+                    <span className="grid h-6 w-6 place-items-center rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300">
+                      <Check className="h-3.5 w-3.5" />
+                    </span>
+                    <span>
+                      Partner login active
+                      {partnerLoginEmail ? <span className="text-muted-foreground"> · {partnerLoginEmail}</span> : null}
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <span className="grid h-6 w-6 place-items-center rounded-full bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300">
+                      <KeyRound className="h-3.5 w-3.5" />
+                    </span>
+                    <span>No partner login yet</span>
+                  </>
+                )}
+              </div>
+              <Button type="button" variant="outline" size="sm" loading={inviting} onClick={regenerateInvite}>
+                <Mail className="h-4 w-4" />
+                {hasLogin ? 'Regenerate set-password link' : 'Create partner login'}
+              </Button>
+            </div>
+            <p className="mt-2 text-[12px] text-muted-foreground">
+              Uses the contact email above. Save the form first if you just changed it.
+            </p>
+          </div>
+        )}
+
+        {inviteErr && (
+          <p className="mt-3 flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 p-3 text-[12.5px] font-medium text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300">
+            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+            {inviteErr}
+          </p>
+        )}
+
+        {inviteLink && (
+          <div className="mt-3 rounded-xl border border-emerald-300 bg-emerald-50 p-3.5 dark:border-emerald-500/40 dark:bg-emerald-500/10">
+            <p className="text-[13px] font-bold text-emerald-900 dark:text-emerald-200">
+              Partner login ready
+            </p>
+            <p className="mt-0.5 text-[12px] text-emerald-800 dark:text-emerald-200/90">
+              Share this set-password link (valid 7 days).
+              {inviteEmailed ? ' It has also been emailed to the contact.' : ' Email isn’t configured, so share it manually.'}
+            </p>
+            <div className="mt-2 flex items-center gap-2">
+              <input
+                readOnly
+                value={inviteLink}
+                onFocus={(e) => e.currentTarget.select()}
+                className="min-w-0 flex-1 rounded-lg border border-emerald-300 bg-white px-3 py-2 font-mono text-[12px] text-slate-700 dark:bg-slate-900/40 dark:text-slate-200"
+              />
+              <Button type="button" variant="primary" size="sm" onClick={copyLink}>
+                {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                {copied ? 'Copied' : 'Copy'}
+              </Button>
+            </div>
+          </div>
+        )}
+      </section>
+
       {/* ------------------------------------------------------------ actions */}
       <div className="sticky bottom-0 z-10 -mx-4 flex flex-wrap items-center gap-2 border-t border-border bg-background/90 px-4 py-3 backdrop-blur-xl sm:-mx-5 sm:px-5">
-        <Button type="submit" variant="holo" loading={saving}>
-          <Save className="h-4 w-4" />
-          {editing ? 'Save Changes' : 'Create University'}
-        </Button>
+        {createdId ? (
+          <Link
+            href={`/admin/universities/${createdId}`}
+            className={buttonVariants({ variant: 'holo' })}
+          >
+            Open university
+            <ExternalLink className="h-4 w-4" />
+          </Link>
+        ) : (
+          <Button type="submit" variant="holo" loading={saving}>
+            <Save className="h-4 w-4" />
+            {editing ? 'Save Changes' : 'Create University'}
+          </Button>
+        )}
 
         <Link href="/admin/universities" className={buttonVariants({ variant: 'outline' })}>
-          Cancel
+          {createdId ? 'Back to universities' : 'Cancel'}
         </Link>
 
         {editing && viewSlug && (

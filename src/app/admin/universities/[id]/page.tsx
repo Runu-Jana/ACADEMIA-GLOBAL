@@ -20,6 +20,13 @@ export default async function EditUniversityPage({ params }: { params: Promise<{
   const u = await prisma.university.findUnique({ where: { id } })
   if (!u) notFound()
 
+  // Does this university already have a partner portal login?
+  const partnerLogin = await prisma.user.findFirst({
+    where: { universityId: u.id, role: 'PARTNER' },
+    select: { email: true },
+    orderBy: { createdAt: 'asc' },
+  })
+
   const initial: UniversityFormValues = {
     name: u.name,
     slug: u.slug,
@@ -41,6 +48,9 @@ export default async function EditUniversityPage({ params }: { params: Promise<{
     listed: u.listed,
     partnerStatus: u.partnerStatus,
     commissionPct: String(u.commissionPct),
+    contactName: u.contactName ?? '',
+    contactEmail: u.contactEmail ?? '',
+    contactPhone: u.contactPhone ?? '',
   }
 
   return (
@@ -55,7 +65,12 @@ export default async function EditUniversityPage({ params }: { params: Promise<{
 
       <PageHeader title={u.name} sub="Edit this institution's profile, accreditation and visibility." />
 
-      <UniversityForm initial={initial} universityId={u.id} viewSlug={u.slug} />
+      <UniversityForm
+        initial={initial}
+        universityId={u.id}
+        viewSlug={u.slug}
+        partnerLoginEmail={partnerLogin?.email ?? null}
+      />
     </>
   )
 }

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { requireAdminApi, zodMessage, badRequest, readJson } from '../_lib/guard'
 import { universitySchema } from '../_lib/university-schema'
+import { createPartnerLogin } from '@/lib/partner-invite'
 
 export const dynamic = 'force-dynamic'
 
@@ -38,9 +39,28 @@ export async function POST(req: Request) {
       listed: data.listed,
       partnerStatus: data.partnerStatus,
       commissionPct: data.commissionPct,
+      contactName: data.contactName,
+      contactEmail: data.contactEmail,
+      contactPhone: data.contactPhone,
     },
     select: { id: true, slug: true, name: true },
   })
 
-  return NextResponse.json({ ok: true, university }, { status: 201 })
+  // An ACTIVE partner with a contact email gets a portal login the same way an
+  // approved sign-up does, so it can add its own programmes.
+  let partnerInvite: { email: string; setupUrl: string; emailed: boolean } | null = null
+  let partnerInviteError: string | null = null
+  if (data.partnerStatus === 'ACTIVE' && data.contactEmail) {
+    const invite = await createPartnerLogin({
+      universityId: university.id,
+      name: data.contactName ?? university.name,
+      email: data.contactEmail,
+      phone: data.contactPhone,
+      universityName: university.name,
+    })
+    if (invite.ok) partnerInvite = { email: invite.email, setupUrl: invite.setupUrl, emailed: invite.emailed }
+    else partnerInviteError = invite.error
+  }
+
+  return NextResponse.json({ ok: true, university, partnerInvite, partnerInviteError }, { status: 201 })
 }

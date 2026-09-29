@@ -82,6 +82,48 @@ export function passwordResetEmail(opts: {
   }
 }
 
+/** Sent when an operator sets up a partner institution and its login. */
+export function partnerInviteEmail(opts: {
+  name: string
+  universityName: string
+  setupUrl: string
+  expiresDays: number
+}): AdminMail {
+  const hi = firstName(opts.name)
+  return {
+    subject: `Set up your ${BRAND} partner account`,
+    text: [
+      `Hi ${hi},`,
+      ``,
+      `${opts.universityName} has been set up as a partner on ${BRAND}.`,
+      `Use the link below to set your password and access your partner portal — it expires in ${opts.expiresDays} days:`,
+      ``,
+      opts.setupUrl,
+      ``,
+      `Once you're in, you can add your programmes and submit them for review.`,
+      ``,
+      `— The ${BRAND} team`,
+    ].join('\n'),
+    html: shell(
+      `Set up your ${BRAND} partner account.`,
+      `<h1 style="margin:0 0 12px;font-size:20px;font-weight:800;">Welcome to ${BRAND} Partners</h1>
+       <p style="margin:0 0 16px;font-size:14px;line-height:1.65;color:#334155;">
+         Hi ${hi}, <strong>${opts.universityName}</strong> has been set up as a partner institution.
+         Set your password using the button below to access your partner portal — this link expires in
+         <strong>${opts.expiresDays} days</strong>.
+       </p>
+       <p style="margin:0 0 22px;">${button(opts.setupUrl, 'Set your password')}</p>
+       <p style="margin:0 0 8px;font-size:12px;line-height:1.6;color:#64748b;">
+         Or paste this link into your browser:<br>
+         <a href="${opts.setupUrl}" style="color:#2563eb;word-break:break-all;">${opts.setupUrl}</a>
+       </p>
+       <p style="margin:16px 0 0;font-size:13px;line-height:1.6;color:#64748b;">
+         Once you're in, you can add your programmes and submit them for review.
+       </p>`,
+    ),
+  }
+}
+
 /** Sent right after a student creates their account. */
 export function welcomeEmail(name: string): AdminMail {
   const hi = firstName(name)

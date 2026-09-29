@@ -22,8 +22,12 @@ const lineList = z.preprocess(
   z.array(z.string().min(1).max(240)).max(20, 'That is too many entries (20 max)'),
 )
 
+/** Blank string OR absent → null. Keeps optional text/URL fields tolerant. */
+const blankToNull = (value: unknown) =>
+  value == null || (typeof value === 'string' && value.trim() === '') ? null : value
+
 const optionalUrl = z.preprocess(
-  (value) => (typeof value === 'string' && value.trim() === '' ? null : value),
+  blankToNull,
   z.string().trim().url('Enter a valid URL (including https://)').max(300).nullable(),
 )
 
@@ -41,10 +45,7 @@ export const universitySchema = z.object({
   shortName: z.string().trim().min(1, 'Short name is required').max(40),
   about: z.string().trim().min(10, 'Write a short description (at least 10 characters)').max(4000),
   estYear: z.coerce.number().int().min(1800, 'Enter a valid year').max(new Date().getFullYear()),
-  naacGrade: z.preprocess(
-    (v) => (typeof v === 'string' && v.trim() === '' ? null : v),
-    z.string().trim().max(20).nullable(),
-  ),
+  naacGrade: z.preprocess(blankToNull, z.string().trim().max(20).nullable()),
   city: z.string().trim().min(1, 'City is required').max(80),
   state: z.string().trim().min(1, 'State is required').max(80),
   website: optionalUrl,
@@ -59,6 +60,13 @@ export const universitySchema = z.object({
   listed: z.coerce.boolean(),
   partnerStatus: z.enum(PARTNER_STATUSES),
   commissionPct: z.coerce.number().min(0).max(100),
+  // Partner contact — also used to provision the partner login.
+  contactName: z.preprocess(blankToNull, z.string().trim().max(80).nullable()),
+  contactEmail: z.preprocess(
+    blankToNull,
+    z.string().trim().toLowerCase().email('Enter a valid contact email').max(160).nullable(),
+  ),
+  contactPhone: z.preprocess(blankToNull, z.string().trim().max(30).nullable()),
 })
 
 export type UniversityInput = z.infer<typeof universitySchema>

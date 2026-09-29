@@ -46,6 +46,9 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
       listed: data.listed,
       partnerStatus: data.partnerStatus,
       commissionPct: data.commissionPct,
+      contactName: data.contactName,
+      contactEmail: data.contactEmail,
+      contactPhone: data.contactPhone,
     },
     select: { id: true, slug: true, name: true },
   })
