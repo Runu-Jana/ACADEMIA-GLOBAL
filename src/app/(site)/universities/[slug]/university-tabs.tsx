@@ -57,13 +57,13 @@ export function UniversityTabs({ tabs }: { tabs: UniversityTabItem[] }) {
 
   return (
     <div>
-      <div className="sticky top-16 z-20 -mx-4 mb-6 bg-background/85 px-4 backdrop-blur-md lg:top-[68px]">
+      <div className="sticky top-16 z-20 -mx-4 mb-6 border-b border-border bg-background/85 px-4 backdrop-blur-md lg:top-[68px]">
         <div
           ref={listRef}
           role="tablist"
           aria-label="University profile sections"
           onKeyDown={onKeyDown}
-          className="no-scrollbar mask-fade-x flex gap-1 overflow-x-auto border-b border-border py-2"
+          className="no-scrollbar mask-fade-x flex gap-1 overflow-x-auto py-2.5"
         >
           {tabs.map((tab) => {
             const Icon = ICONS[tab.id] ?? Building2
@@ -85,7 +85,7 @@ export function UniversityTabs({ tabs }: { tabs: UniversityTabItem[] }) {
                   'text-[13px] font-bold transition-all duration-300 ease-spring',
                   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
                   isActive
-                    ? 'bg-primary-600 text-white shadow-glow'
+                    ? 'bg-primary-600 text-white shadow-[0_2px_8px_-1px_rgba(37,99,235,.5)]'
                     : 'text-muted-foreground hover:bg-muted hover:text-foreground',
                 )}
               >
