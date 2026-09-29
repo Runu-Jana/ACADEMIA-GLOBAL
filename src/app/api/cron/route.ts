@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { promoteClaimable } from '@/lib/commission'
 import { sendReengagementNudges } from '@/lib/reminders'
+import { syncListedUniversities } from '@/lib/directory-sync'
 import { captureError } from '@/lib/observability'
 
 export const dynamic = 'force-dynamic'
@@ -55,6 +56,13 @@ async function handle(req: Request) {
   } catch (err) {
     captureError(err, { scope: 'cron', task: 'reengagementNudges' })
     result.nudges = { error: true }
+  }
+
+  try {
+    result.catalogSync = await syncListedUniversities()
+  } catch (err) {
+    captureError(err, { scope: 'cron', task: 'catalogSync' })
+    result.catalogSync = { error: true }
   }
 
   return NextResponse.json(result)

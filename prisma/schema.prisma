@@ -168,6 +168,14 @@ model University {
   listed    Boolean @default(false)
   sourceUrl String? // where directory data was sourced from, for attribution
 
+  // ---- automatic catalogue sync (from the institution's public site) ----
+  /// When true, the daily cron re-scrapes `sourceUrl` and reconciles this
+  /// university's DIRECTORY courses: new programmes + minor edits auto-apply,
+  /// material changes queue as CatalogChange for review.
+  syncEnabled  Boolean   @default(false)
+  lastSyncedAt DateTime?
+  syncStatus   String? // last run outcome, e.g. "2 added · 1 updated · 3 queued"
+
   // ---- partnership (the revenue relationship) ----
   /// PROSPECT -> IN_TALKS -> ACTIVE. Only ACTIVE partners' courses go live.
   partnerStatus String  @default("PROSPECT")
@@ -184,14 +192,38 @@ model University {
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
 
-  courses     Course[]
-  commissions Commission[]
-  payouts     Payout[]
-  staff       User[]       @relation("PartnerStaff")
+  courses        Course[]
+  commissions    Commission[]
+  payouts        Payout[]
+  staff          User[]          @relation("PartnerStaff")
+  catalogChanges CatalogChange[]
 
   @@index([featured])
   @@index([partnerStatus])
   @@index([listed])
+}
+
+/// A pending, human-reviewed change proposed by the automatic directory sync.
+/// New programmes and minor edits auto-apply; only MATERIAL changes — a large
+/// fee move, a level/duration change, or a programme dropped from the source —
+/// land here for one-click approval, so a bad scrape can't silently rewrite a
+/// fee on a live, fee-taking listing.
+model CatalogChange {
+  id         String    @id @default(cuid())
+  kind       String // UPDATE | REMOVE
+  courseSlug String?
+  title      String
+  summary    String
+  payload    Json?
+  status     String    @default("PENDING") // PENDING | APPROVED | REJECTED
+  createdAt  DateTime  @default(now())
+  resolvedAt DateTime?
+
+  universityId String
+  university   University @relation(fields: [universityId], references: [id], onDelete: Cascade)
+
+  @@index([status, createdAt])
+  @@index([universityId])
 }
 
 /// A public "Partner with us" enquiry.
