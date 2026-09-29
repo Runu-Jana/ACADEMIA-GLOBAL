@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import {
   Check, ChevronLeft, ChevronRight, AlertCircle, GraduationCap, User as UserIcon,
-  BookOpen, Wallet, ShieldCheck, Sparkles, Info, ArrowRight, Percent, CalendarDays,
+  BookOpen, Wallet, ShieldCheck, Sparkles, Info, ArrowRight, Percent, CalendarDays, FileText,
 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button, buttonVariants } from '@/components/ui/button'
@@ -126,6 +126,8 @@ export function ApplyWizard({
   // When no live gateway is configured, the paid flow opens an in-app demo sheet.
   const [demoPay, setDemoPay] = React.useState(false)
   const [demoPayError, setDemoPayError] = React.useState('')
+  // Set after a paid enrolment so the success screen can link to the invoice.
+  const [invoiceOrderId, setInvoiceOrderId] = React.useState<string | null>(null)
 
   const [personal, setPersonal] = React.useState<Personal>({
     fullName: initialPersonal.fullName ?? '',
@@ -303,6 +305,7 @@ export function ApplyWizard({
           })
           const verifyData = await verifyRes.json()
           if (!verifyRes.ok) throw new Error(verifyData.error ?? t('err.verify'))
+          if (verifyData.orderId) setInvoiceOrderId(verifyData.orderId)
         } catch (payErr) {
           if (payErr instanceof Error && payErr.message === CHECKOUT_CANCELLED) {
             setError(t('err.cancelled'))
@@ -334,6 +337,7 @@ export function ApplyWizard({
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error ?? t('err.start'))
+      if (data.orderId) setInvoiceOrderId(data.orderId)
       setDemoPay(false)
       setDone(true)
       router.refresh()
@@ -388,6 +392,16 @@ export function ApplyWizard({
                 {t('myDashboard')}
               </Link>
             </div>
+
+            {invoiceOrderId && (
+              <Link
+                href={`/invoices/${invoiceOrderId}`}
+                className="mt-3 inline-flex items-center justify-center gap-1.5 text-[13px] font-semibold text-primary-600 hover:underline"
+              >
+                <FileText className="h-4 w-4" />
+                {t('viewInvoice')}
+              </Link>
+            )}
           </div>
         </div>
       </div>

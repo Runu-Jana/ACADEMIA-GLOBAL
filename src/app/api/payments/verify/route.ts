@@ -50,5 +50,5 @@ export async function POST(req: Request) {
   }
 
   await markOrderPaid(order.id, razorpayPaymentId)
-  return NextResponse.json({ ok: true, enrolled: true })
+  return NextResponse.json({ ok: true, enrolled: true, orderId: order.id })
 }

@@ -624,6 +624,7 @@
       "assignments": "Assignments",
       "tests": "Tests & Exams",
       "certificates": "Certificates",
+      "billing": "Payments & invoices",
       "goals": "Goals",
       "saved": "Saved",
       "resume": "AI Resume",
@@ -1380,6 +1381,7 @@
     "statusValue": "Submitted · Under review",
     "goClassroom": "Go to Classroom",
     "myDashboard": "My Dashboard",
+    "viewInvoice": "Download invoice",
     "err": {
       "name": "Please enter your full name.",
       "email": "Enter a valid email address.",

@@ -66,5 +66,5 @@ export async function POST(req: Request) {
 
   const order = await openOrder(user.id, courseId)
   await markOrderPaid(order.id, 'demo_payment')
-  return NextResponse.json({ ok: true, enrolled: true, demo: true })
+  return NextResponse.json({ ok: true, enrolled: true, demo: true, orderId: order.id })
 }

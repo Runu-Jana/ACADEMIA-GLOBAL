@@ -8,7 +8,7 @@ import {
   Video,
   LayoutDashboard, BookOpen, GraduationCap, FolderOpen, PenSquare, ClipboardList,
   Award, FileText, User as UserIcon, LifeBuoy, Menu, X, Search, ChevronDown, LogOut,
-  PanelLeftClose, PanelLeft, Home, Compass, Rocket, Heart, Target,
+  PanelLeftClose, PanelLeft, Home, Compass, Rocket, Heart, Target, Receipt,
 } from 'lucide-react'
 import { Logo } from '@/components/layout/logo'
 import { ThemeToggle } from '@/components/layout/theme-toggle'
@@ -45,6 +45,7 @@ const NAV: NavItem[] = [
   { key: 'assignments', href: '/dashboard/assignments', icon: PenSquare },
   { key: 'tests', href: '/dashboard/tests', icon: ClipboardList },
   { key: 'certificates', href: '/dashboard/certificates', icon: Award },
+  { key: 'billing', href: '/dashboard/billing', icon: Receipt },
   { key: 'goals', href: '/dashboard/goals', icon: Target },
   { key: 'saved', href: '/dashboard/saved', icon: Heart },
   { key: 'resume', href: '/dashboard/resume', icon: FileText },
@@ -65,6 +66,7 @@ const TITLES: { prefix: string; tkey: string; exact?: boolean }[] = [
   { prefix: '/dashboard/assignments', tkey: 'nav.assignments' },
   { prefix: '/dashboard/tests', tkey: 'nav.tests' },
   { prefix: '/dashboard/certificates', tkey: 'nav.certificates' },
+  { prefix: '/dashboard/billing', tkey: 'nav.billing' },
   { prefix: '/dashboard/goals', tkey: 'shell.goalsTitle' },
   { prefix: '/dashboard/saved', tkey: 'nav.saved' },
   { prefix: '/dashboard/resume', tkey: 'nav.resume' },
@@ -386,6 +388,7 @@ export function DashboardShell({
                       <div className="p-1.5">
                         <MenuLink href="/dashboard/profile" icon={UserIcon}>{t('shell.myProfile')}</MenuLink>
                         <MenuLink href="/dashboard/certificates" icon={Award}>{t('nav.certificates')}</MenuLink>
+                        <MenuLink href="/dashboard/billing" icon={Receipt}>{t('nav.billing')}</MenuLink>
                         <MenuLink href="/" icon={Home}>{t('nav.backToSite')}</MenuLink>
                       </div>
                       <form action="/api/auth/logout" method="post" className="border-t border-border p-1.5">
