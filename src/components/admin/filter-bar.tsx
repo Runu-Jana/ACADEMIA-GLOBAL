@@ -3,7 +3,7 @@
 import * as React from 'react'
 import { useRouter } from 'next/navigation'
 import { Search, X, SlidersHorizontal } from 'lucide-react'
-import { Select } from '@/components/ui/field'
+import { SelectMenu } from '@/components/ui/select-menu'
 import { cn } from '@/lib/utils'
 
 export type FilterSelect = {
@@ -109,20 +109,16 @@ export function FilterBar({
           <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center">
             <SlidersHorizontal className="hidden h-4 w-4 shrink-0 text-muted-foreground lg:block" />
             {selects.map((s) => (
-              <Select
+              <SelectMenu
                 key={s.name}
                 aria-label={s.label}
                 value={values[s.name] ?? ''}
-                onChange={(e) => push({ ...values, [s.name]: e.target.value })}
-                className="h-10 w-full text-[13px] sm:w-auto sm:min-w-[9.5rem]"
-              >
-                <option value="">{s.label}</option>
-                {s.options.map((o) => (
-                  <option key={o.value} value={o.value}>
-                    {o.label}
-                  </option>
-                ))}
-              </Select>
+                onChange={(value) => push({ ...values, [s.name]: value })}
+                options={s.options}
+                placeholder={s.label}
+                className="w-full sm:w-auto sm:min-w-[9.5rem]"
+                buttonClassName="h-10 text-[13px]"
+              />
             ))}
           </div>
         )}
