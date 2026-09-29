@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { Stars } from '@/components/ui/stars'
 import { Button } from '@/components/ui/button'
 import { Select } from '@/components/ui/field'
+import { SelectMenu } from '@/components/ui/select-menu'
 import { TiltCard } from '@/components/fx/tilt-card'
 import { Reveal } from '@/components/fx/reveal'
 import { COURSE_LEVELS, COURSE_MODES, STREAMS, DURATION_BUCKETS } from '@/lib/constants'
@@ -56,6 +57,8 @@ export function UniversityGrid({ universities }: { universities: UniversityCardD
   const [f, setF] = React.useState(EMPTY)
   const set = (k: keyof typeof EMPTY) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
     setF((prev) => ({ ...prev, [k]: e.target.value }))
+  const setVal = (k: keyof typeof EMPTY) => (value: string) =>
+    setF((prev) => ({ ...prev, [k]: value }))
 
   // Only offer options that actually exist across the current institutions.
   const opts = React.useMemo(() => {
@@ -118,22 +121,22 @@ export function UniversityGrid({ universities }: { universities: UniversityCardD
             )}
           </div>
           <div className="grid grid-cols-1 gap-3 min-[420px]:grid-cols-2 lg:grid-cols-1">
-            <FilterSelect label="Discipline" value={f.stream} onChange={set('stream')} options={opts.streams} anyLabel="All disciplines" />
-            <FilterSelect label="Course level" value={f.level} onChange={set('level')} options={opts.levels} anyLabel="Any level" />
-            <FilterSelect label="Mode" value={f.mode} onChange={set('mode')} options={opts.modes} anyLabel="Any mode" />
-            <FilterSelect label="Duration" value={f.duration} onChange={set('duration')} options={opts.durations} anyLabel="Any duration" />
-            <FilterSelect label="Accreditation" value={f.accred} onChange={set('accred')} options={opts.accreds} anyLabel="Any accreditation" />
+            <FilterSelect label="Discipline" value={f.stream} onChange={setVal('stream')} options={opts.streams} anyLabel="All disciplines" />
+            <FilterSelect label="Course level" value={f.level} onChange={setVal('level')} options={opts.levels} anyLabel="Any level" />
+            <FilterSelect label="Mode" value={f.mode} onChange={setVal('mode')} options={opts.modes} anyLabel="Any mode" />
+            <FilterSelect label="Duration" value={f.duration} onChange={setVal('duration')} options={opts.durations} anyLabel="Any duration" />
+            <FilterSelect label="Accreditation" value={f.accred} onChange={setVal('accred')} options={opts.accreds} anyLabel="Any accreditation" />
             <FilterSelect
               label="Location"
               value={f.state}
-              onChange={set('state')}
+              onChange={setVal('state')}
               options={opts.states.map((s) => ({ value: s, label: s }))}
               anyLabel="All states"
             />
             <FilterSelect
               label="Minimum rating"
               value={f.minRating}
-              onChange={set('minRating')}
+              onChange={setVal('minRating')}
               options={[
                 { value: '4.5', label: '4.5 & up' },
                 { value: '4', label: '4.0 & up' },
@@ -294,19 +297,21 @@ function FilterSelect({
 }: {
   label: string
   value: string
-  onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void
+  onChange: (value: string) => void
   options: readonly { value: string; label: string }[]
   anyLabel: string
 }) {
   return (
-    <label className="block">
+    <div className="block">
       <span className="mb-1 block text-[11px] font-bold text-muted-foreground">{label}</span>
-      <Select value={value} onChange={onChange} aria-label={label} className="h-10 w-full">
-        <option value="">{anyLabel}</option>
-        {options.map((o) => (
-          <option key={o.value} value={o.value}>{o.label}</option>
-        ))}
-      </Select>
-    </label>
+      <SelectMenu
+        value={value}
+        onChange={onChange}
+        options={options}
+        placeholder={anyLabel}
+        aria-label={label}
+        buttonClassName="h-10"
+      />
+    </div>
   )
 }
