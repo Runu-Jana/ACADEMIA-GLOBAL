@@ -751,6 +751,7 @@ export function ApplyWizard({
               variant="holo"
               onClick={finalSubmit}
               loading={loading}
+              disabled={!consent}
               className="w-full sm:w-auto"
             >
               {paidCheckout ? <Wallet className="h-4 w-4" /> : <Sparkles className="h-4 w-4" />}
