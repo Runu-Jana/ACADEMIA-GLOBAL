@@ -63,7 +63,7 @@ export function UniversityTabs({ tabs }: { tabs: UniversityTabItem[] }) {
           role="tablist"
           aria-label="University profile sections"
           onKeyDown={onKeyDown}
-          className="no-scrollbar mask-fade-x flex gap-1 overflow-x-auto py-2.5"
+          className="no-scrollbar flex gap-1 overflow-x-auto py-2.5"
         >
           {tabs.map((tab) => {
             const Icon = ICONS[tab.id] ?? Building2
