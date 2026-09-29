@@ -31,6 +31,12 @@ export type CourseSeed = {
 export const UNIVERSITIES = [
   {
     slug: 'amity-university-online',
+    rankings: [
+      'Featured in the QS World University Rankings',
+      'NAAC A+ accredited; UGC-entitled and AICTE-approved',
+      'WES-recognised for study and work abroad',
+      'QS-ranked online MBA — a first among Indian institutions',
+    ],
     highlights: [
       'UGC-entitled degrees — valid for jobs, higher study and government exams',
       'NAAC A+ accredited, with a QS-ranked online MBA',
@@ -55,6 +61,12 @@ export const UNIVERSITIES = [
   },
   {
     slug: 'manipal-university-online',
+    rankings: [
+      'Ranked among India’s top universities by NIRF',
+      'Recognised as an Institution of Eminence (MAHE)',
+      'NAAC-accredited with a seven-decade academic legacy',
+      'UGC-entitled and AICTE-approved online degrees',
+    ],
     highlights: [
       'Seven decades of academic legacy (established 1953)',
       'UGC-entitled, NAAC A+ and AICTE-approved online degrees',
@@ -79,6 +91,13 @@ export const UNIVERSITIES = [
   },
   {
     slug: 'chandigarh-university-online',
+    rankings: [
+      'QS World University Rankings 2027: #526 globally — among India’s top 5 universities',
+      'QS Asia 2026: #109 in Asia — #1 private university in India',
+      'NIRF 2025: #19 among universities, #31 in engineering, #32 in management',
+      'NAAC A+ — among the top 5% of institutions in India',
+      'QS I-GAUGE Diamond rating; NBA- and ABET-accredited engineering programmes',
+    ],
     highlights: [
       'UGC-entitled, NAAC A+ and AICTE-approved online degrees',
       'Industry-designed curriculum with live projects',
@@ -89,7 +108,7 @@ export const UNIVERSITIES = [
     name: 'Chandigarh University Online',
     shortName: 'Chandigarh',
     about:
-      'Chandigarh University Online delivers flexible, career-focused degrees with live mentoring, recorded lectures and a strong placement network of 900+ recruiters.',
+      'Chandigarh University (CU) is a leading Indian institution offering a unique amalgamation of professional and academic excellence. It has been accredited with the prestigious A+ grade by the National Assessment and Accreditation Council (NAAC) — becoming the youngest, and the only private university in India, to earn an A+ in the first cycle of accreditation.\n\nChandigarh University Online extends that reputation to flexible, career-focused degrees, with live mentoring, recorded lectures and a strong placement network of 900+ recruiting partners.',
     estYear: 2012,
     naacGrade: 'A+',
     approvals: ['UGC Entitled', 'NAAC A+', 'AICTE Approved'],
@@ -103,6 +122,12 @@ export const UNIVERSITIES = [
   },
   {
     slug: 'lpu-online',
+    rankings: [
+      'Featured in the QS World University Rankings',
+      'Ranked among India’s universities by NIRF',
+      'NAAC A++ accredited and UGC-entitled',
+      'Among the largest single-campus universities in India',
+    ],
     highlights: [
       'NAAC A++ accredited and UGC-entitled',
       'Among the largest placement drives in North India',
@@ -127,6 +152,11 @@ export const UNIVERSITIES = [
   },
   {
     slug: 'jain-university-online',
+    rankings: [
+      'NIRF-ranked among India’s universities',
+      'NAAC A++ accredited and UGC-entitled',
+      'Recognised for management, science and entrepreneurship',
+    ],
     highlights: [
       'NAAC A++ accredited and UGC-entitled degrees',
       'Strong focus on management and entrepreneurship',
@@ -151,6 +181,11 @@ export const UNIVERSITIES = [
   },
   {
     slug: 'dy-patil-university-online',
+    rankings: [
+      'NAAC A+ accredited and UGC-recognised',
+      'NIRF-ranked (Dr. D. Y. Patil Vidyapeeth)',
+      'Known for management and healthcare education',
+    ],
     highlights: [
       'UGC-entitled and NAAC A+ accredited',
       'Management and healthcare-focused online programmes',
@@ -175,6 +210,11 @@ export const UNIVERSITIES = [
   },
   {
     slug: 'ignou',
+    rankings: [
+      'One of the world’s largest universities by enrolment',
+      'UGC-DEB approved and NAAC A++ accredited',
+      'ISO 9001 certified; recognised across India and abroad',
+    ],
     highlights: [
       'India’s largest university — 3 lakh+ learners',
       'UGC-DEB approved and NAAC A++ accredited',

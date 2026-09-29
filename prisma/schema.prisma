@@ -156,6 +156,9 @@ model University {
   /// Curated "at a glance" bullet points for the About panel. Empty → the detail
   /// page derives neutral highlights from the facts (approvals, learners, etc.).
   highlights Json @default("[]") // string[]
+  /// Notable rankings + recognitions (NIRF/QS/THE positions, NAAC, NBA, awards…),
+  /// shown in the About panel's "Rankings & Recognitions" block. string[].
+  rankings   Json @default("[]")
   rating    Float   @default(4.5)
   reviews   Int     @default(0)
   students  Int     @default(0)

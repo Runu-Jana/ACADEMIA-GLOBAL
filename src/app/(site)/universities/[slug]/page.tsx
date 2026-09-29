@@ -164,6 +164,8 @@ export default async function UniversityProfilePage({
         'Online learning with live and recorded classes',
       ].filter(Boolean) as string[])
 
+  const rankings = asList(university.rankings)
+
   // Paragraphs for the About write-up (supports multi-paragraph copy).
   const aboutParagraphs = university.about.split(/\n{2,}/).map((p) => p.trim()).filter(Boolean)
 
@@ -262,6 +264,23 @@ export default async function UniversityProfilePage({
               </p>
             )}
           </Panel>
+
+          {rankings.length > 0 && (
+            <Panel title="Rankings & Recognitions">
+              <ul className="space-y-2.5">
+                {rankings.map((r) => (
+                  <li key={r} className="flex items-start gap-3 rounded-xl border border-border bg-muted/40 p-3">
+                    <Award aria-hidden className="mt-0.5 h-4 w-4 shrink-0 text-primary-500" />
+                    <span className="text-[13px] font-medium leading-snug">{r}</span>
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-3 text-[11.5px] text-muted-foreground">
+                Rankings and recognitions as published by the institution and ranking bodies. Verify
+                the latest positions on the official website.
+              </p>
+            </Panel>
+          )}
         </div>
       ),
     },
