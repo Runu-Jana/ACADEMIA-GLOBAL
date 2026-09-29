@@ -52,6 +52,8 @@ const UNIVERSITIES: {
   city: string
   state: string
   website: string
+  highlights?: string[]
+  rankings?: string[]
   featured: boolean
   commissionPct: number
   courses: CourseSeed[]
@@ -72,6 +74,20 @@ const UNIVERSITIES: {
     city: 'Pune',
     state: 'Maharashtra',
     website: 'https://www.scdl.net',
+    highlights: [
+      'NAAC A++ accredited (Symbiosis International University)',
+      'UGC-DEB approved online & distance learning programmes',
+      '51,000+ learners across management, IT and commerce',
+      'Weekend live sessions with recorded lectures for revision',
+      'Dedicated placement and career-support cell',
+    ],
+    rankings: [
+      'NAAC A++ accredited (Symbiosis International University)',
+      'Ranked among India’s top universities by NIRF',
+      'UGC-entitled and UGC-DEB approved for online/distance degrees',
+      'WES-recognised degrees for study and work abroad',
+      'AICTE-approved management programmes',
+    ],
     featured: true,
     commissionPct: 12,
     courses: [
@@ -135,6 +151,20 @@ const UNIVERSITIES: {
     city: 'Mumbai',
     state: 'Maharashtra',
     website: 'https://www.nmims.edu',
+    highlights: [
+      'NAAC-accredited deemed-to-be university',
+      'Ranked among India’s top management schools by NIRF',
+      'UGC-DEB approved online degree programmes',
+      '38,000+ learners with strong industry connect',
+      'AICTE-approved MBA and PGDM offerings',
+    ],
+    rankings: [
+      'NAAC A+ accredited deemed-to-be university',
+      'Consistently ranked among India’s top management institutions (NIRF)',
+      'UGC-entitled and UGC-DEB approved for online programmes',
+      'AICTE-approved management education',
+      'AACSB member business school',
+    ],
     featured: true,
     commissionPct: 11,
     courses: [
@@ -184,6 +214,20 @@ const UNIVERSITIES: {
     city: 'New Delhi',
     state: 'Delhi',
     website: 'https://www.jmi.ac.in',
+    highlights: [
+      'NAAC A++ accredited central university',
+      'Ranked among India’s top universities by NIRF',
+      'UGC-recognised degrees with strong research output',
+      '29,000+ learners across humanities, science and tech',
+      'Central university with a legacy of academic excellence',
+    ],
+    rankings: [
+      'NAAC A++ accredited central university',
+      'Ranked among India’s top 10 universities by NIRF',
+      'UGC-recognised central university',
+      'Institution of Eminence aspirant with strong research ranking',
+      'ARIIA-recognised for innovation',
+    ],
     featured: false,
     commissionPct: 10,
     courses: [
@@ -324,7 +368,7 @@ async function main() {
     const { courses, ...uni } = u
     const university = await prisma.university.upsert({
       where: { slug: uni.slug },
-      update: { partnerStatus: 'ACTIVE', listed: true, featured: uni.featured },
+      update: { ...uni, partnerStatus: 'ACTIVE', listed: true },
       create: { ...uni, listed: true, partnerStatus: 'ACTIVE' },
     })
     uniCount++

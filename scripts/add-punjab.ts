@@ -12,30 +12,45 @@ import { PrismaClient } from '@prisma/client'
 const prisma = new PrismaClient()
 
 async function main() {
+  const uniData = {
+    slug: 'punjab-university',
+    name: 'Punjab University',
+    shortName: 'PU',
+    about:
+      'Panjab University is one of India’s oldest institutions (established 1882), a NAAC A+ accredited and UGC-entitled university offering online and distance degree programmes for working professionals and students across India.',
+    estYear: 1882,
+    naacGrade: 'A+',
+    approvals: ['UGC', 'NAAC A+', 'AICTE', 'AIU'],
+    rating: 4.5,
+    reviews: 312,
+    students: 42000,
+    programs: 6,
+    city: 'Chandigarh',
+    state: 'Punjab',
+    website: 'https://www.puchd.ac.in',
+    highlights: [
+      'One of India’s oldest universities, established in 1882',
+      'NAAC A+ accredited and UGC-entitled',
+      'Ranked among India’s top universities globally (QS)',
+      '42,000+ learners across online and distance programmes',
+      'Strong research legacy including a Nobel-laureate alumnus',
+    ],
+    rankings: [
+      'NAAC A+ accredited university',
+      'Ranked among the top universities in India by NIRF',
+      'Featured in QS World University Rankings',
+      'UGC-entitled with a legacy dating back to 1882',
+      'Institution of Eminence-recognised research output',
+    ],
+    featured: true,
+    listed: true,
+    partnerStatus: 'ACTIVE' as const,
+    commissionPct: 12,
+  }
   const uni = await prisma.university.upsert({
     where: { slug: 'punjab-university' },
-    update: { partnerStatus: 'ACTIVE', listed: true },
-    create: {
-      slug: 'punjab-university',
-      name: 'Punjab University',
-      shortName: 'PU',
-      about:
-        'Punjab University is a NAAC A+ accredited, UGC-entitled institution offering online and distance degree programmes for working professionals and students across India.',
-      estYear: 1882,
-      naacGrade: 'A+',
-      approvals: ['UGC', 'NAAC A+', 'AICTE', 'AIU'],
-      rating: 4.5,
-      reviews: 312,
-      students: 42000,
-      programs: 6,
-      city: 'Chandigarh',
-      state: 'Punjab',
-      website: 'https://www.puchd.ac.in',
-      featured: true,
-      listed: true,
-      partnerStatus: 'ACTIVE',
-      commissionPct: 12,
-    },
+    update: uniData,
+    create: uniData,
   })
   console.log(`University ready: ${uni.name} (${uni.id})`)
 
