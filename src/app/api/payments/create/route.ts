@@ -81,15 +81,19 @@ export async function POST(req: Request) {
   }
 
   if (!paymentsConfigured()) {
-    // Dev convenience so the wizard is testable before real keys are added.
-    if (process.env.NODE_ENV !== 'production') {
-      await markOrderPaid(order.id, 'demo_payment')
-      return NextResponse.json({ ok: true, enrolled: true, demo: true })
-    }
-    return NextResponse.json(
-      { error: 'Online payment is not available right now. Please try again later.', code: 'payments_unconfigured' },
-      { status: 503 },
-    )
+    // No live gateway configured: hand the browser a themed demonstration
+    // checkout instead of erroring. Enrolment is NOT granted here — the client
+    // completes the demo sheet, then /api/payments/demo-confirm books it. The
+    // order stays PENDING so nothing is treated as paid until that step.
+    return NextResponse.json({
+      ok: true,
+      demoCheckout: true,
+      order: {
+        amount: order.amount,
+        currency: order.currency,
+        courseTitle: course.title,
+      },
+    })
   }
 
   // Reuse the gateway order across retries so hammering "Pay" doesn't spawn duplicates.

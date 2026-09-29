@@ -13,6 +13,7 @@ import { Button, buttonVariants } from '@/components/ui/button'
 import { Field, Input, Checkbox } from '@/components/ui/field'
 import { SelectMenu } from '@/components/ui/select-menu'
 import { DatePicker } from '@/components/ui/date-picker'
+import { PaymentSheet } from '@/components/apply/payment-sheet'
 import { CourseThumb, UniversityMark } from '@/components/course/course-thumb'
 import { cn, formatINR } from '@/lib/utils'
 import { openRazorpayCheckout, CHECKOUT_CANCELLED } from '@/lib/payments/checkout'
@@ -122,6 +123,9 @@ export function ApplyWizard({
   const [loading, setLoading] = React.useState(false)
   const [error, setError] = React.useState('')
   const [consent, setConsent] = React.useState(false)
+  // When no live gateway is configured, the paid flow opens an in-app demo sheet.
+  const [demoPay, setDemoPay] = React.useState(false)
+  const [demoPayError, setDemoPayError] = React.useState('')
 
   const [personal, setPersonal] = React.useState<Personal>({
     fullName: initialPersonal.fullName ?? '',
@@ -274,6 +278,15 @@ export function ApplyWizard({
       const payData = await payRes.json()
       if (!payRes.ok) throw new Error(payData.error ?? t('err.start'))
 
+      // No live gateway: open the in-app demonstration checkout. Enrolment is
+      // finalised only when the student completes that sheet (confirmDemoPayment).
+      if (payData.demoCheckout) {
+        setDemoPayError('')
+        setDemoPay(true)
+        setLoading(false)
+        return
+      }
+
       // Paid course with a live gateway: collect payment, then confirm it
       // server-side before we treat the student as enrolled.
       if (payData.requiresPayment) {
@@ -304,6 +317,29 @@ export function ApplyWizard({
       window.scrollTo({ top: 0, behavior: 'smooth' })
     } catch (err) {
       setError(err instanceof Error ? err.message : t('err.submit'))
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Completes the in-app demonstration checkout (no real gateway configured).
+  async function confirmDemoPayment() {
+    setLoading(true)
+    setDemoPayError('')
+    try {
+      const res = await fetch('/api/payments/demo-confirm', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ courseId: course.id }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error ?? t('err.start'))
+      setDemoPay(false)
+      setDone(true)
+      router.refresh()
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    } catch (err) {
+      setDemoPayError(err instanceof Error ? err.message : t('err.submit'))
     } finally {
       setLoading(false)
     }
@@ -758,12 +794,26 @@ export function ApplyWizard({
               {paidCheckout
                 ? t('payEnrol', { fee: formatINR(course.feePerYear) })
                 : course.feePerYear > 0
-                  ? t('confirmDemo')
+                  ? t('confirmDemo', { fee: formatINR(course.feePerYear) })
                   : t('confirmEnrol')}
             </Button>
           )}
         </div>
       </div>
+
+      {demoPay && (
+        <PaymentSheet
+          feeLabel={formatINR(course.feePerYear)}
+          courseTitle={course.title}
+          universityName={course.universityName}
+          emiSelected={program.emi}
+          emiLabel={t('emiNote', { emi: formatINR(emiMonthly) })}
+          loading={loading}
+          error={demoPayError}
+          onConfirm={confirmDemoPayment}
+          onCancel={() => { if (!loading) { setDemoPay(false); setDemoPayError('') } }}
+        />
+      )}
     </div>
   )
 }
