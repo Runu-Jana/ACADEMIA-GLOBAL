@@ -334,7 +334,7 @@ export default async function UniversityProfilePage({
     },
     {
       id: 'programs',
-      label: `Programs (${courses.length})`,
+      label: 'Programs',
       content: (
         <>
           {isDirectory && (
