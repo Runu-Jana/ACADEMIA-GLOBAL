@@ -18,6 +18,7 @@
     "db:punjab": "tsx scripts/add-punjab.ts",
     "db:catalog": "tsx scripts/add-catalog.ts",
     "db:demo": "tsx scripts/add-demo-data.ts",
+    "db:cert": "tsx scripts/add-demo-certificate.ts",
     "db:activity": "tsx scripts/add-demo-activity.ts",
     "db:extras": "tsx scripts/add-demo-extras.ts",
     "db:admin": "tsx scripts/ensure-admin.ts",
