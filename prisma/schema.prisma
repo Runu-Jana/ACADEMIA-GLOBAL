@@ -57,6 +57,9 @@ model User {
 
   @@index([role])
   @@index([universityId])
+  // Returning-student lookup matches on the normalized phone; index keeps it an
+  // O(log n) index seek instead of a full-table scan as the user base grows.
+  @@index([phone])
 }
 
 /// A course a student has saved to come back to — the wishlist. Deliberately
