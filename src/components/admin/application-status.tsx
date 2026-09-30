@@ -115,7 +115,7 @@ export function ApplicationStatusControl({
           <span className="hidden sm:inline">Review</span>
         </button>
 
-        {DECISIONS.map((a) => {
+        {DECISIONS.filter((a) => !(status === 'APPROVED' && a.value === 'REJECTED')).map((a) => {
           const isCurrent = a.value === status
           const isPending = pending === a.value
           return (
@@ -253,7 +253,7 @@ function ReviewModal({
           >
             Close
           </button>
-          {DECISIONS.map((a) => {
+          {DECISIONS.filter((a) => !(status === 'APPROVED' && a.value === 'REJECTED')).map((a) => {
             const isCurrent = a.value === status
             const isPending = pending === a.value
             return (
