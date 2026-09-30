@@ -140,7 +140,7 @@ export default async function AdminCoursesPage({ searchParams }: { searchParams:
                           {c.title}
                         </span>
                         {c.featured && (
-                          <Badge tone="holo" className="shrink-0 px-2 py-0 text-[10px] leading-4">
+                          <Badge tone="holo" className="shrink-0 gap-0 px-1.5 py-0 text-[9px] uppercase tracking-wide leading-[14px]">
                             Featured
                           </Badge>
                         )}
