@@ -9,7 +9,11 @@ import { createRazorpayOrder, paymentsConfigured, razorpayKeyId } from '@/lib/pa
 
 export const dynamic = 'force-dynamic'
 
-const schema = z.object({ courseId: z.string().trim().min(1, 'Course is required') })
+const schema = z.object({
+  courseId: z.string().trim().min(1, 'Course is required'),
+  /** Deliberate re-enrolment: pay for and start a fresh attempt even if already enrolled. */
+  reenroll: z.boolean().optional(),
+})
 
 /**
  * Starts (or completes) payment for enrolling in a course.
@@ -54,12 +58,15 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Course not found' }, { status: 404 })
   }
 
-  // Already enrolled → nothing to pay.
-  const existing = await prisma.enrollment.findUnique({
-    where: { userId_courseId: { userId: user.id, courseId } },
+  // Already enrolled and not deliberately re-enrolling → nothing to pay.
+  const existing = await prisma.enrollment.findFirst({
+    where: { userId: user.id, courseId },
     select: { id: true },
+    orderBy: { enrolledAt: 'desc' },
   })
-  if (existing) return NextResponse.json({ ok: true, enrolled: true, already: true })
+  if (existing && !parsed.data.reenroll) {
+    return NextResponse.json({ ok: true, enrolled: true, already: true })
+  }
 
   // Covered by an active all-access membership → enrol free, no order or
   // commission. Only our own platform programmes are covered (see membership.ts).
@@ -68,11 +75,11 @@ export async function POST(req: Request) {
     membershipCoversSource(course.source) &&
     (await hasActiveMembership(user.id))
   ) {
-    await grantMembershipEnrolment(user.id, courseId)
+    await grantMembershipEnrolment(user.id, courseId, { reenroll: parsed.data.reenroll })
     return NextResponse.json({ ok: true, enrolled: true, viaMembership: true })
   }
 
-  const order = await openOrder(user.id, courseId)
+  const order = await openOrder(user.id, courseId, { reenroll: parsed.data.reenroll })
 
   // Free programme — enrol straight away.
   if (course.feePerYear <= 0) {

@@ -8,7 +8,11 @@ import { paymentsConfigured } from '@/lib/payments/razorpay'
 
 export const dynamic = 'force-dynamic'
 
-const schema = z.object({ courseId: z.string().trim().min(1, 'Course is required') })
+const schema = z.object({
+  courseId: z.string().trim().min(1, 'Course is required'),
+  /** Deliberate re-enrolment: start a fresh attempt even if already enrolled. */
+  reenroll: z.boolean().optional(),
+})
 
 /**
  * Completes the in-app demonstration checkout for a paid course.
@@ -57,14 +61,17 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Course not found' }, { status: 404 })
   }
 
-  // Already enrolled → nothing to do.
-  const existing = await prisma.enrollment.findUnique({
-    where: { userId_courseId: { userId: user.id, courseId } },
+  // Already enrolled and not deliberately re-enrolling → nothing to do.
+  const existing = await prisma.enrollment.findFirst({
+    where: { userId: user.id, courseId },
     select: { id: true },
+    orderBy: { enrolledAt: 'desc' },
   })
-  if (existing) return NextResponse.json({ ok: true, enrolled: true, already: true })
+  if (existing && !parsed.data.reenroll) {
+    return NextResponse.json({ ok: true, enrolled: true, already: true })
+  }
 
-  const order = await openOrder(user.id, courseId)
+  const order = await openOrder(user.id, courseId, { reenroll: parsed.data.reenroll })
   await markOrderPaid(order.id, 'demo_payment')
   return NextResponse.json({ ok: true, enrolled: true, demo: true, orderId: order.id })
 }

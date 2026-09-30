@@ -102,13 +102,14 @@ export function SignupForm() {
           />
         </Field>
 
-        <Field label="Mobile number" hint="Optional — used for admission updates">
+        <Field label="Mobile number" required hint="Used for admission updates and to recognise you if you return">
           <Input
             type="tel"
             value={form.phone}
             onChange={set('phone')}
             placeholder="+91 98765 43210"
             autoComplete="tel"
+            required
           />
         </Field>
 

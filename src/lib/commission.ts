@@ -28,17 +28,21 @@ export type CommissionStatus = 'PENDING' | 'CLAIMABLE' | 'INVOICED' | 'PAID' | '
  * Idempotent per (user, course) while an order is still PENDING, so a student
  * hammering "Pay now" doesn't spawn duplicates.
  */
-export async function openOrder(userId: string, courseId: string) {
+export async function openOrder(userId: string, courseId: string, opts?: { reenroll?: boolean }) {
   const course = await prisma.course.findUnique({
     where: { id: courseId },
     select: { id: true, feePerYear: true, source: true },
   })
   if (!course) throw new Error('Course not found')
 
-  const pending = await prisma.order.findFirst({
-    where: { userId, courseId, status: 'PENDING' },
-  })
-  if (pending) return pending
+  // A deliberate re-enrolment always starts a fresh order (a new attempt); only
+  // an ordinary retry reuses the still-open order so double-clicks don't stack.
+  if (!opts?.reenroll) {
+    const pending = await prisma.order.findFirst({
+      where: { userId, courseId, status: 'PENDING' },
+    })
+    if (pending) return pending
+  }
 
   return prisma.order.create({
     data: {
@@ -94,12 +98,16 @@ export async function markOrderPaid(orderId: string, gatewayPaymentId?: string) 
     data: { status: 'PAID', paidAt, gatewayPaymentId: gatewayPaymentId ?? null },
   })
 
-  // Enrol on payment — this is the moment access is earned.
-  await prisma.enrollment.upsert({
-    where: { userId_courseId: { userId: order.userId, courseId: order.courseId } },
-    update: {},
-    create: { userId: order.userId, courseId: order.courseId, status: 'ACTIVE' },
-  })
+  // Enrol on payment — this is the moment access is earned. Each order owns its
+  // own enrolment (its attempt): reuse the one already linked (webhook/browser
+  // retry), otherwise create a fresh enrolment and remember it on the order.
+  if (!order.enrollmentId) {
+    const enrollment = await prisma.enrollment.create({
+      data: { userId: order.userId, courseId: order.courseId, status: 'ACTIVE' },
+      select: { id: true },
+    })
+    await prisma.order.update({ where: { id: orderId }, data: { enrollmentId: enrollment.id } })
+  }
 
   // In-app only here; the richer receipt email below is sent (and preference-gated) separately.
   await notify(

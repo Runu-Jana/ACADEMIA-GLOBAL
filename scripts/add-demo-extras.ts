@@ -62,8 +62,9 @@ async function main() {
       console.log(`  skip cert (missing user/course): ${c.email} / ${c.slug}`)
       continue
     }
-    const enrollment = await prisma.enrollment.findUnique({
-      where: { userId_courseId: { userId: user.id, courseId: course.id } },
+    const enrollment = await prisma.enrollment.findFirst({
+    where: { userId: user.id, courseId: course.id },
+    orderBy: { enrolledAt: 'desc' },
       select: { id: true },
     })
     if (!enrollment) {

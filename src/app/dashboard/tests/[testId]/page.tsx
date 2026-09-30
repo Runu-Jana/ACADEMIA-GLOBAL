@@ -48,8 +48,9 @@ export default async function TakeTestPage({ params }: PageProps) {
   })
   if (!test) notFound()
 
-  const enrollment = await prisma.enrollment.findUnique({
-    where: { userId_courseId: { userId: user.id, courseId: test.module.course.id } },
+  const enrollment = await prisma.enrollment.findFirst({
+    where: { userId: user.id, courseId: test.module.course.id },
+    orderBy: { enrolledAt: 'desc' },
     select: { id: true },
   })
   if (!enrollment) notFound()

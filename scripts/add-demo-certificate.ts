@@ -68,18 +68,27 @@ async function main() {
   })
 
   // A completed enrolment (the thing a certificate is issued against).
-  const enrollment = await prisma.enrollment.upsert({
-    where: { userId_courseId: { userId: user.id, courseId: course.id } },
-    update: { status: 'COMPLETED', progressPct: 100, completedAt: new Date() },
-    create: {
-      userId: user.id,
-      courseId: course.id,
-      status: 'COMPLETED',
-      progressPct: 100,
-      completedAt: new Date(),
-    },
+  const found = await prisma.enrollment.findFirst({
+    where: { userId: user.id, courseId: course.id },
     select: { id: true },
+    orderBy: { enrolledAt: 'desc' },
   })
+  const enrollment = found
+    ? await prisma.enrollment.update({
+        where: { id: found.id },
+        data: { status: 'COMPLETED', progressPct: 100, completedAt: new Date() },
+        select: { id: true },
+      })
+    : await prisma.enrollment.create({
+        data: {
+          userId: user.id,
+          courseId: course.id,
+          status: 'COMPLETED',
+          progressPct: 100,
+          completedAt: new Date(),
+        },
+        select: { id: true },
+      })
 
   const existing = await prisma.certificate.findUnique({
     where: { enrollmentId: enrollment.id },

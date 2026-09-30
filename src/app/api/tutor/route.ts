@@ -39,8 +39,9 @@ const MAX_CONTEXT_CHARS = 6000
 /** Only the enrolled student (or an admin, for testing) may open a course's tutor. */
 async function canAccess(userId: string, role: string, courseId: string): Promise<boolean> {
   if (role === 'ADMIN') return true
-  const enrollment = await prisma.enrollment.findUnique({
-    where: { userId_courseId: { userId, courseId } },
+  const enrollment = await prisma.enrollment.findFirst({
+    where: { userId, courseId },
+    orderBy: { enrolledAt: 'desc' },
     select: { id: true },
   })
   return Boolean(enrollment)

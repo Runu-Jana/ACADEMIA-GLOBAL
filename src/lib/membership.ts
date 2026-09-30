@@ -136,12 +136,14 @@ export async function markMembershipPaid(membershipId: string, gatewayPaymentId?
  * no receipt claiming a payment that never happened. The membership's own
  * payment is the money event; this is just the access grant it unlocks.
  */
-export async function grantMembershipEnrolment(userId: string, courseId: string) {
-  const existing = await prisma.enrollment.findUnique({
-    where: { userId_courseId: { userId, courseId } },
-    select: { id: true },
-  })
-  if (existing) return
+export async function grantMembershipEnrolment(userId: string, courseId: string, opts?: { reenroll?: boolean }) {
+  if (!opts?.reenroll) {
+    const existing = await prisma.enrollment.findFirst({
+      where: { userId, courseId },
+      select: { id: true },
+    })
+    if (existing) return
+  }
 
   await prisma.enrollment.create({ data: { userId, courseId, status: 'ACTIVE' } })
 

@@ -250,8 +250,9 @@ export default async function CourseDetailPage({
   // pre-filled for editing. Both reads are skipped entirely for a signed-out visitor.
   const [myEnrollment, myReview] = me
     ? await Promise.all([
-        prisma.enrollment.findUnique({
-          where: { userId_courseId: { userId: me.id, courseId: course.id } },
+        prisma.enrollment.findFirst({
+    where: { userId: me.id, courseId: course.id },
+    orderBy: { enrolledAt: 'desc' },
           select: { id: true },
         }),
         prisma.review.findUnique({

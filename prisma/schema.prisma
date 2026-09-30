@@ -561,7 +561,10 @@ model Enrollment {
 
   certificate Certificate?
 
-  @@unique([userId, courseId])
+  // No (userId, courseId) uniqueness: a student may re-enrol the same course as
+  // a fresh attempt (their choice), each with its own progress and certificate.
+  // "Current" enrolment = the most recent by enrolledAt.
+  @@index([userId, courseId])
   @@index([userId])
   @@index([courseId])
 }
@@ -719,6 +722,10 @@ model Order {
 
   userId   String
   courseId String
+  /// The enrolment this order created/paid for. Lets a re-enrolment attach to its
+  /// own enrolment instead of reusing an earlier one, and keeps confirmation
+  /// idempotent across webhook + browser retries.
+  enrollmentId String?
 
   commission Commission?
 

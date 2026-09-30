@@ -42,8 +42,9 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   if (!liveClass) return notFound()
 
   if (user.role !== 'ADMIN') {
-    const enrolled = await prisma.enrollment.findUnique({
-      where: { userId_courseId: { userId: user.id, courseId: liveClass.courseId } },
+    const enrolled = await prisma.enrollment.findFirst({
+    where: { userId: user.id, courseId: liveClass.courseId },
+    orderBy: { enrolledAt: 'desc' },
       select: { id: true },
     })
     if (!enrolled) return notFound()

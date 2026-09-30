@@ -24,8 +24,9 @@ describe('markOrderPaid — commission booking', () => {
     expect(commission!.commissionPct).toBe(15)
     expect(commission!.status).toBe('PENDING')
 
-    const enrolment = await prisma.enrollment.findUnique({
-      where: { userId_courseId: { userId: student.id, courseId: partnerCourse.id } },
+    const enrolment = await prisma.enrollment.findFirst({
+    where: { userId: student.id, courseId: partnerCourse.id },
+    orderBy: { enrolledAt: 'desc' },
     })
     expect(enrolment).toBeTruthy()
   })

@@ -124,8 +124,9 @@ export async function POST(req: Request) {
   const courseId = lesson.module.courseId
 
   // Ownership check — you can only record progress on your own enrolment.
-  const enrollment = await prisma.enrollment.findUnique({
-    where: { userId_courseId: { userId, courseId } },
+  const enrollment = await prisma.enrollment.findFirst({
+    where: { userId, courseId },
+    orderBy: { enrolledAt: 'desc' },
   })
   if (!enrollment) {
     return NextResponse.json({ error: 'You are not enrolled in this course' }, { status: 403 })

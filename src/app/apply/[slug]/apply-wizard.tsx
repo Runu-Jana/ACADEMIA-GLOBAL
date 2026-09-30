@@ -101,6 +101,7 @@ export function ApplyWizard({
   initialEducation,
   initialProgram,
   alreadyEnrolled,
+  enrolledCompleted = false,
   alreadySubmitted,
   paymentsLive,
 }: {
@@ -110,6 +111,8 @@ export function ApplyWizard({
   initialEducation: Partial<Education>
   initialProgram: Partial<Program>
   alreadyEnrolled: boolean
+  /** Whether the student's latest attempt at this course is already completed. */
+  enrolledCompleted?: boolean
   alreadySubmitted: boolean
   /** Whether a real payment gateway is configured; drives copy and CTA. */
   paymentsLive: boolean
@@ -128,6 +131,9 @@ export function ApplyWizard({
   const [demoPayError, setDemoPayError] = React.useState('')
   // Set after a paid enrolment so the success screen can link to the invoice.
   const [invoiceOrderId, setInvoiceOrderId] = React.useState<string | null>(null)
+  // Deliberate re-enrolment: only true after the student explicitly chooses to
+  // enrol again in a course they already hold, so nothing happens by accident.
+  const [reenroll, setReenroll] = React.useState(false)
 
   const [personal, setPersonal] = React.useState<Personal>({
     fullName: initialPersonal.fullName ?? '',
@@ -275,7 +281,7 @@ export function ApplyWizard({
       const payRes = await fetch('/api/payments/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ courseId: course.id }),
+        body: JSON.stringify({ courseId: course.id, reenroll }),
       })
       const payData = await payRes.json()
       if (!payRes.ok) throw new Error(payData.error ?? t('err.start'))
@@ -333,7 +339,7 @@ export function ApplyWizard({
       const res = await fetch('/api/payments/demo-confirm', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ courseId: course.id }),
+        body: JSON.stringify({ courseId: course.id, reenroll }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error ?? t('err.start'))
@@ -408,6 +414,51 @@ export function ApplyWizard({
     )
   }
 
+  /* ------------------------------------------------ already-enrolled gate */
+  // A student who already holds this course sees a clear notice — so an accidental
+  // revisit can't re-enrol — and must press "Enrol again" to start a fresh, paid
+  // attempt (their choice; a new certificate follows on completion).
+  if (alreadyEnrolled && !reenroll) {
+    return (
+      <div className="mx-auto max-w-xl py-6">
+        <div className="card-base overflow-hidden text-center">
+          <div className="border-b border-border bg-primary-50/70 p-8 dark:bg-primary-500/10">
+            <span className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-primary-600 text-white shadow-lift">
+              <Check className="h-8 w-8" strokeWidth={3} />
+            </span>
+            <h2 className="mt-4 font-display text-2xl font-extrabold tracking-tight">
+              {enrolledCompleted ? t('reenrolTitleDone') : t('reenrolTitleActive')}
+            </h2>
+            <p className="mx-auto mt-2 max-w-sm text-pretty text-sm text-muted-foreground">
+              {course.title} · {course.universityName}
+            </p>
+          </div>
+          <div className="p-5">
+            <p className="mx-auto max-w-md text-pretty text-[13.5px] leading-relaxed text-muted-foreground">
+              {course.feePerYear > 0 ? t('reenrolBodyPaid') : t('reenrolBody')}
+            </p>
+            <div className="mt-6 flex flex-col gap-2.5 sm:flex-row">
+              <Link
+                href={`/dashboard/learn/${course.id}`}
+                className={buttonVariants({ variant: 'holo', className: 'w-full sm:flex-1' })}
+              >
+                {t('goClassroom')}
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+              <button
+                type="button"
+                onClick={() => setReenroll(true)}
+                className={buttonVariants({ variant: 'outline', className: 'w-full sm:flex-1' })}
+              >
+                {t('enrolAgain')}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="mx-auto max-w-5xl">
       {/* ------------------------------------------------------- header */}
@@ -442,18 +493,23 @@ export function ApplyWizard({
         </div>
       </div>
 
-      {(alreadyEnrolled || alreadySubmitted) && (
+      {reenroll ? (
+        <div className="mb-5 flex items-start gap-2.5 rounded-xl border border-amber-300 bg-amber-50 p-3.5 text-[13px] text-amber-900 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-200">
+          <Info className="mt-0.5 h-4 w-4 shrink-0" />
+          <p>{t('reenrolNotice')}</p>
+        </div>
+      ) : alreadySubmitted ? (
         <div className="mb-5 flex items-start gap-2.5 rounded-xl border border-primary-200 bg-primary-50 p-3.5 text-[13px] text-primary-800 dark:border-primary-500/30 dark:bg-primary-500/10 dark:text-primary-200">
           <Info className="mt-0.5 h-4 w-4 shrink-0" />
           <p>
-            {alreadyEnrolled ? t('alreadyEnrolled') : t('alreadySubmitted')}{' '}
+            {t('alreadySubmitted')}{' '}
             <Link href={`/dashboard/learn/${course.id}`} className="font-bold underline">
               {t('openClassroom')}
             </Link>
             {' '}{t('orContinue')}
           </p>
         </div>
-      )}
+      ) : null}
 
       {/* ------------------------------------------------------ stepper */}
       <Stepper step={step} />

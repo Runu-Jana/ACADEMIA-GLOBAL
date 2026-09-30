@@ -25,8 +25,9 @@ export async function GET(
     return NextResponse.json({ error: 'Please sign in to continue' }, { status: 401 })
   }
 
-  const enrollment = await prisma.enrollment.findUnique({
-    where: { userId_courseId: { userId: session.userId, courseId } },
+  const enrollment = await prisma.enrollment.findFirst({
+    where: { userId: session.userId, courseId },
+    orderBy: { enrolledAt: 'desc' },
     select: { id: true },
   })
   if (!enrollment) {

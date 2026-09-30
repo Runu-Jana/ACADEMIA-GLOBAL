@@ -31,8 +31,9 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     if (!user) return new NextResponse('Sign in to download study material.', { status: 401 })
 
     if (user.role !== 'ADMIN') {
-      const enrollment = await prisma.enrollment.findUnique({
-        where: { userId_courseId: { userId: user.id, courseId: material.courseId } },
+      const enrollment = await prisma.enrollment.findFirst({
+    where: { userId: user.id, courseId: material.courseId },
+    orderBy: { enrolledAt: 'desc' },
         select: { id: true },
       })
       if (!enrollment) return notFound()

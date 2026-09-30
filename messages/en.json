@@ -1252,6 +1252,12 @@
     "alreadySubmitted": "You have already submitted an application for this programme.",
     "openClassroom": "Open the classroom",
     "orContinue": "or continue reviewing your details below.",
+    "reenrolTitleDone": "You've already completed this course",
+    "reenrolTitleActive": "You're already enrolled in this course",
+    "reenrolBody": "You already hold this programme — revisit it any time from your classroom. Prefer a fresh start? Enrol again as a new attempt and earn another certificate on completion.",
+    "reenrolBodyPaid": "You already hold this programme — revisit it any time from your classroom. Prefer a fresh start? You can enrol again as a new attempt: you'll pay the fee again and earn another certificate on completion. It's your choice.",
+    "enrolAgain": "Enrol again",
+    "reenrolNotice": "You're enrolling again — this starts a new attempt and, on completion, a new certificate. Your earlier attempt and certificate stay in your history.",
     "step": {
       "personal": "Personal Details",
       "education": "Education Details",

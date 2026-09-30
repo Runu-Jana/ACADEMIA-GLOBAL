@@ -28,8 +28,9 @@ export default async function LearnCoursePage({ params, searchParams }: PageProp
   const user = await requireUser(`/dashboard/learn/${courseId}`)
 
   // Guard: only enrolled learners can open the classroom.
-  const enrollment = await prisma.enrollment.findUnique({
-    where: { userId_courseId: { userId: user.id, courseId } },
+  const enrollment = await prisma.enrollment.findFirst({
+    where: { userId: user.id, courseId },
+    orderBy: { enrolledAt: 'desc' },
     select: {
       id: true,
       progressPct: true,

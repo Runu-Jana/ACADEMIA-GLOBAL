@@ -10,6 +10,8 @@ const schema = z.object({
   courseId: z.string().trim().min(1, 'Course is required'),
   /** Dev-only shortcut so the admission wizard is testable before Razorpay lands. */
   demoPay: z.boolean().optional(),
+  /** Deliberate re-enrolment: start a fresh attempt even if already enrolled. */
+  reenroll: z.boolean().optional(),
 })
 
 /**
@@ -43,7 +45,7 @@ export async function POST(req: Request) {
     )
   }
 
-  const { courseId, demoPay } = parsed.data
+  const { courseId, demoPay, reenroll } = parsed.data
 
   const course = await prisma.course.findUnique({
     where: { id: courseId },
@@ -63,12 +65,28 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Course not found' }, { status: 404 })
   }
 
-  const existing = await prisma.enrollment.findUnique({
-    where: { userId_courseId: { userId: session.userId, courseId } },
+  // Their most recent attempt at this course, if any.
+  const existing = await prisma.enrollment.findFirst({
+    where: { userId: session.userId, courseId },
+    orderBy: { enrolledAt: 'desc' },
   })
-  if (existing) {
-    return NextResponse.json({ ok: true, created: false, enrollment: existing })
+  // Already enrolled and not deliberately re-enrolling → return the current
+  // attempt so the UI can offer "Go to classroom" or an explicit "Enrol again".
+  if (existing && !reenroll) {
+    return NextResponse.json({
+      ok: true,
+      created: false,
+      alreadyEnrolled: true,
+      completed: existing.status === 'COMPLETED',
+      enrollment: existing,
+    })
   }
+
+  const latest = () =>
+    prisma.enrollment.findFirst({
+      where: { userId: session.userId, courseId },
+      orderBy: { enrolledAt: 'desc' },
+    })
 
   // Covered by an active all-access membership → enrol free, no order or
   // commission. Platform programmes only (see membership.ts).
@@ -77,23 +95,17 @@ export async function POST(req: Request) {
     membershipCoversSource(course.source) &&
     (await hasActiveMembership(session.userId))
   ) {
-    await grantMembershipEnrolment(session.userId, courseId)
-    const enrollment = await prisma.enrollment.findUnique({
-      where: { userId_courseId: { userId: session.userId, courseId } },
-    })
-    return NextResponse.json({ ok: true, created: true, viaMembership: true, enrollment }, { status: 201 })
+    await grantMembershipEnrolment(session.userId, courseId, { reenroll })
+    return NextResponse.json({ ok: true, created: true, viaMembership: true, enrollment: await latest() }, { status: 201 })
   }
 
-  const order = await openOrder(session.userId, courseId)
+  const order = await openOrder(session.userId, courseId, { reenroll })
 
   // Free programme — nothing to collect, so enrol straight away.
   if (course.feePerYear <= 0) {
     const { commission } = await markOrderPaid(order.id)
-    const enrollment = await prisma.enrollment.findUnique({
-      where: { userId_courseId: { userId: session.userId, courseId } },
-    })
     return NextResponse.json(
-      { ok: true, created: true, enrollment, commissionBooked: Boolean(commission) },
+      { ok: true, created: true, enrollment: await latest(), commissionBooked: Boolean(commission) },
       { status: 201 },
     )
   }
@@ -108,11 +120,8 @@ export async function POST(req: Request) {
       )
     }
     const { commission } = await markOrderPaid(order.id, 'demo_payment')
-    const enrollment = await prisma.enrollment.findUnique({
-      where: { userId_courseId: { userId: session.userId, courseId } },
-    })
     return NextResponse.json(
-      { ok: true, created: true, demo: true, enrollment, commissionBooked: Boolean(commission) },
+      { ok: true, created: true, demo: true, enrollment: await latest(), commissionBooked: Boolean(commission) },
       { status: 201 },
     )
   }

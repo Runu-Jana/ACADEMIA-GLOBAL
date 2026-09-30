@@ -87,9 +87,10 @@ async function main() {
       console.log(`  skip enrolment (missing user/course): ${e.email} / ${e.slug}`)
       continue
     }
-    const existing = await prisma.enrollment.findUnique({
-      where: { userId_courseId: { userId, courseId: course.id } },
+    const existing = await prisma.enrollment.findFirst({
+      where: { userId, courseId: course.id },
       select: { id: true },
+      orderBy: { enrolledAt: 'desc' },
     })
     if (existing) {
       console.log(`  enrolment already exists: ${e.email} / ${e.slug}`)
@@ -99,14 +100,21 @@ async function main() {
     const order = await openOrder(userId, course.id)
     const { commission } = await markOrderPaid(order.id, `demo_pay_${order.id.slice(-6)}`)
 
-    await prisma.enrollment.update({
-      where: { userId_courseId: { userId, courseId: course.id } },
-      data: {
-        progressPct: e.progress,
-        status: e.status,
-        completedAt: e.status === 'COMPLETED' ? new Date() : null,
-      },
+    const created = await prisma.enrollment.findFirst({
+      where: { userId, courseId: course.id },
+      orderBy: { enrolledAt: 'desc' },
+      select: { id: true },
     })
+    if (created) {
+      await prisma.enrollment.update({
+        where: { id: created.id },
+        data: {
+          progressPct: e.progress,
+          status: e.status,
+          completedAt: e.status === 'COMPLETED' ? new Date() : null,
+        },
+      })
+    }
 
     // Backdate a couple of commissions so /admin/finance shows a claimable
     // pipeline, not just pending receivables.

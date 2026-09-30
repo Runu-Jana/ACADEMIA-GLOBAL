@@ -79,9 +79,10 @@ export default async function ApplyPage({ params }: PageProps) {
       where: { userId_courseId: { userId: user.id, courseId: course.id } },
       select: { step: true, status: true, personal: true, education: true },
     }),
-    prisma.enrollment.findUnique({
-      where: { userId_courseId: { userId: user.id, courseId: course.id } },
-      select: { id: true },
+    prisma.enrollment.findFirst({
+      where: { userId: user.id, courseId: course.id },
+      orderBy: { enrolledAt: 'desc' },
+      select: { id: true, status: true },
     }),
   ])
 
@@ -111,6 +112,7 @@ export default async function ApplyPage({ params }: PageProps) {
       course={wizardCourse}
       initialStep={application?.step ?? 1}
       alreadyEnrolled={!!enrollment}
+      enrolledCompleted={enrollment?.status === 'COMPLETED'}
       alreadySubmitted={(application?.status ?? 'DRAFT') !== 'DRAFT'}
       paymentsLive={paymentsConfigured()}
       initialPersonal={{

@@ -41,8 +41,9 @@ export async function POST(req: Request) {
   }
   const { courseId, rating, body } = parsed.data
 
-  const enrolled = await prisma.enrollment.findUnique({
-    where: { userId_courseId: { userId: user.id, courseId } },
+  const enrolled = await prisma.enrollment.findFirst({
+    where: { userId: user.id, courseId },
+    orderBy: { enrolledAt: 'desc' },
     select: { id: true },
   })
   if (!enrolled) {

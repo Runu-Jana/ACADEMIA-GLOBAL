@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { prisma } from '@/lib/prisma'
 import { getSession } from '@/lib/auth'
+import { normalizePhone } from '@/lib/phone'
 
 const optionalText = (max: number, message: string) =>
   z.string().trim().max(max, message).optional().or(z.literal(''))
@@ -59,7 +60,7 @@ export async function POST(req: Request) {
     where: { id: session.userId },
     data: {
       name,
-      phone: phone || null,
+      phone: normalizePhone(phone) ?? (phone || null),
       dob: dob || null,
       gender: gender || null,
       city: city || null,

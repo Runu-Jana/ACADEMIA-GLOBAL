@@ -58,8 +58,9 @@ async function main() {
   )
   check('rate snapshotted', r1.commission?.commissionPct, 15)
   check('starts PENDING (cool-off)', r1.commission?.status, 'PENDING')
-  const enrolled = await prisma.enrollment.findUnique({
-    where: { userId_courseId: { userId: student.id, courseId: partnerCourse.id } },
+  const enrolled = await prisma.enrollment.findFirst({
+    where: { userId: student.id, courseId: partnerCourse.id },
+    orderBy: { enrolledAt: 'desc' },
   })
   check('payment enrols the student', Boolean(enrolled), true)
 

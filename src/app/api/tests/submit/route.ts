@@ -58,8 +58,9 @@ export async function POST(req: Request) {
   }
 
   // Ownership check — only enrolled learners can attempt a course's tests.
-  const enrollment = await prisma.enrollment.findUnique({
-    where: { userId_courseId: { userId, courseId: test.module.courseId } },
+  const enrollment = await prisma.enrollment.findFirst({
+    where: { userId, courseId: test.module.courseId },
+    orderBy: { enrolledAt: 'desc' },
     select: { id: true },
   })
   if (!enrollment) {

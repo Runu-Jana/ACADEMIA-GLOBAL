@@ -55,8 +55,9 @@ export async function POST(req: Request) {
   }
 
   // Only an enrolled learner can record watch progress on this lesson.
-  const enrollment = await prisma.enrollment.findUnique({
-    where: { userId_courseId: { userId, courseId: lesson.module.courseId } },
+  const enrollment = await prisma.enrollment.findFirst({
+    where: { userId, courseId: lesson.module.courseId },
+    orderBy: { enrolledAt: 'desc' },
     select: { id: true },
   })
   if (!enrollment) {
