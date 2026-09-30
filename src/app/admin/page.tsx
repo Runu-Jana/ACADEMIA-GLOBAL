@@ -241,7 +241,7 @@ export default async function AdminDashboardPage() {
           </section>
         </Reveal>
 
-        <Reveal delay={120}>
+        <Reveal delay={120} className="xl:row-span-2">
           <section className="card-base h-full p-4" aria-labelledby="enrol-breakdown">
             <h3 id="enrol-breakdown" className="text-[15px] font-bold">
               Enrolments per Course
@@ -278,11 +278,10 @@ export default async function AdminDashboardPage() {
             </ul>
           </section>
         </Reveal>
-      </div>
 
-      {/* ------------------------------------------------------ recent uploads */}
-      <Reveal delay={80} className="mt-4 block">
-        <section className="card-base p-4" aria-labelledby="recent-uploads">
+        {/* --------------------------------------------------- recent uploads */}
+        <Reveal delay={80} className="block">
+          <section className="card-base p-4" aria-labelledby="recent-uploads">
           <div className="mb-3 flex items-center justify-between gap-3">
             <h3 id="recent-uploads" className="text-[15px] font-bold">
               Recent Uploads
@@ -332,7 +331,8 @@ export default async function AdminDashboardPage() {
             </ul>
           )}
         </section>
-      </Reveal>
+        </Reveal>
+      </div>
     </>
   )
 }
