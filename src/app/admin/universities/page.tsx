@@ -124,7 +124,7 @@ export default async function AdminUniversitiesPage({ searchParams }: { searchPa
                           <span className="flex items-center gap-1.5">
                             <span className="truncate font-semibold">{u.name}</span>
                             {u.featured && (
-                              <Badge tone="holo" className="shrink-0">
+                              <Badge tone="holo" className="shrink-0 px-2 py-0 text-[10px] leading-4">
                                 Featured
                               </Badge>
                             )}
