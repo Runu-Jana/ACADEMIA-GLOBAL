@@ -185,10 +185,13 @@ const APPLICATION_TONE: Record<string, Tone> = {
   LOST: 'danger',
 }
 
+/** "UNDER_REVIEW" → "Under Review", "approved" → "Approved". */
+function titleCase(status: string) {
+  return status.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase())
+}
+
 export function StatusBadge({ status }: { status: string }) {
-  return (
-    <Badge tone={APPLICATION_TONE[status] ?? 'default'}>{status.replace(/_/g, ' ').toLowerCase()}</Badge>
-  )
+  return <Badge tone={APPLICATION_TONE[status] ?? 'default'}>{titleCase(status)}</Badge>
 }
 
 const ENROLLMENT_TONE: Record<string, Tone> = {
@@ -198,7 +201,5 @@ const ENROLLMENT_TONE: Record<string, Tone> = {
 }
 
 export function EnrollmentStatusBadge({ status }: { status: string }) {
-  return (
-    <Badge tone={ENROLLMENT_TONE[status] ?? 'default'}>{status.toLowerCase()}</Badge>
-  )
+  return <Badge tone={ENROLLMENT_TONE[status] ?? 'default'}>{titleCase(status)}</Badge>
 }
