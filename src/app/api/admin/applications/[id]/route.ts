@@ -15,6 +15,31 @@ const schema = z.object({
   }),
 })
 
+/** Full submitted details for the admin's review modal. */
+export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { user, response } = await requireAdminApi()
+  if (!user) return response
+
+  const { id } = await params
+  const application = await prisma.application.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      status: true,
+      step: true,
+      personal: true,
+      education: true,
+      createdAt: true,
+      updatedAt: true,
+      user: { select: { name: true, email: true, phone: true } },
+      course: { select: { title: true, university: { select: { name: true } } } },
+    },
+  })
+  if (!application) return notFound('That application no longer exists.')
+
+  return NextResponse.json({ ok: true, application })
+}
+
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { user, response } = await requireAdminApi()
   if (!user) return response
