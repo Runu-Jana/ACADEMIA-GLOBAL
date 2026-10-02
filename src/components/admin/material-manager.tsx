@@ -130,10 +130,8 @@ export function MaterialManager({
 
     setFile(next)
     setStatus({ kind: 'idle' })
-    if (!title.trim()) {
-      // Sensible default title from the filename, still fully editable.
-      setTitle(next.name.replace(/\.[^.]+$/, '').replace(/[-_]+/g, ' ').trim().slice(0, 140))
-    }
+    // Deliberately do NOT copy the file name into the title — the admin types the
+    // display name students see, so a raw device file name never leaks to them.
   }
 
   function onDrop(e: React.DragEvent) {
@@ -286,7 +284,7 @@ export function MaterialManager({
             <Field
               label="Display title"
               required
-              hint="This is the name students see in their library — give it a clean title, not the raw file name. (Auto-filled from the file; edit it freely.)"
+              hint="The name students see in their library (e.g. “Assignment 1”). This is shown instead of the uploaded file's name."
             >
               <Input
                 value={title}
