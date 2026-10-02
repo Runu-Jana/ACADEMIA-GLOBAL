@@ -71,7 +71,7 @@ type TabKey = 'modules' | 'material' | 'tests'
 const TABS: { key: TabKey; label: string; icon: React.ElementType }[] = [
   { key: 'modules', label: 'Modules', icon: BookOpen },
   { key: 'material', label: 'Study Material', icon: FolderOpen },
-  { key: 'tests', label: 'Tests', icon: ClipboardList },
+  { key: 'tests', label: 'Online Tests', icon: ClipboardList },
 ]
 
 const TYPE_TONE: Record<string, 'cyan' | 'primary' | 'violet'> = {
@@ -610,7 +610,7 @@ export function CoursePlayer({
                   </ul>
                 ) : (
                   <p className="card-base p-6 text-center text-sm text-muted-foreground">
-                    This course has no quizzes yet.
+                    This course has no online tests yet. (Uploaded question papers appear under Study Material.)
                   </p>
                 )}
               </div>

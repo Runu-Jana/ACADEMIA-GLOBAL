@@ -33,7 +33,7 @@ export const STREAMS = [
 export const MATERIAL_TYPES = [
   { value: 'PDF', label: 'PDF / eBook', icon: 'FileText' },
   { value: 'NOTES', label: 'Study Notes', icon: 'NotebookPen' },
-  { value: 'TEST_PAPER', label: 'Test Paper', icon: 'ClipboardList' },
+  { value: 'TEST_PAPER', label: 'Question Paper', icon: 'ClipboardList' },
   { value: 'SYLLABUS', label: 'Syllabus', icon: 'ListChecks' },
   { value: 'ASSIGNMENT', label: 'Assignment', icon: 'PenSquare' },
   { value: 'RECORDING', label: 'Recorded Class', icon: 'Video' },
