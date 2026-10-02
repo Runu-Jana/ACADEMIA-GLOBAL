@@ -3,6 +3,7 @@
 import * as React from 'react'
 import { Save, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { SelectMenu } from '@/components/ui/select-menu'
 
 export type ResultSubject = {
   id: string
@@ -52,20 +53,17 @@ export function ResultsEditor({
 
   return (
     <div className="space-y-3">
-      <label className="block">
+      <div className="block">
         <span className="mb-1 block text-[12px] font-bold text-muted-foreground">Subject</span>
-        <select
+        <SelectMenu
           value={subjectId}
-          onChange={(e) => setSubjectId(e.target.value)}
-          className="h-10 w-full max-w-md rounded-xl border border-input bg-surface px-3 text-sm outline-none focus:border-primary-400"
-        >
-          {subjects.map((s) => (
-            <option key={s.id} value={s.id}>
-              {s.code} — {s.title}
-            </option>
-          ))}
-        </select>
-      </label>
+          onChange={setSubjectId}
+          options={subjects.map((s) => ({ value: s.id, label: `${s.code} — ${s.title}` }))}
+          aria-label="Subject"
+          className="max-w-md"
+          buttonClassName="h-10"
+        />
+      </div>
 
       {subject && (
         <div className="card-base overflow-hidden">

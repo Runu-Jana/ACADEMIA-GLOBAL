@@ -4,7 +4,8 @@ import * as React from 'react'
 import { useRouter } from 'next/navigation'
 import { AlertCircle, Loader2, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Field, Input, Select, Textarea } from '@/components/ui/field'
+import { Field, Input, Textarea } from '@/components/ui/field'
+import { SelectMenu } from '@/components/ui/select-menu'
 
 export type PromotionFormValues = {
   id?: string
@@ -144,11 +145,16 @@ export function PromotionForm({ promotion }: { promotion?: PromotionFormValues }
             <Input value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} placeholder="DIWALI25" maxLength={40} required />
           </Field>
           <Field label="Status" required>
-            <Select value={status} onChange={(e) => setStatus(e.target.value)}>
-              <option value="DRAFT">Draft (not redeemable)</option>
-              <option value="ACTIVE">Active</option>
-              <option value="PAUSED">Paused</option>
-            </Select>
+            <SelectMenu
+              value={status}
+              onChange={setStatus}
+              options={[
+                { value: 'DRAFT', label: 'Draft (not redeemable)' },
+                { value: 'ACTIVE', label: 'Active' },
+                { value: 'PAUSED', label: 'Paused' },
+              ]}
+              buttonClassName="h-11"
+            />
           </Field>
           <Field label="Title" required className="sm:col-span-2" hint="Short line shown at checkout.">
             <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="10% off your order" maxLength={120} required />
@@ -163,10 +169,15 @@ export function PromotionForm({ promotion }: { promotion?: PromotionFormValues }
         <h3 className="mb-4 text-[13px] font-bold uppercase tracking-wider text-muted-foreground">Discount</h3>
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Type" required>
-            <Select value={type} onChange={(e) => setType(e.target.value)}>
-              <option value="PERCENT">Percentage off</option>
-              <option value="FLAT">Flat amount off</option>
-            </Select>
+            <SelectMenu
+              value={type}
+              onChange={setType}
+              options={[
+                { value: 'PERCENT', label: 'Percentage off' },
+                { value: 'FLAT', label: 'Flat amount off' },
+              ]}
+              buttonClassName="h-11"
+            />
           </Field>
           <Field label={isPercent ? 'Percent (1–100)' : 'Amount (₹)'} required>
             <Input
@@ -185,11 +196,16 @@ export function PromotionForm({ promotion }: { promotion?: PromotionFormValues }
             </Field>
           )}
           <Field label="Applies to" required>
-            <Select value={scope} onChange={(e) => setScope(e.target.value)}>
-              <option value="SHOP">Shop products</option>
-              <option value="COURSE">Course fees</option>
-              <option value="ALL">Everything</option>
-            </Select>
+            <SelectMenu
+              value={scope}
+              onChange={setScope}
+              options={[
+                { value: 'SHOP', label: 'Shop products' },
+                { value: 'COURSE', label: 'Course fees' },
+                { value: 'ALL', label: 'Everything' },
+              ]}
+              buttonClassName="h-11"
+            />
           </Field>
         </div>
       </div>

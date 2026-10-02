@@ -3,7 +3,8 @@
 import * as React from 'react'
 import { Sparkles, Loader2, AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Field, Textarea, Select } from '@/components/ui/field'
+import { Field, Textarea } from '@/components/ui/field'
+import { SelectMenu } from '@/components/ui/select-menu'
 import type { PromotionFormValues } from './promotion-form'
 
 export type CampaignCopy = { banner: string; emailSubject: string; emailBody: string; rationale: string }
@@ -109,11 +110,16 @@ export function PromotionAiAssist({
         </Field>
         <div className="flex flex-wrap items-end gap-3">
           <Field label="Applies to" className="w-44">
-            <Select value={scope} onChange={(e) => setScope(e.target.value as 'SHOP' | 'COURSE' | 'ALL')}>
-              <option value="SHOP">Shop products</option>
-              <option value="COURSE">Course fees</option>
-              <option value="ALL">Everything</option>
-            </Select>
+            <SelectMenu
+              value={scope}
+              onChange={(value) => setScope(value as 'SHOP' | 'COURSE' | 'ALL')}
+              options={[
+                { value: 'SHOP', label: 'Shop products' },
+                { value: 'COURSE', label: 'Course fees' },
+                { value: 'ALL', label: 'Everything' },
+              ]}
+              buttonClassName="h-11"
+            />
           </Field>
           <Button type="button" variant="holo" onClick={generate} loading={busy} disabled={busy || brief.trim().length < 6}>
             {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}

@@ -7,7 +7,8 @@ import {
   Sparkles, AlertCircle, CheckCircle2, ArrowRight, Loader2, Link2, ClipboardPaste, Building2,
 } from 'lucide-react'
 import { Button, buttonVariants } from '@/components/ui/button'
-import { Field, Input, Select, Textarea } from '@/components/ui/field'
+import { Field, Input, Textarea } from '@/components/ui/field'
+import { SelectMenu } from '@/components/ui/select-menu'
 import { Badge } from '@/components/ui/badge'
 import { COURSE_LEVELS, COURSE_MODES, STREAMS } from '@/lib/constants'
 import { formatINR } from '@/lib/utils'
@@ -266,14 +267,13 @@ export function DirectoryIngest({
 
         {uniMode === 'existing' ? (
           <Field label="Directory university">
-            <Select value={uniId} onChange={(e) => setUniId(e.target.value)}>
-              {universities.length === 0 && <option value="">No directory universities yet</option>}
-              {universities.map((u) => (
-                <option key={u.id} value={u.id}>
-                  {u.name}
-                </option>
-              ))}
-            </Select>
+            <SelectMenu
+              value={uniId}
+              onChange={setUniId}
+              options={universities.map((u) => ({ value: u.id, label: u.name }))}
+              placeholder={universities.length === 0 ? 'No directory universities yet' : undefined}
+              buttonClassName="h-11"
+            />
           </Field>
         ) : (
           <div className="grid gap-3 sm:grid-cols-3">

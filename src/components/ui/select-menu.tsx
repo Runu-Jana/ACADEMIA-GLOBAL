@@ -21,6 +21,7 @@ export function SelectMenu({
   placeholder,
   className,
   buttonClassName,
+  disabled = false,
   'aria-label': ariaLabel,
 }: {
   value: string
@@ -30,6 +31,7 @@ export function SelectMenu({
   placeholder?: string
   className?: string
   buttonClassName?: string
+  disabled?: boolean
   'aria-label'?: string
 }) {
   const [open, setOpen] = React.useState(false)
@@ -72,6 +74,7 @@ export function SelectMenu({
   }
 
   const onKeyDown = (e: React.KeyboardEvent) => {
+    if (disabled) return
     if (!open) {
       if (e.key === 'ArrowDown' || e.key === 'Enter' || e.key === ' ') {
         e.preventDefault()
@@ -107,11 +110,13 @@ export function SelectMenu({
         aria-label={ariaLabel}
         aria-haspopup="listbox"
         aria-expanded={open}
-        onClick={() => setOpen((o) => !o)}
+        disabled={disabled}
+        onClick={() => !disabled && setOpen((o) => !o)}
         onKeyDown={onKeyDown}
         className={cn(
           'flex w-full items-center justify-between gap-2 rounded-xl border border-input bg-surface px-3.5 text-sm text-foreground shadow-sm',
           'transition-all duration-200 focus:border-primary-400 focus:outline-none focus:ring-4 focus:ring-primary-500/12',
+          'disabled:cursor-not-allowed disabled:opacity-60',
           buttonClassName,
         )}
       >

@@ -15,7 +15,8 @@ import {
   Paperclip,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Field, Input, Select, Textarea } from '@/components/ui/field'
+import { Field, Input, Textarea } from '@/components/ui/field'
+import { SelectMenu } from '@/components/ui/select-menu'
 import { Progress } from '@/components/ui/progress'
 import {
   TableWrap,
@@ -294,14 +295,14 @@ export function MaterialManager({
 
             <div className="grid gap-3.5 sm:grid-cols-2">
               <Field label="Course" required>
-                <Select value={courseId} onChange={(e) => setCourseId(e.target.value)} required>
-                  <option value="">Select a course…</option>
-                  {courses.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.title}
-                    </option>
-                  ))}
-                </Select>
+                <SelectMenu
+                  value={courseId}
+                  onChange={setCourseId}
+                  options={courses.map((c) => ({ value: c.id, label: c.title }))}
+                  placeholder="Select a course…"
+                  aria-label="Course"
+                  buttonClassName="h-11"
+                />
               </Field>
 
               <Field
@@ -316,29 +317,26 @@ export function MaterialManager({
                         : 'Optional'
                 }
               >
-                <Select
+                <SelectMenu
                   value={moduleId}
-                  onChange={(e) => setModuleId(e.target.value)}
+                  onChange={setModuleId}
+                  options={modules.map((m) => ({ value: m.id, label: m.title }))}
+                  placeholder="Whole course"
                   disabled={!courseId || modulesLoading || modules.length === 0}
-                >
-                  <option value="">Whole course</option>
-                  {modules.map((m) => (
-                    <option key={m.id} value={m.id}>
-                      {m.title}
-                    </option>
-                  ))}
-                </Select>
+                  aria-label="Module"
+                  buttonClassName="h-11"
+                />
               </Field>
             </div>
 
             <Field label="Type" required>
-              <Select value={type} onChange={(e) => setType(e.target.value)} required>
-                {MATERIAL_TYPES.map((t) => (
-                  <option key={t.value} value={t.value}>
-                    {t.label}
-                  </option>
-                ))}
-              </Select>
+              <SelectMenu
+                value={type}
+                onChange={setType}
+                options={MATERIAL_TYPES.map((t) => ({ value: t.value, label: t.label }))}
+                aria-label="Type"
+                buttonClassName="h-11"
+              />
             </Field>
 
             <Field label="Note" hint="Shown under the title in the student's library.">
@@ -494,33 +492,25 @@ export function MaterialManager({
             </div>
 
             <div className="grid grid-cols-2 gap-2 sm:flex">
-              <Select
+              <SelectMenu
                 aria-label="Filter by course"
                 value={filterCourse}
-                onChange={(e) => setFilterCourse(e.target.value)}
-                className="h-10 text-[13px] sm:w-44"
-              >
-                <option value="">All courses</option>
-                {courses.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.title}
-                  </option>
-                ))}
-              </Select>
+                onChange={setFilterCourse}
+                options={courses.map((c) => ({ value: c.id, label: c.title }))}
+                placeholder="All courses"
+                className="sm:w-44"
+                buttonClassName="h-10 text-[13px]"
+              />
 
-              <Select
+              <SelectMenu
                 aria-label="Filter by type"
                 value={filterType}
-                onChange={(e) => setFilterType(e.target.value)}
-                className="h-10 text-[13px] sm:w-40"
-              >
-                <option value="">All types</option>
-                {MATERIAL_TYPES.map((t) => (
-                  <option key={t.value} value={t.value}>
-                    {t.label}
-                  </option>
-                ))}
-              </Select>
+                onChange={setFilterType}
+                options={MATERIAL_TYPES.map((t) => ({ value: t.value, label: t.label }))}
+                placeholder="All types"
+                className="sm:w-40"
+                buttonClassName="h-10 text-[13px]"
+              />
             </div>
           </div>
         </div>

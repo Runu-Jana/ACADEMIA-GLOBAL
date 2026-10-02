@@ -5,7 +5,8 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { AlertCircle, CheckCircle2, Save, ExternalLink } from 'lucide-react'
 import { Button, buttonVariants } from '@/components/ui/button'
-import { Checkbox, Field, Input, Select, Textarea } from '@/components/ui/field'
+import { Checkbox, Field, Input, Textarea } from '@/components/ui/field'
+import { SelectMenu } from '@/components/ui/select-menu'
 import { COURSE_LEVELS, COURSE_MODES, STREAMS } from '@/lib/constants'
 import { slugify } from '@/lib/utils'
 
@@ -204,48 +205,44 @@ export function CourseForm({
           </Field>
 
           <Field label="University" required>
-            <Select
+            <SelectMenu
               value={values.universityId}
-              onChange={(e) => set('universityId', e.target.value)}
-              required
-            >
-              <option value="">Select a university…</option>
-              {universities.map((u) => (
-                <option key={u.id} value={u.id}>
-                  {u.name}
-                </option>
-              ))}
-            </Select>
+              onChange={(value) => set('universityId', value)}
+              options={universities.map((u) => ({ value: u.id, label: u.name }))}
+              placeholder="Select a university…"
+              buttonClassName="h-11"
+              aria-label="University"
+            />
           </Field>
 
           <Field label="Stream" required>
-            <Select value={values.stream} onChange={(e) => set('stream', e.target.value)} required>
-              {STREAMS.map((s) => (
-                <option key={s.value} value={s.value}>
-                  {s.label}
-                </option>
-              ))}
-            </Select>
+            <SelectMenu
+              value={values.stream}
+              onChange={(value) => set('stream', value)}
+              options={STREAMS.map((s) => ({ value: s.value, label: s.label }))}
+              buttonClassName="h-11"
+              aria-label="Stream"
+            />
           </Field>
 
           <Field label="Level" required>
-            <Select value={values.level} onChange={(e) => set('level', e.target.value)} required>
-              {COURSE_LEVELS.map((l) => (
-                <option key={l.value} value={l.value}>
-                  {l.label}
-                </option>
-              ))}
-            </Select>
+            <SelectMenu
+              value={values.level}
+              onChange={(value) => set('level', value)}
+              options={COURSE_LEVELS.map((l) => ({ value: l.value, label: l.label }))}
+              buttonClassName="h-11"
+              aria-label="Level"
+            />
           </Field>
 
           <Field label="Mode" required>
-            <Select value={values.mode} onChange={(e) => set('mode', e.target.value)} required>
-              {COURSE_MODES.map((m) => (
-                <option key={m.value} value={m.value}>
-                  {m.label}
-                </option>
-              ))}
-            </Select>
+            <SelectMenu
+              value={values.mode}
+              onChange={(value) => set('mode', value)}
+              options={COURSE_MODES.map((m) => ({ value: m.value, label: m.label }))}
+              buttonClassName="h-11"
+              aria-label="Mode"
+            />
           </Field>
         </div>
       </section>

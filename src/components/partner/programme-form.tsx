@@ -4,7 +4,8 @@ import * as React from 'react'
 import { useRouter } from 'next/navigation'
 import { AlertCircle, Save, Send } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Field, Input, Textarea, Select, Checkbox } from '@/components/ui/field'
+import { Field, Input, Textarea, Checkbox } from '@/components/ui/field'
+import { SelectMenu } from '@/components/ui/select-menu'
 import { COURSE_LEVELS, COURSE_MODES, STREAMS } from '@/lib/constants'
 
 export type ProgrammeInitial = {
@@ -85,6 +86,9 @@ export function ProgrammeForm({ course }: { course?: ProgrammeInitial }) {
     (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
       setForm((f) => ({ ...f, [key]: e.target.value }))
 
+  const setVal = (key: keyof FormState) => (value: string) =>
+    setForm((f) => ({ ...f, [key]: value }))
+
   const setBool = (key: keyof FormState) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setForm((f) => ({ ...f, [key]: e.target.checked }))
 
@@ -145,25 +149,28 @@ export function ProgrammeForm({ course }: { course?: ProgrammeInitial }) {
 
         <div className="grid gap-4 sm:grid-cols-3">
           <Field label="Level" required>
-            <Select value={form.level} onChange={set('level')}>
-              {COURSE_LEVELS.map((o) => (
-                <option key={o.value} value={o.value}>{o.label}</option>
-              ))}
-            </Select>
+            <SelectMenu
+              value={form.level}
+              onChange={setVal('level')}
+              options={COURSE_LEVELS.map((o) => ({ value: o.value, label: o.label }))}
+              buttonClassName="h-11"
+            />
           </Field>
           <Field label="Mode" required>
-            <Select value={form.mode} onChange={set('mode')}>
-              {COURSE_MODES.map((o) => (
-                <option key={o.value} value={o.value}>{o.label}</option>
-              ))}
-            </Select>
+            <SelectMenu
+              value={form.mode}
+              onChange={setVal('mode')}
+              options={COURSE_MODES.map((o) => ({ value: o.value, label: o.label }))}
+              buttonClassName="h-11"
+            />
           </Field>
           <Field label="Stream" required>
-            <Select value={form.stream} onChange={set('stream')}>
-              {STREAMS.map((o) => (
-                <option key={o.value} value={o.value}>{o.label}</option>
-              ))}
-            </Select>
+            <SelectMenu
+              value={form.stream}
+              onChange={setVal('stream')}
+              options={STREAMS.map((o) => ({ value: o.value, label: o.label }))}
+              buttonClassName="h-11"
+            />
           </Field>
         </div>
       </section>

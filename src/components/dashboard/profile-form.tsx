@@ -4,7 +4,8 @@ import * as React from 'react'
 import { useRouter } from 'next/navigation'
 import { AlertCircle, Check, Lock } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Field, Input, Select } from '@/components/ui/field'
+import { Field, Input } from '@/components/ui/field'
+import { SelectMenu } from '@/components/ui/select-menu'
 import { initials } from '@/lib/utils'
 
 const GENDERS = ['Male', 'Female', 'Other', 'Prefer not to say'] as const
@@ -41,6 +42,14 @@ export function ProfileForm({
     (key: keyof ProfileValues) =>
     (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
       setForm((f) => ({ ...f, [key]: e.target.value }))
+      setOk(false)
+      setError('')
+    }
+
+  const setVal =
+    (key: keyof ProfileValues) =>
+    (value: string) => {
+      setForm((f) => ({ ...f, [key]: value }))
       setOk(false)
       setError('')
     }
@@ -125,14 +134,13 @@ export function ProfileForm({
           </Field>
 
           <Field label="Gender">
-            <Select value={form.gender} onChange={set('gender')}>
-              <option value="">Not specified</option>
-              {GENDERS.map((g) => (
-                <option key={g} value={g}>
-                  {g}
-                </option>
-              ))}
-            </Select>
+            <SelectMenu
+              value={form.gender}
+              onChange={setVal('gender')}
+              options={GENDERS.map((g) => ({ value: g, label: g }))}
+              placeholder="Not specified"
+              buttonClassName="h-11"
+            />
           </Field>
 
           <Field label="City">

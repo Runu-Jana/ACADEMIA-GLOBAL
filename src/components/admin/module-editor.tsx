@@ -21,7 +21,8 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Input, Select, Textarea } from '@/components/ui/field'
+import { Input, Textarea } from '@/components/ui/field'
+import { SelectMenu } from '@/components/ui/select-menu'
 import { LESSON_TYPES } from '@/lib/constants'
 import { cn } from '@/lib/utils'
 
@@ -509,18 +510,17 @@ function ModuleRow({
               className="h-9"
               aria-label={`New lesson title for ${m.title}`}
             />
-            <Select
+            <SelectMenu
               value={lessonType}
-              onChange={(e) => setLessonType(e.target.value)}
-              className="h-9 sm:w-32"
+              onChange={(value) => setLessonType(value)}
+              options={LESSON_TYPES.map((t) => ({
+                value: t,
+                label: t.charAt(0) + t.slice(1).toLowerCase(),
+              }))}
+              className="sm:w-32"
+              buttonClassName="h-9"
               aria-label="Lesson type"
-            >
-              {LESSON_TYPES.map((t) => (
-                <option key={t} value={t}>
-                  {t.charAt(0) + t.slice(1).toLowerCase()}
-                </option>
-              ))}
-            </Select>
+            />
             <Input
               type="number"
               min="1"
@@ -701,16 +701,18 @@ function LessonEditForm({
             </label>
             <label className="block">
               <span className="mb-1 block text-[11px] font-bold text-muted-foreground">Provider</span>
-              <Select
+              <SelectMenu
                 value={videoProvider}
-                onChange={(e) => setVideoProvider(e.target.value)}
-                className="h-9"
-              >
-                <option value="">— none —</option>
-                <option value="bunny">Bunny Stream</option>
-                <option value="cloudflare">Cloudflare Stream</option>
-                <option value="mux">Mux</option>
-              </Select>
+                onChange={(value) => setVideoProvider(value)}
+                options={[
+                  { value: 'bunny', label: 'Bunny Stream' },
+                  { value: 'cloudflare', label: 'Cloudflare Stream' },
+                  { value: 'mux', label: 'Mux' },
+                ]}
+                placeholder="— none —"
+                buttonClassName="h-9"
+                aria-label="Provider"
+              />
             </label>
           </div>
         </div>

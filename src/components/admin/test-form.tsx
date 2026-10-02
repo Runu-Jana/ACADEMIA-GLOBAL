@@ -4,7 +4,8 @@ import * as React from 'react'
 import { useRouter } from 'next/navigation'
 import { FilePlus2, AlertCircle, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Field, Input, Select } from '@/components/ui/field'
+import { Field, Input } from '@/components/ui/field'
+import { SelectMenu } from '@/components/ui/select-menu'
 
 const TYPES = [
   { value: 'QUIZ', label: 'Quiz' },
@@ -25,6 +26,8 @@ export function TestForm({ courses }: { courses: { id: string; title: string }[]
 
   const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
     setForm((f) => ({ ...f, [k]: e.target.value }))
+  const setVal = (k: keyof typeof form) => (value: string) =>
+    setForm((f) => ({ ...f, [k]: value }))
 
   // Load the chosen course's modules for the dependent dropdown.
   React.useEffect(() => {
@@ -105,23 +108,22 @@ export function TestForm({ courses }: { courses: { id: string; title: string }[]
 
       <div className="grid gap-3.5 sm:grid-cols-2">
         <Field label="Course" required>
-          <Select value={courseId} onChange={(e) => setCourseId(e.target.value)}>
-            {courses.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.title}
-              </option>
-            ))}
-          </Select>
+          <SelectMenu
+            value={courseId}
+            onChange={setCourseId}
+            options={courses.map((c) => ({ value: c.id, label: c.title }))}
+            buttonClassName="h-11"
+          />
         </Field>
         <Field label="Module" required hint={loadingModules ? 'Loading…' : modules.length === 0 ? 'This course has no modules yet' : undefined}>
-          <Select value={moduleId} onChange={(e) => setModuleId(e.target.value)} disabled={loadingModules || modules.length === 0}>
-            {modules.length === 0 && <option value="">No modules</option>}
-            {modules.map((m) => (
-              <option key={m.id} value={m.id}>
-                {m.title}
-              </option>
-            ))}
-          </Select>
+          <SelectMenu
+            value={moduleId}
+            onChange={setModuleId}
+            options={modules.map((m) => ({ value: m.id, label: m.title }))}
+            placeholder={modules.length === 0 ? 'No modules' : undefined}
+            disabled={loadingModules || modules.length === 0}
+            buttonClassName="h-11"
+          />
         </Field>
 
         <Field label="Test title" required className="sm:col-span-2">
@@ -129,13 +131,7 @@ export function TestForm({ courses }: { courses: { id: string; title: string }[]
         </Field>
 
         <Field label="Type">
-          <Select value={form.type} onChange={set('type')}>
-            {TYPES.map((t) => (
-              <option key={t.value} value={t.value}>
-                {t.label}
-              </option>
-            ))}
-          </Select>
+          <SelectMenu value={form.type} onChange={setVal('type')} options={TYPES} buttonClassName="h-11" />
         </Field>
         <Field label="Duration (minutes)">
           <Input type="number" min={5} max={240} value={form.durationMin} onChange={set('durationMin')} />

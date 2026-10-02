@@ -3,7 +3,8 @@
 import * as React from 'react'
 import { Sparkles, AlertCircle, Info, ShieldCheck, Copy, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Field, Input, Select, Textarea } from '@/components/ui/field'
+import { Field, Input, Textarea } from '@/components/ui/field'
+import { SelectMenu } from '@/components/ui/select-menu'
 import { TOOL_CONFIGS, type ToolConfig } from '@/lib/career-kit-tools'
 import type { AiDoc } from '@/lib/ai/career-kit'
 
@@ -31,6 +32,9 @@ export function CareerKitTool({
 
   const set = (name: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
     setForm((f) => ({ ...f, [name]: e.target.value }))
+
+  const setVal = (name: string) => (value: string) =>
+    setForm((f) => ({ ...f, [name]: value }))
 
   const missingRequired = config.fields.some((f) => f.required && !form[f.name]?.trim())
 
@@ -95,13 +99,12 @@ export function CareerKitTool({
               {f.type === 'textarea' ? (
                 <Textarea value={form[f.name]} onChange={set(f.name)} placeholder={f.placeholder} maxLength={f.maxLength} />
               ) : f.type === 'select' ? (
-                <Select value={form[f.name]} onChange={set(f.name)}>
-                  {f.options?.map((o) => (
-                    <option key={o.value} value={o.value}>
-                      {o.label}
-                    </option>
-                  ))}
-                </Select>
+                <SelectMenu
+                  value={form[f.name]}
+                  onChange={setVal(f.name)}
+                  options={(f.options ?? []).map((o) => ({ value: o.value, label: o.label }))}
+                  buttonClassName="h-11"
+                />
               ) : (
                 <Input value={form[f.name]} onChange={set(f.name)} placeholder={f.placeholder} maxLength={f.maxLength} />
               )}

@@ -4,7 +4,8 @@ import * as React from 'react'
 import { useRouter } from 'next/navigation'
 import { Plus, Trash2, Layers, BookOpen } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Field, Input, Select } from '@/components/ui/field'
+import { Field, Input } from '@/components/ui/field'
+import { SelectMenu } from '@/components/ui/select-menu'
 import { Badge } from '@/components/ui/badge'
 
 export type StructureSubject = { id: string; code: string; title: string; credits: number; kind: string }
@@ -46,6 +47,7 @@ export function StructureEditor({ courseId, terms }: { courseId: string; terms: 
   const [sub, setSub] = React.useState({ termId: terms[0]?.id ?? '', code: '', title: '', credits: '4', kind: 'CORE' })
   const setS = (k: keyof typeof sub) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
     setSub((s) => ({ ...s, [k]: e.target.value }))
+  const setSVal = (k: keyof typeof sub) => (value: string) => setSub((s) => ({ ...s, [k]: value }))
 
   // add-term form
   const [termTitle, setTermTitle] = React.useState('')
@@ -125,17 +127,23 @@ export function StructureEditor({ courseId, terms }: { courseId: string; terms: 
         <h3 className="mb-3 text-[13.5px] font-bold">Add a subject</h3>
         <div className="grid gap-3 sm:grid-cols-2">
           <Field label="Semester">
-            <Select value={sub.termId} onChange={setS('termId')}>
-              {terms.length === 0 && <option value="">No semesters yet</option>}
-              {terms.map((t) => (
-                <option key={t.id} value={t.id}>{t.title}</option>
-              ))}
-            </Select>
+            <SelectMenu
+              value={sub.termId}
+              onChange={setSVal('termId')}
+              options={terms.map((t) => ({ value: t.id, label: t.title }))}
+              placeholder={terms.length === 0 ? 'No semesters yet' : undefined}
+              buttonClassName="h-11"
+              aria-label="Semester"
+            />
           </Field>
           <Field label="Kind">
-            <Select value={sub.kind} onChange={setS('kind')}>
-              {KINDS.map((k) => <option key={k} value={k}>{k}</option>)}
-            </Select>
+            <SelectMenu
+              value={sub.kind}
+              onChange={setSVal('kind')}
+              options={KINDS.map((k) => ({ value: k, label: k }))}
+              buttonClassName="h-11"
+              aria-label="Kind"
+            />
           </Field>
           <Field label="Code" required>
             <Input value={sub.code} onChange={setS('code')} placeholder="BBA-DM-201" maxLength={30} />

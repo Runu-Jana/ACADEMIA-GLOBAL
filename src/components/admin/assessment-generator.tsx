@@ -4,7 +4,8 @@ import * as React from 'react'
 import { useRouter } from 'next/navigation'
 import { Sparkles, Check, X, Trash2, RotateCcw, Info } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Input, Textarea, Select, Checkbox } from '@/components/ui/field'
+import { Input, Textarea, Checkbox } from '@/components/ui/field'
+import { SelectMenu } from '@/components/ui/select-menu'
 
 type Draft = {
   text: string
@@ -143,20 +144,28 @@ export function AssessmentGenerator({ testId }: { testId: string }) {
       <div className="mt-3.5 grid gap-2.5 sm:grid-cols-[auto_auto_1fr]">
         <label className="flex flex-col gap-1 text-[12px] font-semibold text-muted-foreground">
           Questions
-          <Select value={count} onChange={(e) => setCount(e.target.value)} aria-label="Number of questions">
-            {['3', '5', '8', '10', '12'].map((n) => (
-              <option key={n} value={n}>{n}</option>
-            ))}
-          </Select>
+          <SelectMenu
+            value={count}
+            onChange={setCount}
+            options={['3', '5', '8', '10', '12'].map((n) => ({ value: n, label: n }))}
+            aria-label="Number of questions"
+            buttonClassName="h-11"
+          />
         </label>
         <label className="flex flex-col gap-1 text-[12px] font-semibold text-muted-foreground">
           Difficulty
-          <Select value={difficulty} onChange={(e) => setDifficulty(e.target.value)} aria-label="Difficulty">
-            <option value="mixed">Mixed</option>
-            <option value="easy">Easy</option>
-            <option value="medium">Medium</option>
-            <option value="hard">Hard</option>
-          </Select>
+          <SelectMenu
+            value={difficulty}
+            onChange={setDifficulty}
+            options={[
+              { value: 'mixed', label: 'Mixed' },
+              { value: 'easy', label: 'Easy' },
+              { value: 'medium', label: 'Medium' },
+              { value: 'hard', label: 'Hard' },
+            ]}
+            aria-label="Difficulty"
+            buttonClassName="h-11"
+          />
         </label>
         <label className="flex flex-col gap-1 text-[12px] font-semibold text-muted-foreground">
           Focus topic <span className="font-normal">(optional)</span>

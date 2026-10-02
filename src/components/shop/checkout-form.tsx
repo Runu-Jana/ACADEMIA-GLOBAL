@@ -6,7 +6,8 @@ import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { AlertCircle, Loader2, Lock, ShoppingBag, Ticket, X } from 'lucide-react'
 import { Button, buttonVariants } from '@/components/ui/button'
-import { Field, Input, Select } from '@/components/ui/field'
+import { Field, Input } from '@/components/ui/field'
+import { SelectMenu } from '@/components/ui/select-menu'
 import { useCart, clearStoredCart } from '@/lib/use-cart'
 import { cn } from '@/lib/utils'
 import { formatPaise, INDIAN_STATES, PINCODE_RE, PHONE_RE } from '@/lib/shop'
@@ -58,6 +59,9 @@ export function CheckoutForm({ signedInAs }: { signedInAs?: { name: string; emai
 
   const set = (key: keyof Address) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
     setAddress((a) => ({ ...a, [key]: e.target.value }))
+
+  const setVal = (key: keyof Address) => (value: string) =>
+    setAddress((a) => ({ ...a, [key]: value }))
 
   const signature = lines.map((l) => `${l.productId}:${l.qty}`).join('|')
 
@@ -277,12 +281,13 @@ export function CheckoutForm({ signedInAs }: { signedInAs?: { name: string; emai
           </Field>
 
           <Field label={t('state')}>
-            <Select value={address.state} onChange={set('state')} required>
-              <option value="">{t('selectState')}</option>
-              {INDIAN_STATES.map((s) => (
-                <option key={s} value={s}>{s}</option>
-              ))}
-            </Select>
+            <SelectMenu
+              value={address.state}
+              onChange={setVal('state')}
+              options={INDIAN_STATES.map((s) => ({ value: s, label: s }))}
+              placeholder={t('selectState')}
+              buttonClassName="h-11"
+            />
           </Field>
 
           <Field label={t('pincode')}>

@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { AlertCircle, Plus, X, Trash2 } from 'lucide-react'
 import { Button, buttonVariants } from '@/components/ui/button'
-import { Field, Input, Select, Textarea, Checkbox } from '@/components/ui/field'
+import { Field, Input, Textarea, Checkbox } from '@/components/ui/field'
+import { SelectMenu } from '@/components/ui/select-menu'
 import { cn } from '@/lib/utils'
 import {
   PRODUCT_KINDS, PRODUCT_STATUSES, SHOP_CATEGORIES, EXAM_TAGS,
@@ -212,19 +213,21 @@ export function ProductForm({ initial }: { initial?: ProductFormValues }) {
           <h2 className="mb-4 text-[15px] font-extrabold tracking-tight">Basics</h2>
           <div className="grid gap-3.5 sm:grid-cols-2">
             <Field label="Product type">
-              <Select value={v.kind} onChange={(e) => set('kind', e.target.value)}>
-                {PRODUCT_KINDS.map((k) => (
-                  <option key={k.value} value={k.value}>{k.label}</option>
-                ))}
-              </Select>
+              <SelectMenu
+                value={v.kind}
+                onChange={(value) => set('kind', value)}
+                options={PRODUCT_KINDS.map((k) => ({ value: k.value, label: k.label }))}
+                buttonClassName="h-11"
+              />
             </Field>
 
             <Field label="Category">
-              <Select value={v.category} onChange={(e) => set('category', e.target.value)}>
-                {categoriesFor(v.kind).map((c) => (
-                  <option key={c.value} value={c.value}>{c.label}</option>
-                ))}
-              </Select>
+              <SelectMenu
+                value={v.category}
+                onChange={(value) => set('category', value)}
+                options={categoriesFor(v.kind).map((c) => ({ value: c.value, label: c.label }))}
+                buttonClassName="h-11"
+              />
             </Field>
 
             <Field label="Title" className="sm:col-span-2">
@@ -303,11 +306,16 @@ export function ProductForm({ initial }: { initial?: ProductFormValues }) {
                   />
                 </Field>
                 <Field label="Binding">
-                  <Select value={v.binding} onChange={(e) => set('binding', e.target.value)}>
-                    <option value="Paperback">Paperback</option>
-                    <option value="Hardcover">Hardcover</option>
-                    <option value="Spiral">Spiral</option>
-                  </Select>
+                  <SelectMenu
+                    value={v.binding}
+                    onChange={(value) => set('binding', value)}
+                    options={[
+                      { value: 'Paperback', label: 'Paperback' },
+                      { value: 'Hardcover', label: 'Hardcover' },
+                      { value: 'Spiral', label: 'Spiral' },
+                    ]}
+                    buttonClassName="h-11"
+                  />
                 </Field>
                 <Field label="Published year">
                   <Input
@@ -448,11 +456,12 @@ export function ProductForm({ initial }: { initial?: ProductFormValues }) {
         <section className="card-base p-5">
           <h2 className="mb-4 text-[15px] font-extrabold tracking-tight">Visibility</h2>
           <Field label="Status" hint="Only PUBLISHED products reach the storefront.">
-            <Select value={v.status} onChange={(e) => set('status', e.target.value)}>
-              {PRODUCT_STATUSES.map((s) => (
-                <option key={s} value={s}>{s}</option>
-              ))}
-            </Select>
+            <SelectMenu
+              value={v.status}
+              onChange={(value) => set('status', value)}
+              options={PRODUCT_STATUSES.map((s) => ({ value: s, label: s }))}
+              buttonClassName="h-11"
+            />
           </Field>
 
           <label className="mt-3.5 flex cursor-pointer items-center gap-2.5">

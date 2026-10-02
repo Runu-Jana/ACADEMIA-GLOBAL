@@ -4,7 +4,8 @@ import * as React from 'react'
 import { useRouter } from 'next/navigation'
 import { Save, Trash2, AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Field, Input, Select } from '@/components/ui/field'
+import { Field, Input } from '@/components/ui/field'
+import { SelectMenu } from '@/components/ui/select-menu'
 
 const TYPES = [
   { value: 'QUIZ', label: 'Quiz' },
@@ -34,6 +35,10 @@ export function TestSettings({
   const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setSaved(false)
     setForm((f) => ({ ...f, [k]: e.target.value }))
+  }
+  const setVal = (k: keyof typeof form) => (value: string) => {
+    setSaved(false)
+    setForm((f) => ({ ...f, [k]: value }))
   }
 
   async function save(e: React.FormEvent) {
@@ -94,13 +99,7 @@ export function TestSettings({
           <Input value={form.title} onChange={set('title')} maxLength={140} />
         </Field>
         <Field label="Type">
-          <Select value={form.type} onChange={set('type')}>
-            {TYPES.map((t) => (
-              <option key={t.value} value={t.value}>
-                {t.label}
-              </option>
-            ))}
-          </Select>
+          <SelectMenu value={form.type} onChange={setVal('type')} options={TYPES} buttonClassName="h-11" />
         </Field>
         <Field label="Duration (minutes)">
           <Input type="number" min={5} max={240} value={form.durationMin} onChange={set('durationMin')} />

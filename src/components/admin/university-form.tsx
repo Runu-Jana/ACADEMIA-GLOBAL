@@ -5,7 +5,8 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { AlertCircle, CheckCircle2, Save, ExternalLink, Copy, Check, KeyRound, Mail } from 'lucide-react'
 import { Button, buttonVariants } from '@/components/ui/button'
-import { Checkbox, Field, Input, Select, Textarea } from '@/components/ui/field'
+import { Checkbox, Field, Input, Textarea } from '@/components/ui/field'
+import { SelectMenu } from '@/components/ui/select-menu'
 import { slugify } from '@/lib/utils'
 
 export type UniversityFormValues = {
@@ -357,11 +358,12 @@ export function UniversityForm({
 
         <div className="grid gap-3.5 sm:grid-cols-2">
           <Field label="Partner status" hint="Only ACTIVE partners' courses can be enrolled (paid).">
-            <Select value={values.partnerStatus} onChange={(e) => set('partnerStatus', e.target.value)}>
-              {PARTNER_STATUSES.map((s) => (
-                <option key={s.value} value={s.value}>{s.label}</option>
-              ))}
-            </Select>
+            <SelectMenu
+              value={values.partnerStatus}
+              onChange={(value) => set('partnerStatus', value)}
+              options={PARTNER_STATUSES}
+              buttonClassName="h-11"
+            />
           </Field>
 
           <Field label="Commission (%)" hint="What the partner pays per paid enrolment.">

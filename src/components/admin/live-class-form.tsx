@@ -4,7 +4,8 @@ import * as React from 'react'
 import { useRouter } from 'next/navigation'
 import { CalendarPlus, AlertCircle, Video } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Field, Input, Select, Textarea } from '@/components/ui/field'
+import { Field, Input, Textarea } from '@/components/ui/field'
+import { SelectMenu } from '@/components/ui/select-menu'
 
 const PROVIDERS = [
   { value: 'JITSI', label: 'Jitsi (built-in room)' },
@@ -33,6 +34,8 @@ export function LiveClassForm({ courses }: { courses: { id: string; title: strin
     (key: keyof typeof EMPTY) =>
     (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
       setForm((f) => ({ ...f, [key]: e.target.value }))
+  const setVal = (key: keyof typeof EMPTY) => (value: string) =>
+    setForm((f) => ({ ...f, [key]: value }))
 
   const external = form.provider !== 'JITSI'
   const ready =
@@ -90,13 +93,14 @@ export function LiveClassForm({ courses }: { courses: { id: string; title: strin
 
       <div className="grid gap-3.5 sm:grid-cols-2">
         <Field label="Course" required className="sm:col-span-2">
-          <Select value={form.courseId} onChange={set('courseId')}>
-            {courses.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.title}
-              </option>
-            ))}
-          </Select>
+          <SelectMenu
+            value={form.courseId}
+            onChange={setVal('courseId')}
+            options={courses.map((c) => ({ value: c.id, label: c.title }))}
+            placeholder="Select a course…"
+            aria-label="Course"
+            buttonClassName="h-11"
+          />
         </Field>
 
         <Field label="Title" required className="sm:col-span-2">
@@ -111,13 +115,13 @@ export function LiveClassForm({ courses }: { courses: { id: string; title: strin
         </Field>
 
         <Field label="Provider">
-          <Select value={form.provider} onChange={set('provider')}>
-            {PROVIDERS.map((p) => (
-              <option key={p.value} value={p.value}>
-                {p.label}
-              </option>
-            ))}
-          </Select>
+          <SelectMenu
+            value={form.provider}
+            onChange={setVal('provider')}
+            options={PROVIDERS.map((p) => ({ value: p.value, label: p.label }))}
+            aria-label="Provider"
+            buttonClassName="h-11"
+          />
         </Field>
         {external && (
           <Field label="Meeting URL" required hint="The Zoom / Meet link students will join">

@@ -4,7 +4,8 @@ import * as React from 'react'
 import { useTranslations } from 'next-intl'
 import { CheckCircle2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Field, Input, Select, Textarea } from '@/components/ui/field'
+import { Field, Input, Textarea } from '@/components/ui/field'
+import { SelectMenu } from '@/components/ui/select-menu'
 import { SUPPORT_PHONE } from '@/lib/contact'
 
 const TOPIC_KEYS = ['admission', 'fees', 'tech', 'partnership', 'other'] as const
@@ -14,6 +15,7 @@ export function ContactForm() {
   const topics = TOPIC_KEYS.map((k) => t(`topics.${k}`))
   const [sent, setSent] = React.useState(false)
   const [busy, setBusy] = React.useState(false)
+  const [topic, setTopic] = React.useState(topics[0])
 
   function onSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -58,13 +60,12 @@ export function ContactForm() {
       </Field>
 
       <Field label={t('topic')} required>
-        <Select name="topic" required defaultValue={topics[0]}>
-          {topics.map((label) => (
-            <option key={label} value={label}>
-              {label}
-            </option>
-          ))}
-        </Select>
+        <SelectMenu
+          value={topic}
+          onChange={setTopic}
+          options={topics.map((label) => ({ value: label, label }))}
+          buttonClassName="h-11"
+        />
       </Field>
 
       <Field label={t('message')} required>
