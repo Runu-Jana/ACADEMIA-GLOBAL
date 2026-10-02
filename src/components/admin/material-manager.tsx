@@ -283,7 +283,11 @@ export function MaterialManager({
         <form onSubmit={onSubmit} className="grid gap-4 lg:grid-cols-2">
           {/* --------------------------------------------------- left: fields */}
           <div className="space-y-3.5">
-            <Field label="Title" required>
+            <Field
+              label="Display title"
+              required
+              hint="This is the name students see in their library — give it a clean title, not the raw file name. (Auto-filled from the file; edit it freely.)"
+            >
               <Input
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
